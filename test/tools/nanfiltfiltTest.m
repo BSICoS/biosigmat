@@ -11,8 +11,7 @@
 %% Add source path if needed
 addpath('../../src/tools');
 
-%% Initialize figure for visualizing all test cases
-figure('Name', 'nanfiltfilt Test Cases', 'Position', [100, 100, 1200, 800]);
+%% Print header
 fprintf('\n=========================================================\n');
 fprintf('          RUNNING NANFILTFILT TEST CASES\n');
 fprintf('=========================================================\n\n');
@@ -37,24 +36,6 @@ signalWithNans(nanIndices) = NaN;
 % Process with nanfiltfilt
 maxgap = 0; % Maximum size of NaN segments to interpolate
 filteredSignal = nanfiltfilt(b, a, signalWithNans, maxgap);
-
-% Plot results
-subplot(5, 2, 1);
-plot(t, originalSignal, 'b-', 'LineWidth', 1.5); hold on;
-plot(t, noisySignal, 'r-', 'LineWidth', 0.5);
-plot(t, signalWithNans, 'g.', 'MarkerSize', 10);
-title('Test 1: Original and Noisy Signals with NaNs');
-legend('Original', 'Noisy', 'With NaNs');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
-
-subplot(5, 2, 2);
-plot(t, originalSignal, 'b-', 'LineWidth', 1.5); hold on;
-plot(t, filteredSignal, 'm-', 'LineWidth', 1.5);
-title('Test 1: Original vs Filtered');
-legend('Original', 'Filtered');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
 
 % Test 1 validation - check if NaN positions are filled
 nanFilled = any(isnan(filteredSignal));
@@ -81,24 +62,6 @@ signalWithBursts(70:80) = NaN;
 % Process with nanfiltfilt
 maxgap = 3;
 filteredSignalBursts = nanfiltfilt(b, a, signalWithBursts, maxgap);
-
-% Plot results
-subplot(5, 2, 3);
-plot(t, originalSignal, 'b-', 'LineWidth', 1.5); hold on;
-plot(t, noisySignal, 'r-', 'LineWidth', 0.5);
-plot(t, signalWithBursts, 'g.', 'MarkerSize', 10);
-title('Test 2: Signal with Bursts of NaNs');
-legend('Original', 'Noisy', 'With NaN Bursts');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
-
-subplot(5, 2, 4);
-plot(t, originalSignal, 'b-', 'LineWidth', 1.5); hold on;
-plot(t, filteredSignalBursts, 'm-', 'LineWidth', 1.5);
-title('Test 2: Original vs Filtered (NaN Bursts)');
-legend('Original', 'Filtered');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
 
 % Test 2 validation - check if larger NaN bursts are preserved
 % Check if large bursts are preserved
@@ -131,19 +94,6 @@ allNanSignal = NaN(n, 1);
 % Process with nanfiltfilt
 filteredAllNan = nanfiltfilt(b, a, allNanSignal, maxgap);
 
-% Plot results
-subplot(5, 2, 5);
-plot(t, allNanSignal, 'g.', 'MarkerSize', 10);
-title('Test 3: All NaN Signal');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
-
-subplot(5, 2, 6);
-plot(t, filteredAllNan, 'm-', 'LineWidth', 1.5);
-title('Test 3: Filtered All NaN Signal');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
-
 % Test 3 validation - check if all NaN input produces all NaN output
 allNanOutput = all(isnan(filteredAllNan));
 if allNanOutput
@@ -162,24 +112,6 @@ filteredNoNan = nanfiltfilt(b, a, noNanSignal, maxgap);
 
 % Standard filtfilt for comparison
 standardFiltered = filtfilt(b, a, noNanSignal);
-
-% Plot results
-subplot(5, 2, 7);
-plot(t, originalSignal, 'b-', 'LineWidth', 1.5); hold on;
-plot(t, noNanSignal, 'r-', 'LineWidth', 0.5);
-title('Test 4: Signal with No NaNs');
-legend('Original', 'Noisy (No NaNs)');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
-
-subplot(5, 2, 8);
-plot(t, originalSignal, 'b-', 'LineWidth', 1.5); hold on;
-plot(t, filteredNoNan, 'm-', 'LineWidth', 1.5);
-plot(t, standardFiltered, 'c--', 'LineWidth', 1);
-title('Test 4: Original vs Filtered (No NaNs)');
-legend('Original', 'nanfiltfilt', 'standard filtfilt');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
 
 % Test 4 validation - check if no NaN input matches standard filtfilt
 noNanMatch = max(abs(filteredNoNan - standardFiltered)) < 1e-10;
@@ -231,23 +163,6 @@ catch ME
   fprintf('Unexpected error in Test 5: %s\n', ME.message);
 end
 
-% Plot results
-subplot(5, 2, 9);
-plot(t, originalSignal, 'b-', 'LineWidth', 1.5); hold on;
-plot(t, testSignal, 'g.', 'MarkerSize', 10);
-title('Test 5: Signal with NaN Bursts');
-legend('Original', 'With NaN Bursts');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
-
-subplot(5, 2, 10);
-plot(t, originalSignal, 'b-', 'LineWidth', 1.5); hold on;
-plot(t, filteredNoMaxgap, 'm-', 'LineWidth', 1.5);
-title('Test 5: Original vs Filtered (No maxgap)');
-legend('Original', 'Filtered (No maxgap)');
-xlabel('Time'); ylabel('Amplitude');
-grid on;
-
 % Test 5 validation - check missing maxgap parameter
 allNansPreserved = all(isnan(testSignal) == isnan(filteredNoMaxgap));
 
@@ -276,12 +191,14 @@ end
 
 % Test with only 2 inputs
 errorMessage = '';
+errorOccurred = false;
 
 try
   % This should throw an error
   filteredInsufficientInputs = nanfiltfilt(b, a);
   fprintf('Test 6: Error occurred with insufficient inputs: failed\n');
 catch ME
+  errorOccurred = true;
   errorMessage = ME.message;
   fprintf('Test 6: Error occurred with insufficient inputs (error: %s): passed\n', errorMessage);
 end

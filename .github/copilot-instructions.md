@@ -18,7 +18,14 @@
 - Use appropriate spacing and indentation for readability
 - Group related code blocks with comments
 
-### Example:
+### Test Structure
+- Test files should be named `functionNameTest.m` and placed in the corresponding subfolder in `test/`
+- Test files should include multiple test cases validating different aspects of the function
+- Each test case should have a descriptive title with %% section markers
+- Test cases should print clear pass/fail messages
+- Test files should end with a summary of all test results
+
+### Example Function:
 ```matlab
 function outputSignal = processSignal(inputSignal, windowSize)
 % Processes the input signal using a sliding window approach
@@ -42,6 +49,50 @@ for idx = 1:signalLength
 end
 
 end
+```
+
+### Example Test:
+```matlab
+% processSignalTest.m - Test for the processSignal function
+%
+% This script tests the processSignal function with different test cases:
+% 1. Basic functionality with simple input
+% 2. Edge case with zero window size
+% 3. Error handling with invalid inputs
+
+%% Add source path if needed
+addpath('../../src/path/to/function');
+
+%% Print header
+fprintf('\n=========================================================\n');
+fprintf('          RUNNING PROCESSSIGNAL TEST CASES\n');
+fprintf('=========================================================\n\n');
+
+%% Test 1: Basic functionality
+
+% Setup test data
+inputSignal = [1, 2, 3, 4, 5]';
+windowSize = 3;
+
+% Execute function under test
+result = processSignal(inputSignal, windowSize);
+
+% Test validation
+expected = [2, 3, 3, 4, 3]';
+testPassed = all(abs(result - expected) < 1e-10);
+
+if testPassed
+  fprintf('Test 1: Basic functionality: passed\n');
+else
+  fprintf('Test 1: Basic functionality: failed\n');
+end
+
+%% Additional tests...
+
+%% Summarize all results
+fprintf('\n---------------------------------------------------------\n');
+fprintf('  SUMMARY: %i of %i tests passed\n', sum([testPassed, ...]), totalTests);
+fprintf('---------------------------------------------------------\n\n');
 ```
 
 ## MATLAB-Specific Guidelines

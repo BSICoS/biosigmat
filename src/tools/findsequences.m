@@ -61,9 +61,7 @@ narginchk(1, 2);
 nargoutchk(0, 4);
 
 % Input validation
-if ~isnumeric(A)
-    error('findsequences:InvalidInput', 'Input A must be numeric');
-elseif isempty(A) || isscalar(A)
+if isempty(A) || isscalar(A)
     varargout{1} = [];
     return
 elseif islogical(A)
@@ -89,7 +87,7 @@ if szA(dim) < 2
 end
 
 % Convert to column vector if input is a vector
-if logical(nnz(szA ~= 1))
+if nnz(szA ~= 1) == 1
     A = A(:);
     dim = 1;
     szA = size(A);

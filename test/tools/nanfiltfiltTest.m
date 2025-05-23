@@ -44,7 +44,7 @@ else
   fprintf('\n');
 end
 
-%% Test 2: Noisy sinusoidal with some NaN values and maxgap = 0
+%% Test 2: Noisy sinusoidal with some NaN values and maxgap = length(signal)
 
 % Generate sinusoidal signal with noise
 n = 100;
@@ -62,15 +62,15 @@ signalWithNans(nanIndices) = NaN;
 [b, a] = butter(2, 0.1); % 2nd order Butterworth filter with normalized cutoff freq 0.2
 
 % Process with nanfiltfilt
-maxgap = 0; % Maximum size of NaN segments to interpolate
+maxgap = length(signalWithNans); % Maximum size of NaN segments to interpolate
 filteredSignal = nanfiltfilt(b, a, signalWithNans, maxgap);
 
 % Test 2 validation - check if NaN positions are filled
-nanFilled = any(isnan(filteredSignal));
+nanFilled = ~any(isnan(filteredSignal));
 if nanFilled
-  fprintf('Test 2: NaN positions filled: passed\n');
+  fprintf('Test 2: Noisy sinusoidal with some NaN values and maxgap = length(signal): passed\n');
 else
-  fprintf('Test 2: NaN positions filled: failed\n');
+  fprintf('Test 2: Noisy sinusoidal with some NaN values and maxgap = length(signal): failed\n');
 end
 
 %% Test 3: Noisy sinusoidal with bursts of NaN values
@@ -80,11 +80,9 @@ noisySignal = originalSignal + noise;
 
 % Add bursts of NaN values
 signalWithBursts = noisySignal;
-% First burst - small (will be interpolated)
+% Small burst (will be interpolated)
 signalWithBursts(15:17) = NaN;
-% Second burst - medium
-signalWithBursts(40:45) = NaN;
-% Third burst - large
+% Large burst (will not be interpolated)
 signalWithBursts(70:80) = NaN;
 
 % Process with nanfiltfilt
@@ -92,9 +90,9 @@ maxgap = 3;
 filteredSignalBursts = nanfiltfilt(b, a, signalWithBursts, maxgap);
 
 % Test 3 validation - check if larger NaN bursts are preserved
-% Check if large bursts are preserved
 largeBurstPreserved = all(isnan(signalWithBursts(70:80)) == isnan(filteredSignalBursts(70:80)));
 smallBurstInterpolated = ~any(isnan(filteredSignalBursts(15:17)));
+
 if largeBurstPreserved && smallBurstInterpolated
   fprintf('Test 3: Noisy sinusoidal with bursts of NaN values: passed\n');
 else
@@ -191,7 +189,6 @@ catch ME
   fprintf('Unexpected error in Test 5: %s\n', ME.message);
 end
 
-% Test 5 validation - check missing maxgap parameter
 allNansPreserved = all(isnan(testSignal) == isnan(filteredNoMaxgap));
 
 % Overall test result

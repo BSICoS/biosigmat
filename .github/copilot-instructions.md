@@ -20,6 +20,7 @@
 
 ### Test Structure
 - Test files should be named `functionNameTest.m` and placed in the corresponding subfolder in `test/`
+- The first test should always be a dependency check that verifies all required non-MATLAB functions are available
 - Test files should include multiple test cases validating different aspects of the function
 - Each test case should have a descriptive title with %% section markers
 - Test cases should print clear pass/fail messages
@@ -56,9 +57,10 @@ end
 % processSignalTest.m - Test for the processSignal function
 %
 % This script tests the processSignal function with different test cases:
-% 1. Basic functionality with simple input
-% 2. Edge case with zero window size
-% 3. Error handling with invalid inputs
+% 1. Dependencies check (checks if required functions are available)
+% 2. Basic functionality with simple input
+% 3. Edge case with zero window size
+% 4. Error handling with invalid inputs
 
 %% Add source path if needed
 addpath('../../src/path/to/function');
@@ -68,7 +70,34 @@ fprintf('\n=========================================================\n');
 fprintf('          RUNNING PROCESSSIGNAL TEST CASES\n');
 fprintf('=========================================================\n\n');
 
-%% Test 1: Basic functionality
+%% Test 1: Dependencies check
+
+% Test if all required dependencies are available
+dependenciesOk = true;
+missingDependencies = {};
+
+% Check for required functions
+if ~exist('requiredFunction', 'file')
+  dependenciesOk = false;
+  missingDependencies{end+1} = 'requiredFunction';
+end
+
+% Print test results
+if dependenciesOk
+  fprintf('Test 1: All dependencies available: passed\n');
+else
+  fprintf('Test 1: All dependencies available: failed\n');
+  fprintf(' - Missing dependencies: ');
+  for i = 1:length(missingDependencies)
+    if i > 1
+      fprintf(', ');
+    end
+    fprintf('%s', missingDependencies{i});
+  end
+  fprintf('\n');
+end
+
+%% Test 2: Basic functionality
 
 % Setup test data
 inputSignal = [1, 2, 3, 4, 5]';
@@ -91,7 +120,7 @@ end
 
 %% Summarize all results
 fprintf('\n---------------------------------------------------------\n');
-fprintf('  SUMMARY: %i of %i tests passed\n', sum([testPassed, ...]), totalTests);
+fprintf('  SUMMARY: %i of %i tests passed\n', sum([dependenciesOk, testPassed, ...]), totalTests);
 fprintf('---------------------------------------------------------\n\n');
 ```
 

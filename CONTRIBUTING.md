@@ -104,13 +104,14 @@ fprintf('---------------------------------------------------------\n\n');
 
 Each test should:
 
-1. Have a descriptive title with the %% section marker
-2. Include test setup with clear, descriptive variable names
-3. Execute the function being tested
-4. Validate results with clear pass/fail criteria
-5. Print clear pass/fail messages for each test
-6. Include subtests where appropriate (e.g., Test 2a, Test 2b)
-7. End with a summary of all test results
+1. Start with a dependency check test to verify all required non-MATLAB functions are available
+2. Have a descriptive title with the %% section marker
+3. Include test setup with clear, descriptive variable names
+4. Execute the function being tested
+5. Validate results with clear pass/fail criteria
+6. Print clear pass/fail messages for each test
+7. Include subtests where appropriate (e.g., Test 2a, Test 2b)
+8. End with a summary of all test results
 
 ### Example Test File
 
@@ -120,9 +121,10 @@ Here is an example of a complete test file for a hypothetical `processSignal` fu
 % processSignalTest.m - Test for the processSignal function
 %
 % This script tests the processSignal function with different test cases:
-% 1. Test with normal input
-% 2. Test with edge case input
-% 3. Test with invalid input
+% 1. Dependencies check (checks if required functions are available)
+% 2. Test with normal input
+% 3. Test with edge case input
+% 4. Test with invalid input
 
 %% Add source path if needed
 addpath('../../src/');
@@ -132,7 +134,34 @@ fprintf('\n=========================================================\n');
 fprintf('          RUNNING PROCESSSIGNAL TEST CASES\n');
 fprintf('=========================================================\n\n');
 
-%% Test 1: Normal input
+%% Test 1: Dependencies check
+
+% Test if all required dependencies are available
+dependenciesOk = true;
+missingDependencies = {};
+
+% Check for required functions
+if ~exist('dependencyFunction', 'file')
+  dependenciesOk = false;
+  missingDependencies{end+1} = 'dependencyFunction';
+end
+
+% Print test results
+if dependenciesOk
+  fprintf('Test 1: All dependencies available: passed\n');
+else
+  fprintf('Test 1: All dependencies available: failed\n');
+  fprintf(' - Missing dependencies: ');
+  for i = 1:length(missingDependencies)
+    if i > 1
+      fprintf(', ');
+    end
+    fprintf('%s', missingDependencies{i});
+  end
+  fprintf('\n');
+end
+
+%% Test 2: Normal input
 
 % Setup test data
 inputSignal = [1, 2, 3, 4, 5];
@@ -141,16 +170,16 @@ windowSize = 3;
 % Execute function under test
 outputSignal = processSignal(inputSignal, windowSize);
 
-% Test 1 validation - verify expected results
+% Test 2 validation - verify expected results
 expectedOutput = [2, 3, 4];
-test1Passed = isequal(outputSignal, expectedOutput);
-if test1Passed
-  fprintf('Test 1: Normal input: passed\n');
+test2Passed = isequal(outputSignal, expectedOutput);
+if test2Passed
+  fprintf('Test 2: Normal input: passed\n');
 else
-  fprintf('Test 1: Normal input: failed\n');
+  fprintf('Test 2: Normal input: failed\n');
 end
 
-%% Test 2: Edge case input
+%% Test 3: Edge case input
 
 % Setup test data
 inputSignal = [1];
@@ -159,16 +188,16 @@ windowSize = 3;
 % Execute function under test
 outputSignal = processSignal(inputSignal, windowSize);
 
-% Test 2 validation - verify expected results
+% Test 3 validation - verify expected results
 expectedOutput = [1];
-test2Passed = isequal(outputSignal, expectedOutput);
-if test2Passed
-  fprintf('Test 2: Edge case input: passed\n');
+test3Passed = isequal(outputSignal, expectedOutput);
+if test3Passed
+  fprintf('Test 3: Edge case input: passed\n');
 else
-  fprintf('Test 2: Edge case input: failed\n');
+  fprintf('Test 3: Edge case input: failed\n');
 end
 
-%% Test 3: Invalid input
+%% Test 4: Invalid input
 
 % Setup test data
 inputSignal = 'invalid';
@@ -177,23 +206,23 @@ windowSize = 3;
 % Execute function under test
 try
     outputSignal = processSignal(inputSignal, windowSize);
-    test3Passed = false;
+    test4Passed = false;
 catch
-    test3Passed = true;
+    test4Passed = true;
 end
 
-% Test 3 validation - verify expected results
-if test3Passed
-  fprintf('Test 3: Invalid input: passed\n');
+% Test 4 validation - verify expected results
+if test4Passed
+  fprintf('Test 4: Invalid input: passed\n');
 else
-  fprintf('Test 3: Invalid input: failed\n');
+  fprintf('Test 4: Invalid input: failed\n');
 end
 
 %% Summarize all results
-totalTests = 3;
+totalTests = 4;
 fprintf('\n---------------------------------------------------------\n');
 fprintf('  SUMMARY: %i of %i tests passed\n', ...
-  sum([test1Passed, test2Passed, test3Passed]), totalTests);
+  sum([dependenciesOk, test2Passed, test3Passed, test4Passed]), totalTests);
 fprintf('---------------------------------------------------------\n\n');
 ```
 

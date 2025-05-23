@@ -1,42 +1,43 @@
-function varargout = findsequences(inputArray, dimension)
-% findsequences Find sequences of repeated (adjacent/consecutive) numeric values
+function varargout = findsequences(A, dim)
+% FINDSEQUENCES Find sequences of repeated (adjacent/consecutive) numeric values
 %
-% Finds sequences of repeated numeric values in an array along the specified dimension.
+%   findsequences(A) Find sequences of repeated numeric values in A along the
+%              first non-singleton dimension. A should be numeric.
 %
-% Inputs:
-%   inputArray - The array to search for sequences (must be numeric)
-%   dimension - The dimension along which to search (optional)
+%   findsequences(...,DIM) Look for sequences along the dimension specified by the
+%                    positive integer scalar DIM.
 %
-% Outputs:
-%   When using single output:
-%     OUT is a "m x 4" numeric matrix where m is the number of sequences found.
-%     Each sequence has 4 columns:
-%       - 1st col.: the value being repeated
-%       - 2nd col.: the position of the first value of the sequence
-%       - 3rd col.: the position of the last value of the sequence
-%       - 4th col.: the length of the sequence
+%   OUT = findsequences(...)
+%       OUT is a "m by 4" numeric matrix where m is the number of sequences found.
 %
-%   When using multiple outputs:
-%     [VALUES, INPOS, FIPOS, LEN] = findsequences(...)
-%     Returns the columns of OUT as separate outputs
+%       Each sequence has 4 columns where:
+%           - 1st col.:  the value being repeated
+%           - 2nd col.:  the position of the first value of the sequence (startIndices)
+%           - 3rd col.:  the position of the last value of the sequence (endIndices)
+%           - 4th col.:  the length of the sequence (seqLengths)
 %
-%   If no sequences are found, no value is returned.
-%   To convert positions into subs/coordinates use IND2SUB
+%   [VALUES, INPOS, FIPOS, LEN] = findsequences(...)
+%       Get OUT as separate outputs.
+%
+%       If no sequences are found no value is returned.
+%       To convert positions into subs/coordinates use IND2SUB
+%
 %
 % Examples:
 %
 %     % There are sequences of 20s, 1s and NaNs (column-wise)
-%     A = [  20,  19,   3,   2, NaN, NaN
-%            20,  23,   1,   1,   1, NaN
-%            20,   7,   7, NaN,   1, NaN]
+%     A   =  [  20,  19,   3,   2, NaN, NaN
+%               20,  23,   1,   1,   1, NaN
+%               20,   7,   7, NaN,   1, NaN]
 %
 %     OUT = findsequences(A)
 %     OUT =
-%            20        1          3        3
-%             1       14         15        2
-%           NaN       16         18        3
+%          % Value  startIndices  endIndices  seqLengths
+%            20        1              3           3       % Sequence of three 20s in first column
+%             1       14             15           2       % Sequence of two 1s (positions 14-15)
+%           NaN       16             18           3       % Sequence of three NaNs (positions 16-18)
 %
-%     % 3D sequences: NaN, 6 and 0
+%     % 3D sequences: 6, 0 and NaN along the third dimension
 %     A        = [  1, 4
 %                 NaN, 5
 %                   3, 6];
@@ -49,134 +50,150 @@ function varargout = findsequences(inputArray, dimension)
 %
 %     OUT = findsequences(A,3)
 %     OUT =
-%             6     6    18     3
-%             0    10    16     2
-%           NaN     2     8     2
+%          % Value  startIndices  endIndices  seqLengths
+%             6        6              18          3       % Value 6 at position (3,2) repeats through 3 slices
+%             0       10              16          2       % Two sequences of 0 along third dimension
+%           NaN        2               8          2       % Sequence of two NaNs at position (2,1)
 %
 
-% Check input arguments
-error(nargchk(1, 2, nargin));
+% Input argument validation
+narginchk(1, 2);
+nargoutchk(0, 4);
 
-% Check output arguments
-error(nargoutchk(0, 4, nargout));
-
-% Validate input array
-if ~isnumeric(inputArray)
-    error('findseq:fmtA', 'inputArray should be numeric');
-elseif isempty(inputArray) || isscalar(inputArray)
+% Input validation
+if ~isnumeric(A)
+    error('findsequences:InvalidInput', 'Input A must be numeric');
+elseif isempty(A) || isscalar(A)
     varargout{1} = [];
-    return;
-elseif islogical(inputArray)
-    inputArray = double(inputArray);
+    return
+elseif islogical(A)
+    A = double(A);
 end
 
-% Determine dimension to operate on
-arraySize = size(inputArray);
-if nargin == 1 || isempty(dimension)
+% Determine dimension to process
+szA = size(A);
+if nargin < 2 || isempty(dim)
     % First non-singleton dimension
-    dimension = find(arraySize ~= 1, 1, 'first');
-elseif ~(isnumeric(dimension) && dimension > 0 && rem(dimension, 1) == 0) || dimension > numel(arraySize)
-    error('findseq:fmtDim', 'dimension should be a scalar positive integer <= ndims(inputArray)');
+    dim = find(szA ~= 1, 1, 'first');
+    if isempty(dim)
+        dim = 1; % Default to first dimension if all dimensions are singleton
+    end
+elseif ~(isnumeric(dim) && isscalar(dim) && dim > 0 && rem(dim, 1) == 0) || dim > ndims(A)
+    error('findsequences:InvalidDimension', 'DIM must be a positive integer <= ndims(A)');
 end
 
-% Check if there are less than two elements along dimension
-if arraySize(dimension) == 1
+% Less than two elements along specified dimension
+if szA(dim) < 2
     varargout{1} = [];
-    return;
+    return
 end
 
-% Handle vector input
-if nnz(arraySize ~= 1) == 1
-    inputArray = inputArray(:);
-    dimension = 1;
-    arraySize = size(inputArray);
+% Convert to column vector if input is a vector
+if logical(nnz(szA ~= 1))
+    A = A(:);
+    dim = 1;
+    szA = size(A);
 end
 
-% Detect special values: 0, NaN, Inf and -Inf
-otherValues = cell(1, 4);
-otherValues{1} = inputArray == 0;
-otherValues{2} = isnan(inputArray);
-otherValues{3} = inputArray == Inf;
-otherValues{4} = inputArray == -Inf;
+% Detect special values (0, NaN, Inf, -Inf)
 specialValues = [0, NaN, Inf, -Inf];
+specialMasks = cell(1, 4);
+specialMasks{1} = A == 0;       % Zeros
+specialMasks{2} = isnan(A);     % NaNs
+specialMasks{3} = A == Inf;     % Positive Infinity
+specialMasks{4} = A == -Inf;    % Negative Infinity
 
-% Remove zeros from main array (will be handled separately)
-inputArray(otherValues{1}) = NaN;
+% Create NaN padding for boundary detection algorithm
+nanPadding = NaN([szA(1:dim-1), 1, szA(dim+1:end)]);
 
-% Create NaN padding
-nanPadding = NaN([arraySize(1:dimension-1), 1, arraySize(dimension+1:end)]);
+% Make a copy of A with zeros replaced by NaN (to process normal values)
+AWithoutZeros = A;
+AWithoutZeros(specialMasks{1}) = NaN;
 
-% Get sequences of normal values
-outputSequences = findSequencesByRunLengthEncoding(inputArray, nanPadding, dimension, arraySize);
+% Process normal values
+Out = findSequencesByDiff(AWithoutZeros, nanPadding, dim);
 
-% Get sequences of special values (0, NaN, Inf and -Inf)
-for valueIdx = 1:4
-    if nnz(otherValues{valueIdx}) > 1
-        % Convert logical to double and apply NaN padding
-        otherValues{valueIdx} = double(otherValues{valueIdx});
-        otherValues{valueIdx}(~otherValues{valueIdx}) = NaN;
+% Process special values (0, NaN, Inf, -Inf)
+for i = 1:4
+    % Only process if there are at least 2 occurrences of this special value
+    if nnz(specialMasks{i}) > 1
+        % Convert logical mask to double with NaNs for false values
+        valueMask = double(specialMasks{i});
+        valueMask(~specialMasks{i}) = NaN;
 
-        % Find sequences of this special value
-        tempSequences = findSequencesByRunLengthEncoding(otherValues{valueIdx}, nanPadding, dimension, arraySize);
+        % Process sequences of this special value
+        tmp = findSequencesByDiff(valueMask, nanPadding, dim);
 
-        % Add to output if any sequences found
-        if ~isempty(tempSequences)
-            outputSequences = [outputSequences; [repmat(specialValues(valueIdx), size(tempSequences, 1), 1) tempSequences(:, 2:end)]];
+        if ~isempty(tmp)
+            % Combine with normal value results, replacing detected values with actual special values
+            Out = [Out; repmat(specialValues(i), size(tmp, 1), 1), tmp(:, 2:end)]; %#ok<AGROW>
         end
     end
 end
 
-% Distribute output based on number of requested outputs
+% Format output based on requested number of output arguments
 if nargout < 2
-    varargout = {outputSequences};
+    varargout = {Out};
 else
-    varargout = num2cell(outputSequences(:, 1:nargout), 1);
+    % Split columns into separate output arguments
+    varargout = num2cell(Out(:, 1:nargout), 1);
 end
 
 end
 
-function outputSequences = findSequencesByRunLengthEncoding(dataArray, padding, dimension, sizeData)
-% findSequencesByRunLengthEncoding Helper function to find sequences using run length encoding
+function Out = findSequencesByDiff(inputData, nanPadding, dim)
+% FINDSEQUENCESBYDIFF Find sequences of identical values using double differencing
 %
 % Inputs:
-%   dataArray - The data array to search for sequences
-%   padding - NaN padding to assist with sequence detection
-%   dimension - The dimension along which to search
-%   sizeData - Size of the data array
+%   inputData - The data to be processed
+%   nanPadding - NaN padding for boundary detection
+%   dim - Dimension along which to find sequences
 %
 % Outputs:
-%   outputSequences - Matrix containing sequence information
+%   Out - Matrix with sequence information [value, startIndices, endIndices, seqLengths]
+%
+% Algorithm:
+%   1. Pads input data with NaNs at boundaries
+%   2. Uses double differencing to detect transitions between identical values
+%   3. Identifies start/end points of sequences by analyzing difference patterns
 
-% Create a "sandwich" with NaN padding at both ends
-sandwich = cat(dimension, padding, dataArray, padding);
+% Calculate size of input data
+szInput = size(inputData);
 
-% Find chunks using run length encoding approach
-diffMatrix = diff(diff(sandwich, [], dimension) == 0, [], dimension);
+% Create padded structure (nanPadding-data-nanPadding)
+paddedData = cat(dim, nanPadding, inputData, nanPadding);
 
-% Find positions where sequences start and end
-[startRows, startCols] = find(diffMatrix == 1);
-[endRows, endCols] = find(diffMatrix == -1);
+% Find sequences using double differencing
+diffIdx = diff(diff(paddedData, [], dim) == 0, [], dim);
 
-% Make sure rows/columns correspond (relevant if dimension > 1)
-[startCoords, sortIdx] = sortrows([startRows, startCols], 1);
-endCoords = [endRows, endCols];
-endCoords = endCoords(sortIdx, :);
+% Find start and end positions of sequences
+[startRows, startCols] = find(diffIdx == 1);
+[endRows, endCols] = find(diffIdx == -1);
 
-% Calculate length of sequences
-if dimension < 3
-    sequenceLength = endCoords(:, dimension) - startCoords(:, dimension) + 1;
+% If no sequences found, return empty result
+if isempty(startRows)
+    Out = [];
+    return;
+end
+
+% Ensure proper matching of start and end points (important for dim > 1)
+[startPoints, sortIdx] = sortrows([startRows, startCols], 1);
+endPoints = [endRows, endCols];
+endPoints = endPoints(sortIdx, :);
+
+% Calculate sequence lengths
+if dim < 3
+    seqLengths = endPoints(:, dim) - startPoints(:, dim) + 1;
 else
-    middleDimProduct = prod(sizeData(2:dimension-1));
-    sequenceLength = (endCoords(:, 2) - startCoords(:, 2)) / middleDimProduct + 1;
+    % For higher dimensions, compute length considering multidimensional structure
+    dimProduct = prod(szInput(2:dim-1));
+    seqLengths = (endPoints(:, 2) - startPoints(:, 2)) / dimProduct + 1;
 end
 
 % Convert to linear indices
-startPositions = sub2ind(sizeData, startCoords(:, 1), startCoords(:, 2));
-endPositions = sub2ind(sizeData, endCoords(:, 1), endCoords(:, 2));
+startIndices = sub2ind(szInput, startPoints(:, 1), startPoints(:, 2));
+endIndices = sub2ind(szInput, endPoints(:, 1), endPoints(:, 2));
 
-% Assemble output matrix
-outputSequences = [dataArray(startPositions), ...  % Values
-    startPositions, ...              % Initial positions
-    endPositions, ...                % Final positions
-    sequenceLength];                 % Length of sequences
+% Create output matrix [value, startIndices, endIndices, seqLengths]
+Out = [inputData(startIndices), startIndices, endIndices, seqLengths];
 end

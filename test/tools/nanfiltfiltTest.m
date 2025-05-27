@@ -2,12 +2,17 @@
 %
 % This script tests the nanfiltfilt function with different test cases:
 % 1. Dependencies check (checks if required functions are available)
-% 2. Noisy sinusoidal with some NaN values
-% 3. Noisy sinusoidal with bursts of NaN values
+% 2. Noisy sinusoidal with some NaN values and maxgap = length(signal)
+% 3. Noisy sinusoidal with bursts of NaN values (small bursts interpolated, large bursts preserved)
 % 4. Signal with all NaN values
 % 5. Signal with no NaN values
-% 6. Missing maxgap parameter (should issue warning and preserve all NaNs)
-% 7. Insufficient inputs (should throw an error)
+% 6. Missing maxgap parameter (issues warning and preserves all NaNs)
+% 7. Insufficient inputs (throws an error)
+% 8. Multi-column noisy sinusoidal with some NaNs and maxgap = length(signal)
+% 9. Multi-column noisy sinusoidal with bursts of NaNs (small bursts interpolated, large bursts preserved)
+% 10. Multi-column all-NaN signal
+% 11. Multi-column no-NaN signal matches standard filtfilt
+% 12. Multi-column missing maxgap parameter (issues warning and preserves all NaNs)
 
 %% Add source path if needed
 addpath('../../src/tools');
@@ -173,14 +178,12 @@ try  % Process with nanfiltfilt without maxgap parameter
   % Temporarily disable warnings to prevent them from being displayed
   oldWarningState = warning('off', 'all');
 
-  [~, warnId] = lastwarn('');
   lastwarn('');
 
   filteredNoMaxgap = nanfiltfilt(b, a, testSignal);
 
-  [warnMsg, warnId] = lastwarn();
+  warnMsg = lastwarn();
   warningOccurred = ~isempty(warnMsg);
-  warningMessage = warnMsg;
 
   % Restore original warning state
   warning(oldWarningState);
@@ -200,7 +203,7 @@ end
 
 % Check if warning occurred
 if warningOccurred
-  fprintf(' - Test 6a: Warning occurred for missing maxgap: passed\n');
+  fprintf(' - Test 6a: Warning occurred for missing maxgap (%s): passed\n', warnMsg);
 else
   fprintf(' - Test 6a: Warning occurred for missing maxgap: failed\n');
 end
@@ -227,9 +230,102 @@ catch ME
   errorMessage = ME.message;  fprintf('Test 7: Error occurred with insufficient inputs (error: %s): passed\n', errorMessage);
 end
 
+%% Test 8: Multi-column noisy sinusoidal with some NaNs and maxgap = length(signal)
+
+numCols = 3;
+noiseMat = 0.2 * randn(n, numCols);
+signalMat = repmat(originalSignal, 1, numCols) + noiseMat;
+signalWithNansMat = signalMat;
+for c = 1:numCols
+  idx = randperm(n, round(n*0.1));
+  signalWithNansMat(idx, c) = NaN;
+end
+filteredMat = nanfiltfilt(b, a, signalWithNansMat, n);
+multiNanFilled = ~any(isnan(filteredMat), 'all');
+if multiNanFilled
+  fprintf('Test 8: Multi-column noisy with NaNs & maxgap = length: passed\n');
+else
+  fprintf('Test 8: Multi-column noisy with NaNs & maxgap = length: failed\n');
+end
+
+%% Test 9: Multi-column noisy sinusoidal with bursts of NaNs
+
+signalBurstsMat = signalMat;
+signalBurstsMat(15:17, :) = NaN;   % small bursts
+signalBurstsMat(70:80, :) = NaN;   % large bursts
+filteredBurstsMat = nanfiltfilt(b, a, signalBurstsMat, 3);
+largeBurstPreservedMat = all(isnan(filteredBurstsMat(70:80, :)), 'all');
+smallBurstInterpolatedMat = ~any(isnan(filteredBurstsMat(15:17, :)), 'all');
+multiBurstOk = largeBurstPreservedMat && smallBurstInterpolatedMat;
+if multiBurstOk
+  fprintf('Test 9: Multi-column bursts of NaNs: passed\n');
+else
+  fprintf('Test 9: Multi-column bursts of NaNs: failed\n');
+end
+if largeBurstPreservedMat
+  fprintf(' - Test 9a: Large burst preserved: passed\n');
+else
+  fprintf(' - Test 9a: Large burst preserved: failed\n');
+end
+if smallBurstInterpolatedMat
+  fprintf(' - Test 9b: Small burst interpolated: passed\n');
+else
+  fprintf(' - Test 9b: Small burst interpolated: failed\n');
+end
+
+%% Test 10: Multi-column all-NaN signal
+
+allNanMat = NaN(n, numCols);
+filteredAllNanMat = nanfiltfilt(b, a, allNanMat, 3);
+multiAllNanOutput = all(isnan(filteredAllNanMat), 'all');
+if multiAllNanOutput
+  fprintf('Test 10: Multi-column all-NaN in → all-NaN out: passed\n');
+else
+  fprintf('Test 10: Multi-column all-NaN in → all-NaN out: failed\n');
+end
+
+%% Test 11: Multi-column no-NaN signal matches standard filtfilt
+
+noNanMat = signalMat;
+filteredNoNanMat = nanfiltfilt(b, a, noNanMat, 3);
+standardMat = filtfilt(b, a, noNanMat);
+multiNoNanMatch = max(abs(filteredNoNanMat - standardMat), [], 'all') < 1e-10;
+if multiNoNanMatch
+  fprintf('Test 11: Multi-column no-NaN matches filtfilt: passed\n');
+else
+  fprintf('Test 11: Multi-column no-NaN matches filtfilt: failed\n');
+end
+
+%% Test 12: Multi-column missing maxgap parameter
+
+testMat = signalBurstsMat;
+lastwarn(''); warning('off', 'all');
+filteredNoMaxgapMat = nanfiltfilt(b, a, testMat);
+[warnMsg, warnId] = lastwarn;
+multiWarnOccurred = ~isempty(warnMsg);
+multiPreserveMat = all(isnan(testMat) == isnan(filteredNoMaxgapMat), 'all');
+multiMissingOk = multiWarnOccurred && multiPreserveMat;
+if multiMissingOk
+  fprintf('Test 12: Multi-column missing maxgap: passed\n');
+else
+  fprintf('Test 12: Multi-column missing maxgap: failed\n');
+end
+if multiWarnOccurred
+  fprintf(' - Test 12a: Warning occurred: passed\n');
+else
+  fprintf(' - Test 12a: Warning occurred: failed\n');
+end
+if multiPreserveMat
+  fprintf(' - Test 12b: All NaNs preserved: passed\n');
+else
+  fprintf(' - Test 12b: All NaNs preserved: failed\n');
+end
+
 %% Summarize all results
+
 fprintf('\n---------------------------------------------------------\n');
 fprintf('  SUMMARY: %i of %i tests passed\n', ...
   sum([dependenciesOk, nanFilled, largeBurstPreserved, allNanOutput, noNanMatch, ...
-  allNansPreserved, errorOccurred]), 7);
+  allNansPreserved, errorOccurred, multiNanFilled, multiBurstOk, multiAllNanOutput, ...
+  multiNoNanMatch, multiMissingOk]), 12);
 fprintf('---------------------------------------------------------\n\n');

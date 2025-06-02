@@ -6,10 +6,9 @@ if (-not (Test-Path ".git/hooks")) {
     exit 1
 }
 
-# Copy the pre-push hook from the hooks directory
-Copy-Item -Path "hooks\pre-push" -Destination ".git\hooks\pre-push" -Force
-
-# In Windows, making a file executable isn't needed. But we ensure LF line endings (optional)
-(Get-Content ".git\hooks\pre-push") | Set-Content -NoNewline ".git\hooks\pre-push"
+# Read the file content and ensure LF endings
+$content = Get-Content -Path "hooks\pre-push" -Raw -Encoding UTF8
+$content = $content -replace "`r`n", "`n" -replace "`r", "`n"
+Set-Content -Path ".git\hooks\pre-push" -Value $content -NoNewline -Encoding UTF8
 
 Write-Host "Pre-push hook installed successfully."

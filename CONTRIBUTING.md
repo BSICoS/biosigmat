@@ -57,6 +57,12 @@ end
 
 ### Test Structure
 
+- Each test file must begin with a header comment summarizing the test scenarios covered. For example:
+% Tests covering:
+%   - Basic functionality
+%   - Edge-case handling
+%   - Special values (NaN, Inf)
+
 Test files must define a test class using MATLAB's unittest framework:
 
 ```matlab

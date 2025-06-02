@@ -1,3 +1,14 @@
+% Tests covering:
+%   - Dependency existence check for findsequences
+%   - Noisy sinusoid with NaNs interpolation when maxgap=length
+%   - Preservation of large NaN bursts and interpolation of small NaN bursts
+%   - Handling of all-NaN signals
+%   - Behavior on signals without NaNs matching standard filtfilt
+%   - Warning issuance and NaN handling when maxgap is missing
+%   - Error thrown for insufficient inputs
+%   - Multi-column noisy signals with NaNs interpolation
+%   - Multi-column NaN burst behaviors and missing maxgap handling
+
 classdef nanfiltfiltTest < matlab.unittest.TestCase
 
   methods (TestClassSetup)

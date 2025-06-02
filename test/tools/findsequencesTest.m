@@ -1,3 +1,12 @@
+% Tests covering:
+%   - Basic vector sequence detection
+%   - Matrix sequence detection
+%   - Special values handling (NaN, Inf, -Inf)
+%   - Empty and scalar input behavior
+%   - Invalid input error handling
+%   - Logical input sequence detection
+%   - Multiple outputs formatting
+
 classdef findsequencesTest < matlab.unittest.TestCase
 
   methods (TestClassSetup)

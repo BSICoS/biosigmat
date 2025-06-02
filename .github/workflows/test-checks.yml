@@ -1,0 +1,37 @@
+name: Check MATLAB Tests
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  check-matlab-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Check for corresponding test files
+        run: |
+          echo "Searching for MATLAB function files and corresponding tests..."
+
+          # Find all .m files in src/** (excluding hidden dirs)
+          find src -type f -name '*.m' | while read -r srcfile; do
+            # Get the function name without extension
+            funcname=$(basename "$srcfile" .m)
+            
+            # Expected corresponding test file
+            expected_testfile="test/${srcfile#src/}"
+            expected_testfile="${expected_testfile%.*}Test.m"
+
+            # Check if the test file exists
+            if [ ! -f "$expected_testfile" ]; then
+              echo "::error file=$srcfile::Missing corresponding test file: $expected_testfile"
+              exit 1
+            fi
+          done
+
+          echo "All MATLAB functions have corresponding test files!"

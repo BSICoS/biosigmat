@@ -24,7 +24,7 @@ if nargin < 3
 end
 
 if nargin < 4 || isempty(maxgap)
-    warning('maxgap not specified. All NaN segments will be preserved regardless of size.');
+    warning('nanfiltfilt:maxgapNotSpecified', 'maxgap not specified. All NaN segments will be preserved regardless of size.');
     maxgap = 0;
 end
 

@@ -20,7 +20,7 @@ function y = nanfiltfilt(b, a, x, maxgap)
 
 % Check inputs
 if nargin < 3
-    error('Not enough input arguments.');
+    error('nanfiltfilt:notEnoughInputs', 'Not enough input arguments.');
 end
 
 if nargin < 4 || isempty(maxgap)

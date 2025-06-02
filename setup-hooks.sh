@@ -14,4 +14,4 @@ tr -d '\r' < hooks/pre-push > .git/hooks/pre-push
 # Make it executable
 chmod +x .git/hooks/pre-push
 
-echo "Pre-push hook installed successfully."
+echo "Pre-push hook installed successfully at .git/hooks/pre-push"

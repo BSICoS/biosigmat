@@ -75,7 +75,7 @@ classdef nanfiltfiltTest < matlab.unittest.TestCase
       signalBurst(70:80) = NaN;
       [b,a] = butter(2,0.1);
       warning("on", "all"); % Ensure warnings are enabled
-      tc.verifyWarning(@() nanfiltfilt(b,a,signalBurst), '', 'Missing maxgap: warning not issued');
+      tc.verifyWarning(@() nanfiltfilt(b,a,signalBurst), 'nanfiltfilt:maxgapNotSpecified', 'Missing maxgap: warning not issued');
       warning("off", "all"); % Disable warnings for the next test
       filteredNoMax = nanfiltfilt(b,a,signalBurst);
       warning("on", "all"); % Re-enable warnings
@@ -160,7 +160,7 @@ classdef nanfiltfiltTest < matlab.unittest.TestCase
       signalBurstsMat(70:80, :) = NaN;
       [b,a] = butter(2,0.1);
       warning("on", "all"); % Ensure warnings are enabled
-      tc.verifyWarning(@() nanfiltfilt(b,a,signalBurstsMat), '', 'Multi-column missing maxgap: warning not issued');
+      tc.verifyWarning(@() nanfiltfilt(b,a,signalBurstsMat), 'nanfiltfilt:maxgapNotSpecified', 'Multi-column missing maxgap: warning not issued');
       warning("off", "all"); % Disable warnings for the next test
       filteredNoMaxgapMat = nanfiltfilt(b, a, signalBurstsMat);
       warning("on", "all"); % Re-enable warnings

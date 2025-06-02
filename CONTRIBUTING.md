@@ -10,22 +10,12 @@ To ensure that all code pushed to the repository passes the MATLAB tests, this p
 
 #### For Linux / macOS / Git Bash
 
-1. Open your terminal and navigate to the root of the repository.
+1. Open your terminal and navigate to the root of the repository. Use Git Bash if using Windows (It won't work on PowerShell)
 
 2. Run:
 
 ```bash
 bash setup-hooks.sh
-```
-
-#### For Windows (PowerShell)
-
-1. Open PowerShell and navigate to the root of the repository.
-
-2. Run:
-
-```bash
-./setup-hooks.ps1
 ```
 
 - If the tests pass, the push will complete successfully.

@@ -19,12 +19,45 @@
 - Group related code blocks with comments
 
 ### Test Structure
-- Test files should be named `functionNameTest.m` and placed in the corresponding subfolder in `test/`
-- The first test should always be a dependency check that verifies all required non-MATLAB functions are available
-- Test files should include multiple test cases validating different aspects of the function
-- Each test case should have a descriptive title with %% section markers
-- Test cases should print clear pass/fail messages
-- Test files should end with a summary of all test results
+
+Test files should define a test class using MATLAB's unittest framework:
+
+```matlab
+% functionNameTest.m - Test class for the functionName function
+classdef functionNameTest < matlab.unittest.TestCase
+
+  methods (TestClassSetup)
+    function addCodeToPath(tc)
+      % Add source path for the function under test
+      addpath('../../src/tools');
+    end
+  end
+
+  methods (Test)
+    function testBasicFunctionality(tc)
+      % Setup test data
+      % ...existing code...
+      
+      % Execute function under test
+      actual = functionName(inputArgs);
+      % Verify results
+      tc.verifyEqual(actual, expected, 'Basic functionality failed');
+    end
+
+    function testEdgeCase(tc)
+      % ...existing code for edge case tests...
+    end
+  end
+
+end
+```
+
+Test files must:
+- Be named `functionNameTest.m` and located in `test/tools/` or the corresponding subfolder
+- Include a `methods (TestClassSetup)` block for common setup (e.g., adding paths)
+- Define individual test methods inside a `methods (Test)` block, each prefixed with `test`
+- Use `tc.verify*` assertions (e.g., `verifyEqual`, `verifyTrue`, `verifyWarning`) for pass/fail checks
+- Use descriptive method names and comments for clarity
 
 ### Example Function:
 ```matlab
@@ -37,8 +70,6 @@ function outputSignal = processSignal(inputSignal, windowSize)
 %
 % Outputs:
 %   outputSignal - The processed signal
-%
-% Created by [Author Name]
 
 % Initialize variables
 signalLength = length(inputSignal);
@@ -50,78 +81,6 @@ for idx = 1:signalLength
 end
 
 end
-```
-
-### Example Test:
-```matlab
-% processSignalTest.m - Test for the processSignal function
-%
-% This script tests the processSignal function with different test cases:
-% 1. Dependencies check (checks if required functions are available)
-% 2. Basic functionality with simple input
-% 3. Edge case with zero window size
-% 4. Error handling with invalid inputs
-
-%% Add source path if needed
-addpath('../../src/path/to/function');
-
-%% Print header
-fprintf('\n=========================================================\n');
-fprintf('          RUNNING PROCESSSIGNAL TEST CASES\n');
-fprintf('=========================================================\n\n');
-
-%% Test 1: Dependencies check
-
-% Test if all required dependencies are available
-dependenciesOk = true;
-missingDependencies = {};
-
-% Check for required functions
-if ~exist('requiredFunction', 'file')
-  dependenciesOk = false;
-  missingDependencies{end+1} = 'requiredFunction';
-end
-
-% Print test results
-if dependenciesOk
-  fprintf('Test 1: All dependencies available: passed\n');
-else
-  fprintf('Test 1: All dependencies available: failed\n');
-  fprintf(' - Missing dependencies: ');
-  for i = 1:length(missingDependencies)
-    if i > 1
-      fprintf(', ');
-    end
-    fprintf('%s', missingDependencies{i});
-  end
-  fprintf('\n');
-end
-
-%% Test 2: Basic functionality
-
-% Setup test data
-inputSignal = [1, 2, 3, 4, 5]';
-windowSize = 3;
-
-% Execute function under test
-result = processSignal(inputSignal, windowSize);
-
-% Test validation
-expected = [2, 3, 3, 4, 3]';
-testPassed = all(abs(result - expected) < 1e-10);
-
-if testPassed
-  fprintf('Test 1: Basic functionality: passed\n');
-else
-  fprintf('Test 1: Basic functionality: failed\n');
-end
-
-%% Additional tests...
-
-%% Summarize all results
-fprintf('\n---------------------------------------------------------\n');
-fprintf('  SUMMARY: %i of %i tests passed\n', sum([dependenciesOk, testPassed, ...]), totalTests);
-fprintf('---------------------------------------------------------\n\n');
 ```
 
 ## MATLAB-Specific Guidelines

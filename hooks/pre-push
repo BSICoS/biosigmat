@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "Running MATLAB tests before pushing..."
+matlab -batch "runTests"
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Push cancelled."
+  exit 1
+fi

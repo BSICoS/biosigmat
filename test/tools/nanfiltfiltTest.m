@@ -85,7 +85,7 @@ classdef nanfiltfiltTest < matlab.unittest.TestCase
     function testInsufficientInputs(tc)
       [b,a] = butter(2,0.1);
       f = @() nanfiltfilt(b,a);
-      tc.verifyError(f, '', 'Insufficient inputs: error not thrown');
+      tc.verifyError(f, 'nanfiltfilt:notEnoughInputs', 'Insufficient inputs: error not thrown');
     end
 
     function testMultiColumnNoisyWithNans(tc)

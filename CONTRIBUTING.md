@@ -2,6 +2,37 @@
 
 Thank you for your interest in contributing to biosigmat! This document provides guidelines and information to help you contribute effectively to the project.
 
+## Pre-push Hook: Run Tests Before Pushing
+
+To ensure that all code pushed to the repository passes the MATLAB tests, this project uses a pre-push hook. This hook automatically runs the tests before any push to the repository.
+
+### How to Set Up the Pre-push Hook
+
+#### For Linux / macOS / Git Bash
+
+1. Open your terminal and navigate to the root of the repository.
+
+2. Run:
+
+```bash
+bash setup-hooks.sh
+```
+
+#### For Windows (PowerShell)
+
+1. Open PowerShell and navigate to the root of the repository.
+
+2. Run:
+
+```bash
+./setup-hooks.ps1
+```
+
+- If the tests pass, the push will complete successfully.
+- If the tests fail, the push will be stopped.
+
+This ensures that the repository always remains in a healthy state.
+
 ## Code Organization
 
 The project is organized as follows:

@@ -8,8 +8,8 @@ if [ ! -d .git/hooks ]; then
   exit 1
 fi
 
-# Copy the pre-push hook from the hooks directory
-cp hooks/pre-push .git/hooks/pre-push
+# Copy the pre-push hook and set LF endings explicitly
+tr -d '\r' < hooks/pre-push > .git/hooks/pre-push
 
 # Make it executable
 chmod +x .git/hooks/pre-push

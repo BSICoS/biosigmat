@@ -82,11 +82,10 @@ else
 end
 
 % Create and configure the slider
-hSlider = setupZoomAndSlider(currentAxes, timeVector);
+hSlider = setupSlider(currentAxes, timeVector);
 
 % Enable zoom functionality
 zoom on;
-
 end
 
 function timeVector = getTimeVectorFromFigure(figHandler)
@@ -125,69 +124,89 @@ if isempty(timeVector)
 end
 end
 
-function hSlider = setupZoomAndSlider(axesHandle, timeVector)
-% Sets up zoom/pan functionality and creates the slider control
-
-% Define overlap percentage for slider step size
-overlapPercent = 0.05;
-
-% Determine if timeVector contains datetime values
-isDatetime = isdatetime(timeVector);
-timeStart = timeVector(1);
-timeEnd = timeVector(end);
-
-% Set the axes limits to show the entire range initially
-if isDatetime
-    % For datetime values, xlim can directly use datetime
-    xlim(axesHandle, [timeStart timeEnd]);
-    totalDuration = seconds(timeEnd - timeStart); % Convert to seconds for calculations
-else
-    % For numeric time values
-    xlim(axesHandle, [timeStart timeEnd]);
-    totalDuration = timeEnd - timeStart;
-end
-
-% Store required information in the axes' application data for later use
-setappdata(axesHandle, 'totalDuration', totalDuration);
-setappdata(axesHandle, 'timeStart', timeStart);
-setappdata(axesHandle, 'timeEnd', timeEnd);
-setappdata(axesHandle, 'isDatetime', isDatetime);
-
-% Get handles to zoom and pan objects for the figure
-zoomObj = zoom(ancestor(axesHandle, 'figure'));
-panObj = pan(ancestor(axesHandle, 'figure'));
-
-% Get axes position
-axesPosition = get(axesHandle, 'Position');
-
-% Define button size and spacing
-buttonWidth = 0.07;
-buttonHeight = 0.04;
-margin = 0.01;
-
-% Create the slider control - adjust width to leave space for button
-hSlider = uicontrol('Style', 'slider', ...
-    'Units', 'normalized', ...
-    'Position', [axesPosition(1), 0.01, axesPosition(3)-buttonWidth-margin, 0.04], ...
-    'Min', 0, 'Max', 1, 'Value', 0, ...
-    'Callback', @(src, ~) sliderCallback(axesHandle, src));
-
-% Add reset view button - positioned right after slider with margin
-resetButton = uicontrol('Style', 'pushbutton', ...
-    'Units', 'normalized', ...
-    'Position', [axesPosition(1)+axesPosition(3)-buttonWidth, 0.01, buttonWidth, buttonHeight], ...
-    'String', 'Reset', ...
-    'Callback', @(~,~) resetViewCallback(axesHandle, hSlider, overlapPercent));
-
-% Store the button handle in axes appdata for access in other functions
-setappdata(axesHandle, 'resetButton', resetButton);
-
-% Set callback functions for zoom and pan events
-set(zoomObj, 'ActionPostCallback', @(~,~) updateSlider(axesHandle, hSlider, overlapPercent));
-set(panObj, 'ActionPostCallback', @(~,~) panZoomCallback(axesHandle, hSlider, overlapPercent));
-
-% Initialize the slider configuration
-updateSlider(axesHandle, hSlider, overlapPercent);
+function hSlider = setupSlider(axesHandle, timeVector)
+    % Sets up zoom/pan functionality and creates the slider control
+    
+    % Define overlap percentage for slider step size
+    overlapPercent = 0.05;
+    
+    % Determine if timeVector contains datetime values
+    isDatetime = isdatetime(timeVector);
+    timeStart = timeVector(1);
+    timeEnd = timeVector(end);
+    
+    % Set the axes limits to show the entire range initially
+    if isDatetime
+        xlim(axesHandle, [timeStart timeEnd]);
+        totalDuration = seconds(timeEnd - timeStart);
+    else
+        xlim(axesHandle, [timeStart timeEnd]);
+        totalDuration = timeEnd - timeStart;
+    end
+    
+    % Store required information in axes appdata
+    setappdata(axesHandle, 'totalDuration', totalDuration);
+    setappdata(axesHandle, 'timeStart', timeStart);
+    setappdata(axesHandle, 'timeEnd', timeEnd);
+    setappdata(axesHandle, 'isDatetime', isDatetime);
+    
+    % Get zoom and pan objects
+    figHandle = ancestor(axesHandle, 'figure');
+    zoomObj = zoom(figHandle);
+    panObj = pan(figHandle);
+    
+    % Get axes position
+    axesPosition = get(axesHandle, 'Position');
+    
+    % Define button and spacing parameters
+    buttonWidth = 0.06;
+    buttonHeight = 0.03;
+    margin = 0.01;
+    sliderHeight = 0.03;
+    
+    % For subplots, ensure proper alignment
+    sliderLeft = axesPosition(1);
+    
+    % Important: When working with subplots, calculate slider width based on
+    % the actual axes width to ensure proper spanning
+    sliderWidth = axesPosition(3) - buttonWidth - margin;
+    
+    % If this is a subplot, adjust for the shared space
+    % Check if we have multiple subplot axes in the figure
+    if length(findobj(figHandle, 'Type', 'axes')) > 1
+        % Get the current subplot configuration
+        subplotLayout = getSubplotLayout(figHandle, axesHandle);
+        
+        % If this is a subplot spanning multiple columns, adjust width accordingly
+        if ~isempty(subplotLayout) && subplotLayout.colSpan > 1
+            % Use the full width of the spanned columns
+            sliderWidth = axesPosition(3);
+        end
+    end
+    
+    % Create the slider control with correct width alignment
+    hSlider = uicontrol('Style', 'slider', ...
+        'Units', 'normalized', ...
+        'Position', [sliderLeft, 0.01, sliderWidth, sliderHeight], ...
+        'Min', 0, 'Max', 1, 'Value', 0, ...
+        'Callback', @(src, ~) sliderCallback(axesHandle, src));
+    
+    % Add reset view button
+    resetButton = uicontrol('Style', 'pushbutton', ...
+        'Units', 'normalized', ...
+        'Position', [sliderLeft + sliderWidth + margin, 0.01, buttonWidth, buttonHeight], ...
+        'String', 'Reset', ...
+        'Callback', @(~,~) resetViewCallback(axesHandle, hSlider, overlapPercent));
+    
+    % Store button handle
+    setappdata(axesHandle, 'resetButton', resetButton);
+    
+    % Set callbacks
+    set(zoomObj, 'ActionPostCallback', @(~,~) updateSlider(axesHandle, hSlider, overlapPercent));
+    set(panObj, 'ActionPostCallback', @(~,~) updateSlider(axesHandle, hSlider, overlapPercent));
+    
+    % Initialize slider
+    updateSlider(axesHandle, hSlider, overlapPercent);
 end
 
 function resetViewCallback(axesHandle, sliderHandle, overlapPercent)
@@ -198,62 +217,12 @@ timeEnd = getappdata(axesHandle, 'timeEnd');
 % Reset the axis limits to the original range
 xlim(axesHandle, [timeStart timeEnd]);
 
-% Update the slider to match the reset view
+% Update the slider configuration
 updateSlider(axesHandle, sliderHandle, overlapPercent);
-end
-
-function panZoomCallback(axesHandle, sliderHandle, overlapPercent)
-% Special callback for pan/zoom that checks if we're inside valid bounds
-timeStart = getappdata(axesHandle, 'timeStart');
-timeEnd = getappdata(axesHandle, 'timeEnd');
-isDatetime = getappdata(axesHandle, 'isDatetime');
-currentLimits = xlim(axesHandle);
-
-% Check if current view is completely outside the valid range
-if (isDatetime && (currentLimits(2) < timeStart || currentLimits(1) > timeEnd)) || ...
-   (~isDatetime && (currentLimits(2) < timeStart || currentLimits(1) > timeEnd))
-    
-    % Make the slider invisible and show a warning
-    set(sliderHandle, 'Enable', 'off');
-    
-    % Get the reset button handle
-    resetButton = getappdata(axesHandle, 'resetButton');
-    
-    % Highlight the reset button
-    set(resetButton, 'BackgroundColor', [1 0.6 0.6], 'FontWeight', 'bold');
-    
-    % Display a small warning on the plot
-    figHandler = ancestor(axesHandle, 'figure');
-    warningText = findobj(figHandler, 'Tag', 'OutOfRangeWarning');
-    
-    if isempty(warningText)
-        annotation(figHandler, 'textbox', [0.5, 0.95, 0.4, 0.05], ...
-            'String', 'View outside data range. Click "Reset View" to return.', ...
-            'FitBoxToText', 'on', ...
-            'BackgroundColor', [1 1 0.8], ...
-            'Tag', 'OutOfRangeWarning', ...
-            'HorizontalAlignment', 'center');
-    end
-else
-    % If we're back in range, remove warning and update slider
-    resetButton = getappdata(axesHandle, 'resetButton');
-    set(resetButton, 'BackgroundColor', [0.94 0.94 0.94], 'FontWeight', 'normal');
-    
-    % Remove warning text if it exists
-    warningText = findobj(ancestor(axesHandle, 'figure'), 'Tag', 'OutOfRangeWarning');
-    if ~isempty(warningText)
-        delete(warningText);
-    end
-    
-    % Update the slider
-    updateSlider(axesHandle, sliderHandle, overlapPercent);
-end
 end
 
 function sliderCallback(axesHandle, sliderSource)
 % Callback function executed when the slider value changes
-
-% Get stored data from the axes
 timeStart = getappdata(axesHandle, 'timeStart');
 isDatetime = getappdata(axesHandle, 'isDatetime');
 totalDuration = getappdata(axesHandle, 'totalDuration');
@@ -272,47 +241,75 @@ xlim(axesHandle, newLimits);
 end
 
 function updateSlider(axesHandle, sliderHandle, overlapPercent)
-% Updates slider properties based on current axes view
-
-% Retrieve stored data
-timeStart = getappdata(axesHandle, 'timeStart');
-isDatetime = getappdata(axesHandle, 'isDatetime');
-totalDuration = getappdata(axesHandle, 'totalDuration');
-
-% Get current view limits and their numeric equivalents
-currentLimits = xlim(axesHandle);
-[limitsNumeric, windowWidth] = convertLimitsToNumeric(currentLimits, timeStart, isDatetime);
-
-% If the view shows the entire data, disable the slider
-if abs(windowWidth - totalDuration) < 1e-9
-    set(sliderHandle, 'Enable', 'off');
-else
-    % Enable slider and configure its range and value
-    set(sliderHandle, 'Enable', 'on');
-    set(sliderHandle, 'Min', 0, 'Max', max((totalDuration - windowWidth), 0), 'Value', limitsNumeric(1));
+    % Updates slider properties based on current axes view
     
-    % Calculate appropriate step sizes based on the window width
-    if totalDuration - windowWidth > 0
-        smallStep = (windowWidth * overlapPercent) / (totalDuration - windowWidth);
-        largeStep = min(1, (windowWidth * overlapPercent * 5) / (totalDuration - windowWidth));
-    else
-        smallStep = 0;
-        largeStep = 1;
+    % Retrieve stored data
+    timeStart = getappdata(axesHandle, 'timeStart');
+    timeEnd = getappdata(axesHandle, 'timeEnd');
+    isDatetime = getappdata(axesHandle, 'isDatetime');
+    totalDuration = getappdata(axesHandle, 'totalDuration');
+    
+    % Get current view limits and numeric equivalents
+    currentLimits = xlim(axesHandle);
+    [limitsNumeric, windowWidth] = convertLimitsToNumeric(currentLimits, timeStart, isDatetime);
+    
+    % Check if view is out of range
+    viewOutOfRange = false;
+    if (isDatetime && (currentLimits(2) < timeStart || currentLimits(1) > timeEnd)) || ...
+       (~isDatetime && (currentLimits(2) < timeStart || currentLimits(1) > timeEnd))
+        viewOutOfRange = true;
     end
     
-    % Set the step sizes
-    set(sliderHandle, 'SliderStep', [smallStep largeStep]);
-end
+    % Update reset button appearance if needed
+    resetButton = getappdata(axesHandle, 'resetButton');
+    if viewOutOfRange
+        set(resetButton, 'BackgroundColor', [1 0.6 0.6]);
+    else
+        set(resetButton, 'BackgroundColor', [0.94 0.94 0.94]);
+    end
+    
+    % Handle slider display and interaction
+    if viewOutOfRange || abs(windowWidth-totalDuration) < 0.001
+        % If out of range, make slider inactive
+        %set(sliderHandle, 'Enable', 'inactive');
+        set(sliderHandle, 'Enable', 'off');
+        %set(sliderHandle, 'Min', 0, 'Max', 1, 'Value', 0.5);
+        %set(sliderHandle, 'SliderStep', [0.1 0.2]);
+    else
+        % Normal slider operation - enable and configure
+        set(sliderHandle, 'Enable', 'on');
+        
+        % Critical: Set max value based on how much we can scroll
+        maxScrollRange = max(totalDuration - windowWidth, 0.001);
+        set(sliderHandle, 'Min', 0);
+        set(sliderHandle, 'Max', maxScrollRange);
+        set(sliderHandle, 'Value', limitsNumeric(1));
+        
+        % IMPORTANT: Set slider thumb size proportional to visible portion
+        visiblePortion = windowWidth / totalDuration;
+        
+        % Adjust slider step sizes based on visible portion
+        % This controls the thumb size and step behavior
+        if totalDuration > windowWidth
+            % When zoomed in: thumb size represents visible proportion
+            smallStep = min(visiblePortion, 0.1);
+            largeStep = min(visiblePortion * 5, 1);
+        else
+            % When showing all data: use default steps
+            smallStep = 0.1;
+            largeStep = 0.5;
+        end
+        
+        % Apply the step sizes (controls thumb size)
+        set(sliderHandle, 'SliderStep', [smallStep largeStep]);
+    end
 end
 
 function [limitsNumeric, windowWidth] = convertLimitsToNumeric(limits, timeStart, isDatetime)
 % Converts axis limits to a numeric scale for calculations
-
 if isDatetime
-    % For datetime values, convert to seconds from timeStart
     limitsNumeric = seconds(limits - timeStart);
 else
-    % For numeric values, calculate offset from timeStart
     limitsNumeric = limits - timeStart;
 end
 windowWidth = diff(limitsNumeric);
@@ -320,12 +317,44 @@ end
 
 function newLimits = convertNumericToLimits(startValue, windowWidth, timeStart, isDatetime)
 % Converts numeric values back to appropriate axis limits
-
 if isDatetime
-    % For datetime values, convert from seconds to datetime
     newLimits = [timeStart + seconds(startValue), timeStart + seconds(startValue + windowWidth)];
 else
-    % For numeric values, add offset to timeStart
     newLimits = [timeStart + startValue, timeStart + startValue + windowWidth];
 end
+end
+
+function subplotInfo = getSubplotLayout(figHandle, axesHandle)
+    % Helper function to determine subplot configuration
+    subplotInfo = struct('rows', 0, 'cols', 0, 'index', 0, 'rowSpan', 1, 'colSpan', 1);
+    
+    % Get all axes in the figure
+    allAxes = findobj(figHandle, 'Type', 'axes');
+    numAxes = length(allAxes);
+    
+    if numAxes <= 1
+        return;  % Not a subplot
+    end
+    
+    % Get positions of all axes
+    positions = arrayfun(@(ax) get(ax, 'Position'), allAxes, 'UniformOutput', false);
+    positions = cell2mat(positions);
+    
+    % Check for spanned subplots based on position and size
+    currPos = get(axesHandle, 'Position');
+    
+    % Detect row and column spanning by comparing sizes
+    widths = positions(:, 3);
+    heights = positions(:, 4);
+    
+    % Estimate typical width and height of single subplot
+    typicalWidth = min(widths(widths > 0.01));
+    typicalHeight = min(heights(heights > 0.01));
+    
+    % Calculate spanning
+    widthRatio = currPos(3) / typicalWidth;
+    heightRatio = currPos(4) / typicalHeight;
+    
+    subplotInfo.colSpan = round(widthRatio);
+    subplotInfo.rowSpan = round(heightRatio);
 end

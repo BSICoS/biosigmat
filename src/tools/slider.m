@@ -275,15 +275,24 @@ function updateSlider(axesHandle, sliderHandle, overlapPercent)
         % Update reset button appearance
         set(resetButton, 'BackgroundColor', [1 0.6 0.6]);
         
-        % Add warning annotation
+        % Add warning annotation - ensure it's created and visible
         warningText = findobj(figHandle, 'Tag', 'OutOfRangeWarning');
         if isempty(warningText)
-            annotation(figHandle, 'textbox', [0.5, 0.95, 0.4, 0.05], ...
+            % Create warning annotation with explicit properties to ensure it's detectable
+            warning_ann = annotation(figHandle, 'textbox', [0.5, 0.95, 0.4, 0.05], ...
                 'String', 'View outside data range. Click "Reset" to return.', ...
                 'FitBoxToText', 'on', ...
                 'BackgroundColor', [1 1 0.8], ...
-                'Tag', 'OutOfRangeWarning', ...
                 'HorizontalAlignment', 'center');
+            
+            % Set the tag explicitly after creation for better compatibility
+            set(warning_ann, 'Tag', 'OutOfRangeWarning');
+            
+            % Ensure the annotation is visible
+            set(warning_ann, 'Visible', 'on');
+            
+            % Store the annotation handle for easier access later
+            setappdata(axesHandle, 'warningAnnotation', warning_ann);
         end
         
         % Disable slider when view is out of range
@@ -292,10 +301,17 @@ function updateSlider(axesHandle, sliderHandle, overlapPercent)
         % Re-enable slider and update appearance
         set(resetButton, 'BackgroundColor', [0.94 0.94 0.94]);
         
-        % Remove warning if it exists
+        % Remove warning if it exists - check both via findobj and appdata
         warningText = findobj(figHandle, 'Tag', 'OutOfRangeWarning');
         if ~isempty(warningText)
             delete(warningText);
+        end
+        
+        % Also check stored handle in appdata if it exists
+        warningHandle = getappdata(axesHandle, 'warningAnnotation');
+        if ~isempty(warningHandle) && ishandle(warningHandle)
+            delete(warningHandle);
+            setappdata(axesHandle, 'warningAnnotation', []);
         end
         
         % Check if showing entire range (or nearly so)

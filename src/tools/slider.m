@@ -36,12 +36,20 @@ switch nargin
         
     case 1
         % One argument could be either a figure handle or time vector
-        if ishandle(varargin{1}) && strcmp(get(varargin{1}, 'Type'), 'figure')
-            % It's a figure handle
-            figHandler = varargin{1};
-            timeVector = getTimeVectorFromFigure(figHandler);
+        if isobject(varargin{1}) && ishandle(varargin{1})
+            % Check if it's a figure handle
+            figType = get(varargin{1}, 'Type');
+            if strcmp(figType, 'figure')
+                % It's a figure handle
+                figHandler = varargin{1};
+                timeVector = getTimeVectorFromFigure(figHandler);
+            else
+                % It's some other handle, assume time vector
+                figHandler = gcf;
+                timeVector = varargin{1};
+            end
         else
-            % Assume it's a time vector
+            % Not a handle, assume it's a time vector
             figHandler = gcf;
             timeVector = varargin{1};
         end
@@ -63,9 +71,6 @@ end
 if isempty(timeVector)
     error('Time vector cannot be determined. Please provide a valid time vector.');
 end
-
-% Maximize the figure window
-set(figHandler, 'WindowState', 'maximized');
 
 % Find all axes in the figure
 axesAll = findobj(figHandler, 'Type', 'axes');
@@ -180,22 +185,23 @@ function hSlider = setupSlider(axesHandle, timeVector)
         % If this is a subplot spanning multiple columns, adjust width accordingly
         if ~isempty(subplotLayout) && subplotLayout.colSpan > 1
             % Use the full width of the spanned columns
-            sliderWidth = axesPosition(3);
+            sliderWidth = axesPosition(3) - buttonWidth - margin;
         end
     end
     
-    % Create the slider control with correct width alignment
-    hSlider = uicontrol('Style', 'slider', ...
+    % Create the slider control with explicit parent and correct width alignment
+    hSlider = uicontrol(figHandle, 'Style', 'slider', ...
         'Units', 'normalized', ...
         'Position', [sliderLeft, 0.01, sliderWidth, sliderHeight], ...
         'Min', 0, 'Max', 1, 'Value', 0, ...
         'Callback', @(src, ~) sliderCallback(axesHandle, src));
     
-    % Add reset view button
-    resetButton = uicontrol('Style', 'pushbutton', ...
+    % Add reset view button with explicit parent and tag
+    resetButton = uicontrol(figHandle, 'Style', 'pushbutton', ...
         'Units', 'normalized', ...
         'Position', [sliderLeft + sliderWidth + margin, 0.01, buttonWidth, buttonHeight], ...
         'String', 'Reset', ...
+        'Tag', 'SliderResetButton', ...
         'Callback', @(~,~) resetViewCallback(axesHandle, hSlider, overlapPercent));
     
     % Store button handle
@@ -260,48 +266,69 @@ function updateSlider(axesHandle, sliderHandle, overlapPercent)
         viewOutOfRange = true;
     end
     
-    % Update reset button appearance if needed
+    % Get reset button and figure handles
     resetButton = getappdata(axesHandle, 'resetButton');
-    if viewOutOfRange
-        set(resetButton, 'BackgroundColor', [1 0.6 0.6]);
-    else
-        set(resetButton, 'BackgroundColor', [0.94 0.94 0.94]);
-    end
+    figHandle = ancestor(axesHandle, 'figure');
     
     % Handle slider display and interaction
-    if viewOutOfRange || abs(windowWidth-totalDuration) < 0.001
-        % If out of range, make slider inactive
-        %set(sliderHandle, 'Enable', 'inactive');
-        set(sliderHandle, 'Enable', 'off');
-        %set(sliderHandle, 'Min', 0, 'Max', 1, 'Value', 0.5);
-        %set(sliderHandle, 'SliderStep', [0.1 0.2]);
-    else
-        % Normal slider operation - enable and configure
-        set(sliderHandle, 'Enable', 'on');
+    if viewOutOfRange
+        % Update reset button appearance
+        set(resetButton, 'BackgroundColor', [1 0.6 0.6]);
         
-        % Critical: Set max value based on how much we can scroll
-        maxScrollRange = max(totalDuration - windowWidth, 0.001);
-        set(sliderHandle, 'Min', 0);
-        set(sliderHandle, 'Max', maxScrollRange);
-        set(sliderHandle, 'Value', limitsNumeric(1));
-        
-        % IMPORTANT: Set slider thumb size proportional to visible portion
-        visiblePortion = windowWidth / totalDuration;
-        
-        % Adjust slider step sizes based on visible portion
-        % This controls the thumb size and step behavior
-        if totalDuration > windowWidth
-            % When zoomed in: thumb size represents visible proportion
-            smallStep = min(visiblePortion, 0.1);
-            largeStep = min(visiblePortion * 5, 1);
-        else
-            % When showing all data: use default steps
-            smallStep = 0.1;
-            largeStep = 0.5;
+        % Add warning annotation
+        warningText = findobj(figHandle, 'Tag', 'OutOfRangeWarning');
+        if isempty(warningText)
+            annotation(figHandle, 'textbox', [0.5, 0.95, 0.4, 0.05], ...
+                'String', 'View outside data range. Click "Reset" to return.', ...
+                'FitBoxToText', 'on', ...
+                'BackgroundColor', [1 1 0.8], ...
+                'Tag', 'OutOfRangeWarning', ...
+                'HorizontalAlignment', 'center');
         end
         
-        % Apply the step sizes (controls thumb size)
-        set(sliderHandle, 'SliderStep', [smallStep largeStep]);
+        % Disable slider when view is out of range
+        set(sliderHandle, 'Enable', 'off');
+    else
+        % Re-enable slider and update appearance
+        set(resetButton, 'BackgroundColor', [0.94 0.94 0.94]);
+        
+        % Remove warning if it exists
+        warningText = findobj(figHandle, 'Tag', 'OutOfRangeWarning');
+        if ~isempty(warningText)
+            delete(warningText);
+        end
+        
+        % Check if showing entire range (or nearly so)
+        if abs(windowWidth - totalDuration) < 0.001
+            % When showing all data, disable slider
+            set(sliderHandle, 'Enable', 'off');
+        else
+            % Normal slider operation - enable and configure
+            set(sliderHandle, 'Enable', 'on');
+            
+            % Critical: Set max value based on how much we can scroll
+            maxScrollRange = max(totalDuration - windowWidth, 0.001);
+            set(sliderHandle, 'Min', 0);
+            set(sliderHandle, 'Max', maxScrollRange);
+            set(sliderHandle, 'Value', limitsNumeric(1));
+            
+            % Set slider thumb size proportional to visible portion
+            visiblePortion = windowWidth / totalDuration;
+            
+            % Adjust slider step sizes based on visible portion
+            if totalDuration > windowWidth
+                % When zoomed in: thumb size represents visible proportion
+                smallStep = min(visiblePortion, 0.1);
+                largeStep = min(visiblePortion * 5, 1);
+            else
+                % When showing all data: use default steps
+                smallStep = 0.1;
+                largeStep = 0.5;
+            end
+            
+            % Apply the step sizes (controls thumb size)
+            set(sliderHandle, 'SliderStep', [smallStep largeStep]);
+        end
     end
 end
 

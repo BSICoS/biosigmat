@@ -216,15 +216,26 @@ function hSlider = setupSlider(axesHandle, timeVector)
 end
 
 function resetViewCallback(axesHandle, sliderHandle, overlapPercent)
-% Resets the view to the original time range
-timeStart = getappdata(axesHandle, 'timeStart');
-timeEnd = getappdata(axesHandle, 'timeEnd');
+    % Resets the view to the original time range
+    timeStart = getappdata(axesHandle, 'timeStart');
+    timeEnd = getappdata(axesHandle, 'timeEnd');
 
-% Reset the axis limits to the original range
-xlim(axesHandle, [timeStart timeEnd]);
+    % Reset the axis limits to the original range
+    xlim(axesHandle, [timeStart timeEnd]);
 
-% Update the slider configuration
-updateSlider(axesHandle, sliderHandle, overlapPercent);
+    % Remove warning text if it exists
+    warningAnnotation = getappdata(axesHandle, 'warningAnnotation');
+    if ~isempty(warningAnnotation) && ishandle(warningAnnotation)
+        delete(warningAnnotation);
+        setappdata(axesHandle, 'warningAnnotation', []);
+    end
+    
+    % Reset button appearance
+    resetButton = getappdata(axesHandle, 'resetButton');
+    set(resetButton, 'BackgroundColor', [0.94 0.94 0.94]);
+
+    % Update the slider configuration
+    updateSlider(axesHandle, sliderHandle, overlapPercent);
 end
 
 function sliderCallback(axesHandle, sliderSource)
@@ -275,25 +286,23 @@ function updateSlider(axesHandle, sliderHandle, overlapPercent)
         % Update reset button appearance
         set(resetButton, 'BackgroundColor', [1 0.6 0.6]);
         
-        % Add warning annotation - ensure it's created and visible
-        warningText = findobj(figHandle, 'Tag', 'OutOfRangeWarning');
-        if isempty(warningText)
-            % Create warning annotation with explicit properties to ensure it's detectable
-            warning_ann = annotation(figHandle, 'textbox', [0.5, 0.95, 0.4, 0.05], ...
-                'String', 'View outside data range. Click "Reset" to return.', ...
-                'FitBoxToText', 'on', ...
-                'BackgroundColor', [1 1 0.8], ...
-                'HorizontalAlignment', 'center');
-            
-            % Set the tag explicitly after creation for better compatibility
-            set(warning_ann, 'Tag', 'OutOfRangeWarning');
-            
-            % Ensure the annotation is visible
-            set(warning_ann, 'Visible', 'on');
-            
-            % Store the annotation handle for easier access later
-            setappdata(axesHandle, 'warningAnnotation', warning_ann);
+        % First delete any existing warning to avoid duplicates
+        warningAnnotation = getappdata(axesHandle, 'warningAnnotation');
+        if ~isempty(warningAnnotation) && ishandle(warningAnnotation)
+            delete(warningAnnotation);
         end
+        
+        % Create warning using text object instead of annotation for better compatibility
+        warningText = uicontrol(figHandle, 'Style', 'text', ...
+            'Units', 'normalized', ...
+            'Position', [0.3, 0.95, 0.4, 0.04], ...
+            'String', 'View outside data range. Click "Reset" to return.', ...
+            'BackgroundColor', [1 1 0.8], ...
+            'HorizontalAlignment', 'center', ...
+            'Tag', 'OutOfRangeWarning');
+        
+        % Store the warning text handle in appdata for easy access
+        setappdata(axesHandle, 'warningAnnotation', warningText);
         
         % Disable slider when view is out of range
         set(sliderHandle, 'Enable', 'off');
@@ -301,16 +310,10 @@ function updateSlider(axesHandle, sliderHandle, overlapPercent)
         % Re-enable slider and update appearance
         set(resetButton, 'BackgroundColor', [0.94 0.94 0.94]);
         
-        % Remove warning if it exists - check both via findobj and appdata
-        warningText = findobj(figHandle, 'Tag', 'OutOfRangeWarning');
-        if ~isempty(warningText)
-            delete(warningText);
-        end
-        
-        % Also check stored handle in appdata if it exists
-        warningHandle = getappdata(axesHandle, 'warningAnnotation');
-        if ~isempty(warningHandle) && ishandle(warningHandle)
-            delete(warningHandle);
+        % Remove warning if it exists
+        warningAnnotation = getappdata(axesHandle, 'warningAnnotation');
+        if ~isempty(warningAnnotation) && ishandle(warningAnnotation)
+            delete(warningAnnotation);
             setappdata(axesHandle, 'warningAnnotation', []);
         end
         
@@ -322,7 +325,7 @@ function updateSlider(axesHandle, sliderHandle, overlapPercent)
             % Normal slider operation - enable and configure
             set(sliderHandle, 'Enable', 'on');
             
-            % Critical: Set max value based on how much we can scroll
+            % Set range and position values
             maxScrollRange = max(totalDuration - windowWidth, 0.001);
             set(sliderHandle, 'Min', 0);
             set(sliderHandle, 'Max', maxScrollRange);
@@ -330,19 +333,8 @@ function updateSlider(axesHandle, sliderHandle, overlapPercent)
             
             % Set slider thumb size proportional to visible portion
             visiblePortion = windowWidth / totalDuration;
-            
-            % Adjust slider step sizes based on visible portion
-            if totalDuration > windowWidth
-                % When zoomed in: thumb size represents visible proportion
-                smallStep = min(visiblePortion, 0.1);
-                largeStep = min(visiblePortion * 5, 1);
-            else
-                % When showing all data: use default steps
-                smallStep = 0.1;
-                largeStep = 0.5;
-            end
-            
-            % Apply the step sizes (controls thumb size)
+            smallStep = min(visiblePortion, 0.1);
+            largeStep = min(visiblePortion * 5, 1);
             set(sliderHandle, 'SliderStep', [smallStep largeStep]);
         end
     end

@@ -212,9 +212,20 @@ classdef sliderTest < matlab.unittest.TestCase
             bgColor = get(resetButton, 'BackgroundColor');
             testCase.verifyNotEqual(bgColor, [0.94 0.94 0.94], 'Reset button was not highlighted when view is out of range');
             
-            % Find warning text
-            warningText = findobj(testCase.FigNumeric, 'Tag', 'OutOfRangeWarning');
+            % Find warning text - first check appdata, then try findobj
+            warningText = getappdata(axHandle(1), 'warningAnnotation');
+            if isempty(warningText) || ~ishandle(warningText)
+                warningText = findobj(testCase.FigNumeric, 'Tag', 'OutOfRangeWarning');
+            end
+            
             testCase.verifyFalse(isempty(warningText), 'Warning text was not shown when view is out of range');
+            
+            % Also verify the warning is visible - accommodate for OnOffSwitchState enumeration
+            if ~isempty(warningText)
+                visibleState = get(warningText, 'Visible');
+                testCase.verifyTrue(isequal(visibleState, 'on') || isequal(visibleState, "on") || isequal(visibleState, matlab.lang.OnOffSwitchState.on), ...
+                    'Warning text is not visible');
+            end
         end
         
         function testEmptyTimeVectorError(testCase)

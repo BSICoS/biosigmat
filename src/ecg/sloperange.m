@@ -1,86 +1,86 @@
-function [edr] = sloperange(ecg, tk, fs, plotFlag )
-    % EDR using the slope range
-    
-    % INPUTS
-    % ecg : single-lead ecg signal
-    % tk: the beat occurence time series for R-wave (in samples)
-    % fs : sampling frequency
-    % plotFlag : 1 enables the plots inside the function
-    % 
-    % OUTPUTS
-    % EDR
-    %%-----------------------------------------------------------------------%%
+function varargout = sloperange(decg, tk, fs)
+% SLOPERANGE Compute ECG-derived respiration (EDR) using slope range method
+%
+%   sloperange(DECG, TK, FS) Computes ECG-derived respiration signal using
+%              the slope range method. This method analyzes the derivative
+%              of the ECG signal around R-wave peaks to extract respiratory
+%              information.
+%
+%   EDR = sloperange(DECG, TK, FS)
+%       EDR is a column vector containing the respiratory signal derived
+%       from the ECG slope range analysis.
+%
+%   [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = sloperange(...)
+%       Returns additional outputs:
+%       - UPSLOPES: Matrix containing upslope values around R-waves
+%       - DOWNSLOPES: Matrix containing downslope values around R-waves
+%       - UPMAXPOS: Positions of maximum upslope values
+%       - DOWNMINPOS: Positions of minimum downslope values
+%
+% Inputs:
+%   DECG - Single-lead ECG signal derivative (numeric vector)
+%   TK   - Beat occurrence time series for R-waves in seconds (numeric vector)
+%   FS   - Sampling frequency in Hz (numeric scalar)
+%
 
-    
-    if nargin < 4
-        plotFlag = 0;
-    end
-    
-    ecg = ecg(:);
+% Input argument validation
+narginchk(3, 3);
+nargoutchk(0, 5);
 
-    % Maximum and minimum values in 1st derivative
-    %[b, a] = butter(4, [0.05, 45]*2/fs, 'bandpass');
-    %ecg = filtfilt(b, a, ecg);
-    
-    % Get the position in seconds of all good R-peaks
-    nk = round(tk*fs)+1;     
-    
-    % Number of good beats
-    I = length(nk);
-    
-    % The duration of the intervals around R-wave (for defining slopes)
-    W1 = round(fs*0.015); 
-    W2 = round(fs*0.05); 
-    
-    % Fixed intervals for upslope and downslope   
-    iUp   = -W2+1:W1; 
-    iDown = -W1:W2-1;
-    L = length(iUp);
-    
-    % Define the indices of the intervals for upslope and downslope relative to R-wave   
-    qrsup   = repmat(nk(:).',[L,1])+repmat(iUp(:),[1,I]);
-    qrsdown = repmat(nk(:).',[L,1])+repmat(iDown(:),[1,I]);
-    
-    % Calculate the first derivative of the ECG signal
-    decg = diff(ecg); 
-    decg = [decg(1); decg];
-    
-    % Get the values around the maximum and minimum slope
-    [smax,i_smax]  = max(decg(qrsup));   
-    [smin,i_smin]  = min(decg(qrsdown)); 
-    
-    % Compute the EDR, for every tk
-    edr = smax(:) - smin(:);
+% Input validation
+if isempty(decg) || isscalar(decg)
+    varargout{1} = [];
+    return
+elseif ischar(decg)
+    error('Input must be a numeric array');
+elseif islogical(decg)
+    decg = double(decg);
+end
 
-    if plotFlag
+% Ensure decg is a column vector
+decg = decg(:);
 
-        %make a continuous signal for improved plotting
-        decgup   = nan(size(ecg));
-        decgdown = nan(size(ecg));
-        decgup(qrsup)     = decg(qrsup);
-        decgdown(qrsdown) = decg(qrsdown);
+% Convert R-wave times from seconds to sample indices
+nk = round(tk * fs) + 1;
 
-        figure;
-        t = (0:length(ecg)-1)/fs;
-        ax(1) = subplot(311);    
-        plot(t,ecg); hold on;
-        plot(t(nk),ecg(nk),'o'); 
-        axis tight; ylabel('ECG') 
-        title('Beat detection')
-        ax(2) = subplot(312);
-        plot(t, decg); hold on;
-        plot(t, decgup,':','linewidth',1.5)
-        plot(t, decgdown,'--','linewidth',1.5);
-        %plot(t(i_smax+nk),decgup(i_smax+nk),'v');
-        %plot(t(i_smin+nk),decgdown(i_smin+nk),'^');
-        axis tight; ylabel('1st der ECG')
-        title({'Intervals for upslope (black) and downslope (magenta)'})
-        ax(3) = subplot(313);
-        plot(tk, edr ); axis tight; title('Slope range')
-        xlabel('time (s)')
-        linkaxes(ax,'x');
-        slider;
+% Number of R-wave peaks
+numBeats = length(nk);
 
-    end
-    
-    end
+% Define window durations around R-wave for slope analysis
+shortWindow = round(fs * 0.015);  % 15 ms window
+longWindow = round(fs * 0.05);    % 50 ms window
+
+% Define relative sample intervals for upslope and downslope analysis
+upslopeWindow = -longWindow+1:shortWindow;
+downslopeWindow = -shortWindow:longWindow-1;
+upslopeLength = length(upslopeWindow);
+
+% Calculate absolute indices for upslope and downslope intervals
+upslopeIndices = repmat(nk(:).', [upslopeLength, 1]) + ...
+    repmat(upslopeWindow(:), [1, numBeats]);
+downslopeIndices = repmat(nk(:).', [upslopeLength, 1]) + ...
+    repmat(downslopeWindow(:), [1, numBeats]);
+
+% Find maximum upslope and minimum downslope values
+[upslopeMax, upslopeMaxPosition] = max(decg(upslopeIndices));
+[downslopeMin, downslopeMinPosition] = min(decg(downslopeIndices));
+
+% Initialize slope arrays with NaN values
+upslopes = nan(size(decg));
+downslopes = nan(size(decg));
+
+% Populate slope arrays with actual values
+upslopes(upslopeIndices) = decg(upslopeIndices);
+downslopes(downslopeIndices) = decg(downslopeIndices);
+
+% Compute EDR signal as difference between maximum upslope and minimum downslope
+edr = upslopeMax(:) - downslopeMin(:);
+
+% Format output based on requested number of output arguments
+if nargout < 2
+    varargout = {edr};
+else
+    varargout = {edr, upslopes, downslopes, upslopeMaxPosition, downslopeMinPosition};
+end
+
+end

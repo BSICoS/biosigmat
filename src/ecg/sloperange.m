@@ -70,11 +70,13 @@ lastBeatRemoved = false;
 if nk(1) + upslopeWindow(1) < 1
     upslopeIndices(:, 1) = [];
     downslopeIndices(:, 1) = [];
+    nk(1) = [];
     firstBeatRemoved = true;
 end
 if nk(end) + downslopeWindow(end) > length(decg)
     upslopeIndices(:, end) = [];
     downslopeIndices(:, end) = [];
+    nk(end) = [];
     lastBeatRemoved = true;
 end
 

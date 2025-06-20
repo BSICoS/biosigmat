@@ -82,6 +82,9 @@ end
 [upslopeMax, upslopeMaxPosition] = max(decg(upslopeIndices));
 [downslopeMin, downslopeMinPosition] = min(decg(downslopeIndices));
 
+upslopeMaxPosition = upslopeMaxPosition(:) + upslopeWindow(1) + nk(:) - 1;
+downslopeMinPosition = downslopeMinPosition(:) + downslopeWindow(1) + nk(:) - 1;
+
 % Initialize slope arrays with NaN values
 upslopes = nan(size(decg));
 downslopes = nan(size(decg));

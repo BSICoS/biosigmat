@@ -115,8 +115,8 @@ classdef sloperangeTest < matlab.unittest.TestCase
                 tc.verifyEqual(size(edr3), [length(tk), 1], 'Function should work with multiple outputs');
                 tc.verifySize(upslopes, size(decg), 'Upslopes should have same size as input signal');
                 tc.verifySize(downslopes, size(decg), 'Downslopes should have same size as input signal');
-                tc.verifySize(upmaxpos, [1, length(tk)], 'Upmaxpos should have same length as peaks');
-                tc.verifySize(downminpos, [1, length(tk)], 'Downminpos should have same length as peaks');
+                tc.verifySize(upmaxpos, [length(tk), 1], 'Upmaxpos should have same length as peaks');
+                tc.verifySize(downminpos, [length(tk), 1], 'Downminpos should have same length as peaks');
             catch e
                 tc.verifyTrue(false, ['Error in input validation test: ' e.message]);
             end
@@ -218,7 +218,8 @@ classdef sloperangeTest < matlab.unittest.TestCase
                 tc.verifyTrue(~isnan(edrLast(1)), ...
                     'First EDR value should not be NaN when first beat has complete window');
                 tc.verifyTrue(isnan(edrLast(end)), ...
-                    'Last EDR value should be NaN when only last beat has incomplete window');            catch e
+                    'Last EDR value should be NaN when only last beat has incomplete window');            
+            catch e
                 tc.verifyTrue(false, ['Error in incomplete windows test: ' e.message]);
             end
         end

@@ -16,7 +16,9 @@
 ### Code Structure
 - Each function should have a descriptive header comment explaining its purpose, inputs, and outputs
 - Use appropriate spacing and indentation for readability
-- Group related code blocks with comments
+- Group related code blocks with comments that explain the general approach or algorithm
+- Avoid redundant comments that simply restate what self-explanatory variable, function, or class names already convey
+- Focus comments on explaining the "why" and "how" of code blocks, not the obvious "what"
 
 ### Test Structure
 
@@ -42,16 +44,20 @@ classdef functionNameTest < matlab.unittest.TestCase
   methods (Test)
     function testBasicFunctionality(tc)
       % Setup test data
-      % ...existing code...
+      inputData = [1, 2, 3, 4, 5];
+      expected = [2, 4, 6, 8, 10];
       
       % Execute function under test
-      actual = functionName(inputArgs);
+      actual = functionName(inputData);
+      
       % Verify results
       tc.verifyEqual(actual, expected, 'Basic functionality failed');
     end
 
     function testEdgeCase(tc)
-      % ...existing code for edge case tests...
+      % Test with empty input
+      actual = functionName([]);
+      tc.verifyEmpty(actual, 'Empty input handling failed');
     end
   end
 
@@ -64,6 +70,15 @@ Test files must:
 - Define individual test methods inside a `methods (Test)` block, each prefixed with `test`
 - Use `tc.verify*` assertions (e.g., `verifyEqual`, `verifyTrue`, `verifyWarning`) for pass/fail checks
 - Use descriptive method names and comments for clarity
+- Include comprehensive input/output validation testing for the validations implemented in the function:
+  - Test invalid input types only if the function validates them (empty arrays, scalars, non-numeric data, strings, character arrays)
+  - Test special input types only if the function handles them (logical arrays, complex numbers)
+  - Test boundary conditions and edge cases relevant to the function's logic
+  - Test parameter validation only for parameters that the function actually validates (invalid ranges, negative values, zero values)
+  - Verify error handling with `tc.verifyError()` only for errors that the function is designed to throw
+  - Test input format conversion only if the function performs such conversions (row vs column vectors)
+  - Input and output checks to be tested must match those of the function being tested. Checks not present in the function under test should not be included.
+  - All checks implemented in a function must be tested.
 
 ## MATLAB-Specific Guidelines
 - Use column vectors consistently

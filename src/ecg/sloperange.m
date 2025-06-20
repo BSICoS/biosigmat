@@ -21,7 +21,7 @@ function varargout = sloperange(decg, tk, fs)
 %   DECG - Single-lead ECG signal derivative (numeric vector)
 %   TK   - Beat occurrence time series for R-waves in seconds (numeric vector)
 %   FS   - Sampling frequency in Hz (numeric scalar)
-%
+
 
 % Input argument validation
 narginchk(3, 3);
@@ -36,19 +36,21 @@ elseif ischar(decg)
 elseif islogical(decg)
     decg = double(decg);
 end
+if fs <= 0 || ~isscalar(fs)
+    error('Sampling frequency FS must be a positive scalar');
+end
 
-% Ensure decg is a column vector
 decg = decg(:);
-
-% Convert R-wave times from seconds to sample indices
 nk = round(tk * fs) + 1;
-
-% Number of R-wave peaks
 numBeats = length(nk);
 
+if any(nk < 1) || any(nk > length(decg))
+    error('R-wave indices must be within the bounds of the ECG signal');
+end
+
 % Define window durations around R-wave for slope analysis
-shortWindow = round(fs * 0.015);  % 15 ms window
-longWindow = round(fs * 0.05);    % 50 ms window
+shortWindow = round(fs * 0.015);
+longWindow = round(fs * 0.05);
 
 % Define relative sample intervals for upslope and downslope analysis
 upslopeWindow = -longWindow+1:shortWindow;
@@ -60,6 +62,21 @@ upslopeIndices = repmat(nk(:).', [upslopeLength, 1]) + ...
     repmat(upslopeWindow(:), [1, numBeats]);
 downslopeIndices = repmat(nk(:).', [upslopeLength, 1]) + ...
     repmat(downslopeWindow(:), [1, numBeats]);
+
+% Ensure windows are within bounds of the ECG signal and track removed beats
+firstBeatRemoved = false;
+lastBeatRemoved = false;
+
+if nk(1) + upslopeWindow(1) < 1
+    upslopeIndices(:, 1) = [];
+    downslopeIndices(:, 1) = [];
+    firstBeatRemoved = true;
+end
+if nk(end) + downslopeWindow(end) > length(decg)
+    upslopeIndices(:, end) = [];
+    downslopeIndices(:, end) = [];
+    lastBeatRemoved = true;
+end
 
 % Find maximum upslope and minimum downslope values
 [upslopeMax, upslopeMaxPosition] = max(decg(upslopeIndices));
@@ -76,11 +93,15 @@ downslopes(downslopeIndices) = decg(downslopeIndices);
 % Compute EDR signal as difference between maximum upslope and minimum downslope
 edr = upslopeMax(:) - downslopeMin(:);
 
-% Format output based on requested number of output arguments
-if nargout < 2
-    varargout = {edr};
-else
-    varargout = {edr, upslopes, downslopes, upslopeMaxPosition, downslopeMinPosition};
+% Complete EDR signal to match the length of tk by adding NaN for removed beats
+if firstBeatRemoved
+    edr = [nan; edr];
 end
+if lastBeatRemoved
+    edr = [edr; nan];
+end
+
+% Format output based on requested number of output arguments
+varargout = {edr, upslopes, downslopes, upslopeMaxPosition, downslopeMinPosition};
 
 end

@@ -27,31 +27,21 @@ narginchk(2, inf);
 nargoutchk(0, 1);
 
 % Parse input arguments
-p = inputParser;
-addRequired(p, 'ecg', @(x) isnumeric(x) && ~ischar(x));
-addRequired(p, 'detections', @(x) isnumeric(x) && ~ischar(x));
-addParameter(p, 'WindowSize', 20, @(x) isnumeric(x) && isscalar(x) && x > 0);
+parser = inputParser;
+addRequired(parser, 'ecg', @(x) isnumeric(x) && ~ischar(x) && isvector(x) && ~isscalar(x) && ~isempty(x));
+addRequired(parser, 'detections', @(x) isnumeric(x) && ~ischar(x));
+addParameter(parser, 'WindowSize', 20, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
-parse(p, ecg, detections, varargin{:});
+parse(parser, ecg, detections, varargin{:});
 
-% Extract parsed values
-ecg = p.Results.ecg;
-detections = p.Results.detections;
-windowSize = round(p.Results.WindowSize);
+ecg = parser.Results.ecg;
+detections = parser.Results.detections;
+windowSize = round(parser.Results.WindowSize);
 
-% Handle empty inputs
-if isempty(ecg) || isempty(detections)
+% Handle empty input
+if isempty(detections)
     refinedDetections = [];
     return;
-end
-
-% Convert inputs to appropriate types
-if islogical(ecg)
-    ecg = double(ecg);
-end
-
-if islogical(detections)
-    detections = double(detections);
 end
 
 % Ensure column vectors

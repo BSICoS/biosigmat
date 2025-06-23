@@ -29,9 +29,6 @@ tkSamples = detectionsData.tkSamples;
 ecg = signalsData.ecg;
 ecg = ecg(:);
 
-[b, a] = butter(2, [1, 40] / (fs / 2), 'bandpass');
-ecgFiltered = filtfilt(b, a, ecg);
-
 % Add random perturbations to the detections
 rng(42);
 maxPerturbation = 10;
@@ -39,22 +36,22 @@ perturbations = randi([-maxPerturbation, maxPerturbation], size(tkSamples));
 perturbedDetections = tkSamples + perturbations;
 perturbedDetections = max(1, min(length(ecg), perturbedDetections));
 
-refinedDetections = snaptopeak(ecgFiltered, perturbedDetections, 'WindowSize', 20);
+refinedDetections = snaptopeak(ecg, perturbedDetections, 'WindowSize', 20);
 
 
 %% Create visualization comparing perturbed and refined detections
 figure;
 
 % Plot filtered ECG signal
-plot(ecgFiltered, 'b-', 'LineWidth', 1, 'DisplayName', 'Filtered ECG');
+plot(ecg, 'b-', 'LineWidth', 1, 'DisplayName', 'Filtered ECG');
 hold on;
 
 % Plot perturbed detections
-plot(perturbedDetections, ecgFiltered(perturbedDetections), 'rs', 'MarkerSize', 8, ...
+plot(perturbedDetections, ecg(perturbedDetections), 'rs', 'MarkerSize', 8, ...
     'MarkerFaceColor', 'r', 'DisplayName', 'Perturbed Detections');
 
 % Plot refined detections
-plot(refinedDetections, ecgFiltered(refinedDetections), 'go', 'MarkerSize', 8, 'MarkerFaceColor', 'g', ...
+plot(refinedDetections, ecg(refinedDetections), 'go', 'MarkerSize', 8, 'MarkerFaceColor', 'g', ...
     'DisplayName', 'Original Detections');
 
 % Format plot

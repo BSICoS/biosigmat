@@ -19,7 +19,6 @@ addpath(fullfile('..', '..', 'fixtures', 'ecg'));
 % Define path to fixture data
 fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
 
-
 % Load ECG signals and R-peak timing data from CSV files
 signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
 peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
@@ -34,10 +33,6 @@ nk = round(tk * fs) + 1;  % Convert to sample indices
 
 % Ensure ECG is a column vector
 ecg = ecg(:);
-
-% Apply bandpass filter to ECG signal (0.05-45 Hz)
-[b, a] = butter(4, [0.05, 45] * 2 / fs, 'bandpass');
-ecg = filtfilt(b, a, ecg);
 
 % Calculate the first derivative of the ECG signal
 decg = diff(ecg);

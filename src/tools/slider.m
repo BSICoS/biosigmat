@@ -27,49 +27,35 @@ function hSlider = slider(varargin)
 %
 % See also: zoom, pan, uicontrol
 
-% Parse inputs based on number of arguments
-switch nargin
-    case 0
-        % No arguments provided - use current figure and auto-detect time
-        figHandler = gcf;
-        timeVector = getTimeVectorFromFigure(figHandler);
-
-    case 1
-        % One argument could be either a figure handle or time vector
-        if isobject(varargin{1}) && ishandle(varargin{1})
-            % Check if it's a figure handle
-            figType = get(varargin{1}, 'Type');
-            if strcmp(figType, 'figure')
-                % It's a figure handle
-                figHandler = varargin{1};
-                timeVector = getTimeVectorFromFigure(figHandler);
-            else
-                % It's some other handle, assume time vector
-                figHandler = gcf;
-                timeVector = varargin{1};
-            end
-        else
-            % Not a handle, assume it's a time vector
-            figHandler = gcf;
-            timeVector = varargin{1};
-        end
-
-    case 2
-        % Two arguments - figure handle and time vector
-        figHandler = varargin{1};
-        timeVector = varargin{2};
-
-    otherwise
-        error('Too many input arguments');
-end
+% Argument validation
+narginchk(0, 2);
+nargoutchk(0, 1);
 
 % Input validation
-if ~ishandle(figHandler) || ~strcmp(get(figHandler, 'Type'), 'figure')
-    error('First parameter must be a valid figure handle');
-end
+parser = inputParser;
+parser.FunctionName = 'slider';
+addOptional(parser, 'arg1', [], @(v) isempty(v) || (isobject(v) && ishandle(v) && strcmp(get(v, 'Type'), 'figure')) || isnumeric(v) || isdatetime(v));
+addOptional(parser, 'arg2', [], @(v) isempty(v) || isnumeric(v) || isdatetime(v));
 
-if isempty(timeVector)
-    error('Time vector cannot be determined. Please provide a valid time vector.');
+parse(parser, varargin{:});
+arg1 = parser.Results.arg1;
+arg2 = parser.Results.arg2;
+
+% Determine figHandler and timeVector based on parsed inputs
+if isempty(arg1) && isempty(arg2)
+    figHandler = gcf;
+    timeVector = getTimeVectorFromFigure(figHandler);
+elseif isempty(arg2)
+    if isobject(arg1) && ishandle(arg1) && strcmp(get(arg1, 'Type'), 'figure')
+        figHandler = arg1;
+        timeVector = getTimeVectorFromFigure(figHandler);
+    else
+        figHandler = gcf;
+        timeVector = arg1;
+    end
+else
+    figHandler = arg1;
+    timeVector = arg2;
 end
 
 % Find all axes in the figure

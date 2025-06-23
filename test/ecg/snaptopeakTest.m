@@ -41,8 +41,6 @@ classdef snaptopeakTest < matlab.unittest.TestCase
             peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
 
             ecg = signalsData.ecg(:);
-            [b, a] = butter(2, [1, 40] / (tc.fs / 2), 'bandpass');
-            ecg = filtfilt(b, a, ecg);
 
             % Convert time-based detections to sample indices
             tkSamples = peaksData.tkSamples(:);

@@ -1,4 +1,3 @@
-
 % SLOPERANGEEXAMPLE Example demonstrating ECG-derived respiration using slope range method
 %
 % This example shows how to:

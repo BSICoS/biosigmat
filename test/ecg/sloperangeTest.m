@@ -195,64 +195,40 @@ classdef sloperangeTest < matlab.unittest.TestCase
                 tc.verifyTrue(~any(isnan(middleValues)), ...
                     'Middle EDR values should not be NaN when beats have complete windows');
                 tc.verifyTrue(all(middleValues > 0), ...
-                    'Valid EDR values should be positive');  
+                    'Valid EDR values should be positive');
             catch e
                 tc.verifyTrue(false, ['Error in incomplete windows test: ' e.message]);
             end
         end
 
         function testEmptyInput(tc)
-            edr = sloperange([], [1, 2, 3], tc.fs);
-            tc.verifyEmpty(edr, 'Empty DECG input should return empty result');
-        end
-
-        function testScalarInput(tc)
-            edr = sloperange(1, 1, tc.fs);
-            tc.verifyEmpty(edr, 'Scalar DECG input should return empty result');
+            [decg, tk, ~] = tc.loadFixtureData();
+            tc.verifyError(@() sloperange([], tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Empty DECG input should throw inputParser validation error');
+            tc.verifyError(@() sloperange(decg, [], tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Empty TK input should throw inputParser validation error');
         end
 
         function testInvalidInputTypes(tc)
-            tc.verifyError(@() sloperange('string', [1, 2, 3], tc.fs), '', ...
-                'Non-numeric DECG input should throw an error');
-
-            tc.verifyError(@() sloperange(['a', 'b', 'c'], [1, 2, 3], tc.fs), '', ...
-                'Character array DECG input should throw an error');
-        end
-
-        function testLogicalInput(tc)
-            try
-                [decg, tk, ~] = tc.loadFixtureData();
-
-                logicalDecg = decg > 0;
-
-                edr = sloperange(logicalDecg, tk, tc.fs);
-                tc.verifyClass(edr, 'double', 'Logical input should be converted to double');
-                tc.verifySize(edr, [length(tk), 1], 'EDR should have same length as tk');
-            catch e
-                tc.verifyTrue(false, ['Error in logical input test: ' e.message]);
-            end
-        end
-
-        function testEmptyTkInput(tc)
-            try
-                [decg, ~, ~] = tc.loadFixtureData();
-                edr = sloperange(decg, [], tc.fs);
-                tc.verifyEmpty(edr, 'Empty TK input should return empty result');
-            catch e
-                tc.verifyTrue(contains(e.message, 'Index exceeds array bounds') || ...
-                    contains(e.message, 'badsubscript'), ...
-                    'Empty TK should handle gracefully');
-            end
+            [decg, tk, ~] = tc.loadFixtureData();
+            tc.verifyError(@() sloperange('string', tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Non-numeric DECG input should throw inputParser validation error');
+            tc.verifyError(@() sloperange(['a', 'b', 'c'], tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Character array DECG input should throw inputParser validation error');
+            tc.verifyError(@() sloperange(decg > 0, tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Logical DECG input should throw inputParser validation error');
+            tc.verifyError(@() sloperange(1, tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Scalar DECG input should throw inputParser validation error');
         end
 
         function testInvalidSamplingFrequency(tc)
             try
                 [decg, tk, ~] = tc.loadFixtureData();
-                tc.verifyError(@() sloperange(decg, tk, 0), '', ...
-                    'Zero sampling frequency must be a positive scalar');
+                tc.verifyError(@() sloperange(decg, tk, 0), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                    'Zero sampling frequency must throw inputParser validation error');
 
-                tc.verifyError(@() sloperange(decg, tk, -100), '', ...
-                    'Negative sampling frequency must be a positive scalar');
+                tc.verifyError(@() sloperange(decg, tk, -100), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                    'Negative sampling frequency must throw inputParser validation error');
             catch e
                 tc.verifyTrue(false, ['Error in invalid sampling frequency test: ' e.message]);
             end

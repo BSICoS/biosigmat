@@ -22,23 +22,23 @@ function varargout = sloperange(decg, tk, fs)
 %   TK   - Beat occurrence time series for R-waves in seconds (numeric vector)
 %   FS   - Sampling frequency in Hz (numeric scalar)
 
-
 % Input argument validation
 narginchk(3, 3);
 nargoutchk(0, 5);
 
-% Input validation
-if isempty(decg) || isscalar(decg)
-    varargout{1} = [];
-    return
-elseif ischar(decg)
-    error('Input must be a numeric array');
-elseif islogical(decg)
-    decg = double(decg);
-end
-if fs <= 0 || ~isscalar(fs)
-    error('Sampling frequency FS must be a positive scalar');
-end
+% Input validation using inputParser
+parser = inputParser;
+parser.FunctionName = 'sloperange';
+
+addRequired(parser, 'decg', @(x) isnumeric(x) && isvector(x) && ~isscalar(x));
+addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x));
+addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
+
+parse(parser, decg, tk, fs);
+
+decg = parser.Results.decg;
+tk = parser.Results.tk;
+fs = parser.Results.fs;
 
 decg = decg(:);
 nk = round(tk * fs) + 1;

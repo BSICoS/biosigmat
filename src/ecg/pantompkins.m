@@ -29,36 +29,29 @@ function varargout = pantompkins(ecg, fs, varargin)
 %   ECG - Single-lead ECG signal (numeric vector)
 %   FS  - Sampling frequency in Hz (numeric scalar)
 
+% Input argument validation
 narginchk(2, inf);
 nargoutchk(0, 4);
 
 % Parse input arguments
-p = inputParser;
-addRequired(p, 'ecg', @(x) isnumeric(x) && ~ischar(x));
-addRequired(p, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'BandpassFreq', [5, 12], @(x) isnumeric(x) && numel(x) == 2 && all(x > 0) && x(1) < x(2));
-addParameter(p, 'WindowSize', 0.15, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'MinPeakDistance', 0.5, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(p, 'UseSnapToPeak', true, @(x) islogical(x) && isscalar(x));
-addParameter(p, 'SnapTopeakWindowSize', 20, @(x) isnumeric(x) && isscalar(x) && x > 0);
+parser = inputParser;
+addRequired(parser, 'ecg', @(x) isnumeric(x) && ~ischar(x) && isvector(x) && ~isscalar(x) && ~isempty(x));
+addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'BandpassFreq', [5, 12], @(x) isnumeric(x) && numel(x) == 2 && all(x > 0) && x(1) < x(2));
+addParameter(parser, 'WindowSize', 0.15, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'MinPeakDistance', 0.5, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'UseSnapToPeak', true, @(x) islogical(x) && isscalar(x));
+addParameter(parser, 'SnapTopeakWindowSize', 20, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
-parse(p, ecg, fs, varargin{:});
+parse(parser, ecg, fs, varargin{:});
 
-% Extract parsed values
-ecg = p.Results.ecg;
-fs = p.Results.fs;
-bandpassFreq = p.Results.BandpassFreq;
-windowSizeSeconds = p.Results.WindowSize;
-minPeakDistanceSeconds = p.Results.MinPeakDistance;
-useSnapToPeak = p.Results.UseSnapToPeak;
-snapTopeakWindowSize = p.Results.SnapTopeakWindowSize;
-
-if isempty(ecg) || isscalar(ecg)
-    varargout{1} = [];
-    return;
-elseif islogical(ecg)
-    ecg = double(ecg);
-end
+ecg = parser.Results.ecg;
+fs = parser.Results.fs;
+bandpassFreq = parser.Results.BandpassFreq;
+windowSizeSeconds = parser.Results.WindowSize;
+minPeakDistanceSeconds = parser.Results.MinPeakDistance;
+useSnapToPeak = parser.Results.UseSnapToPeak;
+snapTopeakWindowSize = parser.Results.SnapTopeakWindowSize;
 
 ecg = ecg(:);
 

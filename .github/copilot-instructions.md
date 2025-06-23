@@ -20,6 +20,12 @@
 - Avoid redundant comments that simply restate what self-explanatory variable, function, or class names already convey
 - Focus comments on explaining the "why" and "how" of code blocks, not the obvious "what"
 
+### Indentation
+- Always use 4 spaces for indentation.
+
+### Consistency
+- When writing a method, test, or example, always refer to other files in the directory to ensure consistency in structure, style, and formatting.
+
 ### Test Structure
 
 - Each test file must begin with a header comment summarizing the test scenarios covered. For example:

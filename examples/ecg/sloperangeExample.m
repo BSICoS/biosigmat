@@ -22,7 +22,7 @@ fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
 
 % Load ECG signals and R-peak timing data from CSV files
 signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
-peaksData = readtable(fullfile(fixturesPath, 'edr_tk.csv'));
+peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
 
 % Sampling frequency for the CSV data
 fs = 256;

@@ -25,8 +25,8 @@ classdef sloperangeTest < matlab.unittest.TestCase
             fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
             tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
                 'edr_signals.csv not found in fixtures path');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_tk.csv'), 'file') > 0, ...
-                'edr_tk.csv not found in fixtures path');
+            tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
+                'ecg_tk.csv not found in fixtures path');
         end
     end
 
@@ -40,7 +40,7 @@ classdef sloperangeTest < matlab.unittest.TestCase
 
             % Load the signals and R-peaks from CSV files
             signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
-            peaksData = readtable(fullfile(fixturesPath, 'edr_tk.csv'));
+            peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
 
             % Extract signals
             ecg = signalsData.ecg(:);
@@ -218,7 +218,7 @@ classdef sloperangeTest < matlab.unittest.TestCase
                 tc.verifyTrue(~isnan(edrLast(1)), ...
                     'First EDR value should not be NaN when first beat has complete window');
                 tc.verifyTrue(isnan(edrLast(end)), ...
-                    'Last EDR value should be NaN when only last beat has incomplete window');            
+                    'Last EDR value should be NaN when only last beat has incomplete window');
             catch e
                 tc.verifyTrue(false, ['Error in incomplete windows test: ' e.message]);
             end

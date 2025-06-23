@@ -26,10 +26,8 @@ function varargout = sloperange(decg, tk, fs)
 narginchk(3, 3);
 nargoutchk(0, 5);
 
-% Input validation using inputParser
+% Parse input arguments
 parser = inputParser;
-parser.FunctionName = 'sloperange';
-
 addRequired(parser, 'decg', @(x) isnumeric(x) && isvector(x) && ~isscalar(x));
 addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);

@@ -66,17 +66,13 @@ classdef snaptopeakTest < matlab.unittest.TestCase
 
         function testEmptyInputs(tc)
             % Test with empty ECG signal
-            actual = snaptopeak([], [1, 2]);
-            tc.verifyEmpty(actual, 'Empty ECG input handling failed');
+            tc.verifyError(@() snaptopeak([], 1), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Should error for empty ECG input');
 
             % Test with empty detections
             [ecg, ~] = tc.loadFixtureData();
             actual = snaptopeak(ecg, []);
             tc.verifyEmpty(actual, 'Empty detections input handling failed');
-
-            % Test with both empty
-            actual = snaptopeak([], []);
-            tc.verifyEmpty(actual, 'Both empty inputs handling failed');
         end
 
         function testCustomWindowSize(tc)

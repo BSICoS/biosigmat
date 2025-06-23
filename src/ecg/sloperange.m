@@ -101,9 +101,13 @@ edr = upslopeMax(:) - downslopeMin(:);
 % Complete EDR signal to match the length of tk by adding NaN for removed beats
 if firstBeatRemoved
     edr = [nan; edr];
+    upslopeMaxPosition = [nan; upslopeMaxPosition];
+    downslopeMinPosition = [nan; downslopeMinPosition];
 end
 if lastBeatRemoved
     edr = [edr; nan];
+    upslopeMaxPosition = [upslopeMaxPosition; nan];
+    downslopeMinPosition = [downslopeMinPosition; nan];
 end
 
 % Format output based on requested number of output arguments

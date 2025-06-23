@@ -29,12 +29,13 @@ function varargout = pantompkins(ecg, fs, varargin)
 %   ECG - Single-lead ECG signal (numeric vector)
 %   FS  - Sampling frequency in Hz (numeric scalar)
 
-% Input argument validation
+% Argument validation
 narginchk(2, inf);
 nargoutchk(0, 4);
 
 % Parse input arguments
 parser = inputParser;
+parser.FunctionName = 'pantompkins';
 addRequired(parser, 'ecg', @(x) isnumeric(x) && ~ischar(x) && isvector(x) && ~isscalar(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'BandpassFreq', [5, 12], @(x) isnumeric(x) && numel(x) == 2 && all(x > 0) && x(1) < x(2));

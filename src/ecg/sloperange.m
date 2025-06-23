@@ -22,12 +22,13 @@ function varargout = sloperange(decg, tk, fs)
 %   TK   - Beat occurrence time series for R-waves in seconds (numeric vector)
 %   FS   - Sampling frequency in Hz (numeric scalar)
 
-% Input argument validation
+% Argument validation
 narginchk(3, 3);
 nargoutchk(0, 5);
 
 % Parse input arguments
 parser = inputParser;
+parser.FunctionName = 'sloperange';
 addRequired(parser, 'decg', @(x) isnumeric(x) && isvector(x) && ~isscalar(x));
 addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);

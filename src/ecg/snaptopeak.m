@@ -22,12 +22,13 @@ function refinedDetections = snaptopeak(ecg, detections, varargin)
 % Output:
 %   REFINEDDETECTIONS - Refined detection positions in samples (column vector)
 
-% Input argument validation
+% Argument validation
 narginchk(2, inf);
 nargoutchk(0, 1);
 
 % Parse input arguments
 parser = inputParser;
+parser.FunctionName = 'snaptopeak';
 addRequired(parser, 'ecg', @(x) isnumeric(x) && ~ischar(x) && isvector(x) && ~isscalar(x) && ~isempty(x));
 addRequired(parser, 'detections', @(x) isnumeric(x) && ~ischar(x));
 addParameter(parser, 'WindowSize', 20, @(x) isnumeric(x) && isscalar(x) && x > 0);

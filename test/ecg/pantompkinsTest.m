@@ -125,11 +125,14 @@ classdef pantompkinsTest < matlab.unittest.TestCase
             end
         end
 
-        function testAllNaNSignal(tc)
-            nanEcg = NaN(1000, 1);
-            % The function should handle all-NaN input gracefully by throwing a filtfilt error
-            tc.verifyError(@() pantompkins(nanEcg, tc.fs), 'MATLAB:filtfilt:expectedFinite', ...
-                'All-NaN ECG should throw filtfilt expectedFinite error');
+        function testSignalWithNaN(tc)
+            [ecg, expectedTk] = tc.loadFixtureData();
+            ecg(10000:13000) = NaN;
+            expectedTk(expectedTk > 10000/tc.fs & expectedTk < 13000/tc.fs) = [];
+            tk = pantompkins(ecg, tc.fs);
+
+            tc.verifyEqual(tk, expectedTk, ...
+                'Detected R-wave times should match expected values in ECG signal (NaN case)');
         end
 
         function testInvalidInputs(tc)

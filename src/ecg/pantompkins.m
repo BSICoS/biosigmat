@@ -56,9 +56,9 @@ snapTopeakWindowSize = parser.Results.SnapTopeakWindowSize;
 
 ecg = ecg(:);
 
-% Bandpass filter the ECG signal
+% Bandpass filter the ECG signal. nanfiltfilt is used with maxgap = 0, so it will preserve NaNs.
 [b, a] = butter(4, bandpassFreq / (fs / 2), 'bandpass');
-ecgFiltered = filtfilt(b, a, ecg);
+ecgFiltered = nanfiltfilt(b, a, ecg, 0);
 
 % Calculate the derivative of the filtered ECG signal
 decg = diff(ecgFiltered);

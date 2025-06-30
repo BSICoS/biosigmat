@@ -35,18 +35,23 @@ function varargout = findsequences(A)
 %           NaN       16             18           3       % Sequence of three NaNs (positions 16-18)
 %
 
-% Input argument validation
+% Argument validation
 narginchk(1, 1);
 nargoutchk(0, 4);
+
+% Parse input arguments
+parser = inputParser;
+parser.FunctionName = 'findsequences';
+addRequired(parser, 'A', @(x) isnumeric(x) && ismatrix(x));
+
+parse(parser, A);
+
+A = parser.Results.A;
 
 % Input validation
 if isempty(A) || isscalar(A)
     varargout{1} = [];
     return
-elseif ischar(A)
-    error('Input must be a numeric array');
-elseif islogical(A)
-    A = double(A);
 end
 
 % Get size of input array

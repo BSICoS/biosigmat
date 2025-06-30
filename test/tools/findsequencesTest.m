@@ -72,17 +72,10 @@ classdef findsequencesTest < matlab.unittest.TestCase
     end
 
     function testInvalidInput(tc)
-      tc.verifyError(@() findsequences('string'), '', 'Non-numeric input should throw an error');
-    end
-
-    function testLogicalInput(tc)
-      logicalArray = logical([0 0 1 1 1 0 1 0 0 0]);
-      expected = [
-        1,3,5,3;
-        0,1,2,2;
-        0,8,10,3];
-      actual = findsequences(logicalArray);
-      tc.verifyEqual(actual, expected, 'Logical input sequence detection failed');
+      tc.verifyError(@() findsequences('string'), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+        'String input should raise validation error');
+      tc.verifyError(@() findsequences(logical([1,0,1])), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+        'Logical array input should raise validation error');
     end
 
     function testMultipleOutputs(tc)

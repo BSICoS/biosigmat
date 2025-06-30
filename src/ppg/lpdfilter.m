@@ -48,22 +48,20 @@ addParameter(p, 'Coefficients', [], @(x) isempty(x) || (isnumeric(x) && isvector
 parse(p, signal, fs, varargin{:});
 
 % Assign parsed inputs
-signal = p.Results.signal(:); % Ensure column vector
+signal = p.Results.signal(:); 
 fs = p.Results.fs;
 order = p.Results.Order;
 passFreq = p.Results.PassFreq;
 stopFreq = p.Results.StopFreq;
 filterCoeff = p.Results.Coefficients;
 
-% Handle NaN values by linear interpolation
 nanIdx = isnan(signal);
 if any(nanIdx)
     signal = fillmissing(signal, 'linear');
 end
 
-% Design filter if coefficients are not provided
 if isempty(filterCoeff)
-    % Set default order if not specified
+    
     if isempty(order)
         order = round(fs/2);
         % Ensure order is even
@@ -72,7 +70,6 @@ if isempty(filterCoeff)
         end
     end
 
-    % Validate frequencies
     if passFreq >= stopFreq
         error('lpdfilter:invalidFrequencies', 'PassFreq must be less than StopFreq.');
     end
@@ -80,7 +77,6 @@ if isempty(filterCoeff)
         error('lpdfilter:invalidStopFreq', 'StopFreq must be less than the Nyquist frequency (fs/2).');
     end
 
-    % Use normalized frequencies for design (0 to 1, where 1 is Nyquist)
     wPass = passFreq / (fs/2);
     wStop = stopFreq / (fs/2);
 
@@ -96,21 +92,17 @@ end
 % For short signals, fall back to `filter` and compensate for the delay manually.
 filterOrder = length(filterCoeff) - 1;
 if length(signal) > 3 * filterOrder
-    % Use filtfilt for zero-phase filtering when signal is long enough
     filteredSignal = filtfilt(filterCoeff, 1, signal);
 else
-    % Use filter for short signals and compensate for delay
     delay = round(filterOrder/2);
     tempSignal = filter(filterCoeff, 1, [signal; zeros(delay, 1)]);
     filteredSignal = tempSignal(delay+1:end);
 end
 
-% Restore NaN values
 if any(nanIdx)
     filteredSignal(nanIdx) = NaN;
 end
 
-% Ensure output is a column vector
 filteredSignal = filteredSignal(:);
 
 end

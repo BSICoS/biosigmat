@@ -90,3 +90,40 @@ Test files must:
 - Use column vectors consistently
 - Include appropriate error checking for function inputs
 - Use meaningful variable names instead of single letters when possible (except for common math notation)
+
+# Function Structure Requirements
+- Every function must begin by checking the number of input and output arguments using `narginchk` and `nargoutchk`.
+- After argument count checks, use `inputParser` to handle and validate all inputs.
+- This structure must be used consistently in all functions. Example:
+
+```matlab
+function outputSignal = processSignal(inputSignal, windowSize)
+% Processes the input signal using a sliding window approach
+% 
+% Inputs:
+%   inputSignal - The signal to be processed
+%   windowSize - Size of the sliding window
+%
+% Outputs:
+%   outputSignal - The processed signal
+
+% Check number of input and output arguments
+narginchk(2, 2);
+nargoutchk(0, 1);
+
+% Parse and validate inputs
+parser = inputParser;
+parser.FunctionName = 'processSignal';
+addRequired(parser, 'inputSignal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
+addRequired(parser, 'windowSize', @(x) isnumeric(x) && isscalar(x) && x > 0);
+parse(parser, inputSignal, windowSize);
+inputSignal = parser.Results.inputSignal;
+windowSize = parser.Results.windowSize;
+
+% ...function implementation...
+end
+```
+
+- The header comment must describe the function's purpose, inputs, and outputs.
+- The argument validation and parsing block must always appear immediately after the header comment, before any other code.
+- Use the same commenting and structure style as shown above and in the files in `src/`.

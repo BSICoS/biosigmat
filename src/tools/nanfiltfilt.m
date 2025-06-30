@@ -16,19 +16,33 @@ function y = nanfiltfilt(b, a, x, maxgap)
 % Outputs:
 %   y          - Filtered signal with NaN values preserved where appropriate
 
-%% Parse Inputs
+% Argument validation
+narginchk(3, 4);
+nargoutchk(0, 1);
 
-% Check inputs
-if nargin < 3
-    error('nanfiltfilt:notEnoughInputs', 'Not enough input arguments.');
+% Input validation
+parser = inputParser;
+parser.FunctionName = 'nanfiltfilt';
+addRequired(parser, 'b', @(v) isnumeric(v) && isvector(v));
+addRequired(parser, 'a', @(v) isnumeric(v) && isvector(v));
+addRequired(parser, 'x', @(v) ismatrix(v));
+addOptional(parser, 'maxgap', [], @(v) isempty(v) || (isnumeric(v) && isscalar(v) && v >= 0));
+
+if nargin < 4
+    parse(parser, b, a, x);
+else
+    parse(parser, b, a, x, maxgap);
 end
 
-if nargin < 4 || isempty(maxgap)
+b = parser.Results.b;
+a = parser.Results.a;
+x = parser.Results.x;
+if isempty(parser.Results.maxgap)
     warning('nanfiltfilt:maxgapNotSpecified', 'maxgap not specified. All NaN segments will be preserved regardless of size.');
     maxgap = 0;
+else
+    maxgap = parser.Results.maxgap;
 end
-
-%% Algorithm
 
 % Find NaNs
 idxNan = isnan(x);

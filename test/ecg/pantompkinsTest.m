@@ -125,83 +125,67 @@ classdef pantompkinsTest < matlab.unittest.TestCase
             end
         end
 
-        function testEmptyInput(tc)
-            tk = pantompkins([], tc.fs);
-            tc.verifyEmpty(tk, 'Empty ECG input should return empty result');
+        function testSignalWithNaN(tc)
+            [ecg, expectedTk] = tc.loadFixtureData();
+            ecg(10000:13000) = NaN;
+            expectedTk(expectedTk > 10000/tc.fs & expectedTk < 13000/tc.fs) = [];
+            tk = pantompkins(ecg, tc.fs);
+
+            tc.verifyEqual(tk, expectedTk, ...
+                'Detected R-wave times should match expected values in ECG signal (NaN case)');
         end
 
-        function testScalarInput(tc)
-            tk = pantompkins(1, tc.fs);
-            tc.verifyEmpty(tk, 'Scalar ECG input should return empty result');
-        end
-
-        function testAllNaNSignal(tc)
-            nanEcg = NaN(1000, 1);
-            % The function should handle all-NaN input gracefully by throwing a filtfilt error
-            tc.verifyError(@() pantompkins(nanEcg, tc.fs), 'MATLAB:filtfilt:expectedFinite', ...
-                'All-NaN ECG should throw filtfilt expectedFinite error');
-        end
-        
-        function testInvalidInputTypes(tc)
+        function testInvalidInputs(tc)
             % Test non-numeric ECG input
+            tc.verifyError(@() pantompkins([], tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Empty ECG input should throw ArgumentFailedValidation error');
             tc.verifyError(@() pantompkins('string', tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'String ECG input should throw ArgumentFailedValidation error');
-
             tc.verifyError(@() pantompkins(['a', 'b', 'c'], tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Character array ECG input should throw ArgumentFailedValidation error');
+            tc.verifyError(@() pantompkins(true, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Logical ECG input should throw ArgumentFailedValidation error');
+            tc.verifyError(@() pantompkins(1, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Scalar numeric ECG input should throw ArgumentFailedValidation error');
 
             % Test invalid sampling frequency
             [ecg, ~] = tc.loadFixtureData();
             tc.verifyError(@() pantompkins(ecg, 0), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Zero sampling frequency should throw ArgumentFailedValidation error');
-
             tc.verifyError(@() pantompkins(ecg, -100), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Negative sampling frequency should throw ArgumentFailedValidation error');
-
             tc.verifyError(@() pantompkins(ecg, 'invalid'), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Non-numeric sampling frequency should throw ArgumentFailedValidation error');
-        end
-
-        function testInvalidParameterValues(tc)
-            [ecg, ~] = tc.loadFixtureData();
 
             % Test invalid bandpass frequencies
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'BandpassFreq', [15, 5]), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Invalid bandpass frequencies (high < low) should throw ArgumentFailedValidation error');
-
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'BandpassFreq', [-5, 10]), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Negative bandpass frequencies should throw ArgumentFailedValidation error');
-
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'BandpassFreq', 5), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Single bandpass frequency should throw ArgumentFailedValidation error');
 
             % Test invalid window size
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'WindowSize', -0.1), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Negative window size should throw ArgumentFailedValidation error');
-
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'WindowSize', 0), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Zero window size should throw ArgumentFailedValidation error');
-
             % Test invalid minimum peak distance
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'MinPeakDistance', -0.5), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Negative minimum peak distance should throw ArgumentFailedValidation error');
-
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'MinPeakDistance', 0), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Zero minimum peak distance should throw ArgumentFailedValidation error');
 
             % Test invalid snaptopeak window size
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'SnapTopeakWindowSize', -10), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Negative snaptopeak window size should throw ArgumentFailedValidation error');
-
             tc.verifyError(@() pantompkins(ecg, tc.fs, 'SnapTopeakWindowSize', 0), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Zero snaptopeak window size should throw ArgumentFailedValidation error');
         end
 
-        function testInputArgumentCount(tc)
-            % Test insufficient arguments
+        function testInsufficientArguments(tc)
             tc.verifyError(@() pantompkins(), 'MATLAB:narginchk:notEnoughInputs', ...
                 'No input arguments should throw notEnoughInputs error');
-
             tc.verifyError(@() pantompkins([1, 2, 3]), 'MATLAB:narginchk:notEnoughInputs', ...
                 'Single input argument should throw notEnoughInputs error');
         end

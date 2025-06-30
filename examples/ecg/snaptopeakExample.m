@@ -12,7 +12,6 @@
 %   - Reference R-wave detection times
 
 % Add required paths for source code and fixtures
-addpath(fullfile('..', '..', 'src', 'ecg'));
 addpath(fullfile('..', '..', 'src', 'tools'));
 addpath(fullfile('..', '..', 'fixtures', 'ecg'));
 

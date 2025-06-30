@@ -12,7 +12,6 @@ classdef snaptopeakTest < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function addCodeToPath(tc)
-            addpath(fullfile('..', '..', 'src', 'ecg'));
             addpath(fullfile('..', '..', 'src', 'tools'));
             addpath(fullfile(pwd, '..', '..', 'fixtures', 'ecg'));
 

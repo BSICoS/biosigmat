@@ -30,6 +30,22 @@ function [filteredSignal, filterCoeff] = lpdfilter(signal, fs, stopFreq, varargi
 % Outputs:
 %   filteredSignal - The LPD-filtered signal (column vector).
 %   filterCoeff    - The filter coefficients used for filtering.
+%
+% Example:
+%   % Filter a signal and visualize the filter's frequency response
+%   fs = 1000;
+%   t = (0:1/fs:1)';
+%   signal = sin(2*pi*5*t) + 0.5*sin(2*pi*50*t);
+%   [filteredSignal, filterCoeff] = lpdfilter(signal, fs, 10);
+%
+%   % Visualize the filter's frequency response
+%   [h,w] = freqz(filterCoeff, 1, 2^16);
+%   figure
+%   plot(w*fs/(2*pi), abs(h)/max(abs(h)));
+%   title('Normalized Frequency Response');
+%   xlabel('Frequency (Hz)');
+%   ylabel('Magnitude');
+%   grid on;
 
 % Check number of input and output arguments
 narginchk(3, 9);

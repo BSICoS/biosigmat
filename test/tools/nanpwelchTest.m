@@ -71,6 +71,26 @@ classdef nanpwelchTest < matlab.unittest.TestCase
                 'MATLAB:InputParser:ArgumentFailedValidation');
             tc.verifyError(@() nanpwelch(ecg, 256, 128, 512, tc.fs, -10), ...
                 'MATLAB:InputParser:ArgumentFailedValidation');
+
+            % Test window larger than signal
+            shortSignal = ecg(1:100);
+            tc.verifyError(@() nanpwelch(shortSignal, 256, 128, 512, tc.fs, []), ...
+                'nanpwelch:windowTooLarge');
+        end
+
+        function testShortSignalWarnings(tc)
+            ecg = tc.loadFixtureData();
+
+            % Test signal that becomes too short after trimming NaN
+            shortSignalWithNaN = [NaN(50, 1); ecg(1:50); NaN(100, 1)];
+            tc.verifyWarning(@() nanpwelch(shortSignalWithNaN, 128, 64, 256, tc.fs, []), ...
+                'nanpwelch:signalTooShort');
+
+            % Test signal with segments all too short
+            segmentedSignal = ecg(1:300);
+            segmentedSignal(50:200) = NaN;  % Large gap creating short segments
+            tc.verifyWarning(@() nanpwelch(segmentedSignal, 128, 64, 256, tc.fs, 10), ...
+                'nanpwelch:noValidSegments');
         end
 
         function testAllNaNSignal(tc)

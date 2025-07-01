@@ -74,7 +74,6 @@ classdef nanpwelchTest < matlab.unittest.TestCase
         end
 
         function testAllNaNSignal(tc)
-            % Test behavior with signal containing only NaN values
             allNanSignal = NaN(1000, 1);
 
             [pxx, f] = nanpwelch(allNanSignal, 256, 128, 512, tc.fs, []);
@@ -84,7 +83,6 @@ classdef nanpwelchTest < matlab.unittest.TestCase
         end
 
         function testTrimNaNAtEnds(tc)
-            % Test that NaN values at beginning and end are trimmed
             ecg = tc.loadFixtureData();
 
             % Add NaN values at beginning and end
@@ -98,8 +96,56 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             tc.verifyTrue(all(~isnan(pxx1)), 'Trimmed signal should not have NaN output');
         end
 
+        function testSegmentCounting(tc)
+            ecg = tc.loadFixtureData();
+            testSignal = ecg(1:1000);
+
+            % Test 1: Signal with only NaN at ends (should have 1 segment after trim)
+            signalTrimOnly = [NaN(50, 1); testSignal(1:500); NaN(100, 1)];
+            [pxx1, ~, segments1] = nanpwelch(signalTrimOnly, 128, 64, 256, tc.fs, []);
+            tc.verifyEqual(size(segments1, 2), 1, 'Trim-only case should have 1 segment');
+            tc.verifyEqual(size(segments1, 1), length(pxx1), 'Segment PSD should match output length');
+
+            % Test 2: Signal with one large gap in middle (should have 2 segments)
+            signalLargeGap = testSignal;
+            signalLargeGap(400:450) = NaN;  % 51-sample gap
+            [~, ~, segments2] = nanpwelch(signalLargeGap, 128, 64, 256, tc.fs, 10);
+            tc.verifyEqual(size(segments2, 2), 2, 'Large gap should create 2 segments');
+
+            % Test 3: Signal with one small gap and one large gap (should have 2 segments)
+            signalMixedGaps = testSignal;
+            signalMixedGaps(200:205) = NaN;  % 6-sample gap (should be interpolated)
+            signalMixedGaps(600:650) = NaN;  % 51-sample gap (should create division)
+            [~, ~, segments3] = nanpwelch(signalMixedGaps, 128, 64, 256, tc.fs, 10);
+            tc.verifyEqual(size(segments3, 2), 2, 'Mixed gaps should create 2 segments');
+
+            % Test 4: Signal with multiple small gaps (should have 1 segment, all interpolated)
+            signalSmallGaps = testSignal;
+            signalSmallGaps(100:102) = NaN;  % 3-sample gap
+            signalSmallGaps(300:305) = NaN;  % 6-sample gap
+            signalSmallGaps(500:508) = NaN;  % 9-sample gap
+            [~, ~, segments4] = nanpwelch(signalSmallGaps, 128, 64, 256, tc.fs, 10);
+            tc.verifyEqual(size(segments4, 2), 1, 'Multiple small gaps should be interpolated into 1 segment');
+
+            % Test 5: Signal with multiple large gaps (should have 3 segments)
+            signalMultipleLargeGaps = testSignal;
+            signalMultipleLargeGaps(200:250) = NaN;  % 51-sample gap
+            signalMultipleLargeGaps(600:670) = NaN;  % 71-sample gap
+            [~, ~, segments5] = nanpwelch(signalMultipleLargeGaps, 128, 64, 256, tc.fs, 10);
+            tc.verifyEqual(size(segments5, 2), 3, 'Multiple large gaps should create 3 segments');
+
+            % Test 6: All NaN signal (should have 0 segments)
+            allNanSignal = NaN(1000, 1);
+            [~, ~, segments6] = nanpwelch(allNanSignal, 128, 64, 256, tc.fs, []);
+            tc.verifyEmpty(segments6, 'All NaN signal should have empty segments matrix');
+
+            % Test 7: Clean signal (should have 1 segment)
+            [pxx7, ~, segments7] = nanpwelch(testSignal, 128, 64, 256, tc.fs, []);
+            tc.verifyEqual(size(segments7, 2), 1, 'Clean signal should have 1 segment');
+            tc.verifyEqual(segments7, pxx7, 'Single segment should equal averaged result');
+        end
+
         function testGapInterpolation(tc)
-            % Test gap interpolation with maxGapLength parameter
             ecg = tc.loadFixtureData();
             testSignal = ecg(1:1000);
 
@@ -128,7 +174,6 @@ classdef nanpwelchTest < matlab.unittest.TestCase
         end
 
         function testBasicFunctionality(tc)
-            % Test basic functionality with ECG signal from fixtures
             ecg = tc.loadFixtureData();
 
             % Test with both output arguments

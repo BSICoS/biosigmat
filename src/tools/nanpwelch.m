@@ -1,4 +1,4 @@
-function [pxx, f] = nanpwelch(x, window, noverlap, nfft, fs, maxGapLength)
+function [pxx, f, pxxSegments] = nanpwelch(x, window, noverlap, nfft, fs, maxGapLength)
 % NANPWELCH Compute Welch periodogram when signal has NaN segments
 %
 % This function computes the Welch power spectral density estimate for signals
@@ -19,10 +19,12 @@ function [pxx, f] = nanpwelch(x, window, noverlap, nfft, fs, maxGapLength)
 % Outputs:
 %   pxx - Power spectral density estimate (column vector)
 %   f - Frequency axis in Hz (column vector, optional)
+%   pxxSegments - Power spectral density for each segment (matrix, optional)
+%                 Each column contains the PSD of one processed segment
 
 % Argument validation
 narginchk(5, 6);
-nargoutchk(0, 2);
+nargoutchk(0, 3);
 
 % Parse input arguments
 parser = inputParser;
@@ -63,6 +65,9 @@ if isempty(firstValidIndex)
     if nargout > 1
         [~, f] = pwelch(ones(windowLength, 1), window, noverlap, nfft, fs);
     end
+    if nargout > 2
+        pxxSegments = [];
+    end
     return;
 end
 
@@ -79,6 +84,9 @@ if ~any(nanIndices)
         [pxx, f] = pwelch(filteredSignal, window, noverlap, nfft, fs);
     else
         pxx = pwelch(filteredSignal, window, noverlap, nfft, fs);
+    end
+    if nargout > 2
+        pxxSegments = pxx;  % Single segment case
     end
     return;
 end
@@ -149,11 +157,15 @@ end
 % Average power across all valid segments
 if numValidSegments > 0
     pxx = mean(pxxSegments, 2);
+    % Keep pxxSegments for third output if requested
 else
     % No valid segments - return NaN result
     pxx = NaN(ceil(nfft / 2), 1);
     if nargout > 1
         [~, f] = pwelch(ones(windowLength, 1), window, noverlap, nfft, fs);
+    end
+    if nargout > 2
+        pxxSegments = [];
     end
 end
 

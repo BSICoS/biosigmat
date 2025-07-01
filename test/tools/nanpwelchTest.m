@@ -2,6 +2,7 @@
 %   - Input validation for common real-world error cases
 %   - Basic functionality with ECG signal from fixtures
 %   - Special signal cases (all NaN, empty inputs)
+%   - Gap interpolation functionality with maxGapLength parameter
 
 classdef nanpwelchTest < matlab.unittest.TestCase
 
@@ -82,6 +83,50 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             tc.verifyTrue(all(isnan(pxx)), 'All NaN signal should produce NaN output');
         end
 
+        function testTrimNaNAtEnds(tc)
+            % Test that NaN values at beginning and end are trimmed
+            ecg = tc.loadFixtureData();
+
+            % Add NaN values at beginning and end
+            signalWithNaN = [NaN(100, 1); ecg(1:500); NaN(200, 1)];
+
+            [pxx1, ~] = nanpwelch(signalWithNaN, 256, 128, 512, tc.fs, []);
+            [pxx2, ~] = nanpwelch(ecg(1:500), 256, 128, 512, tc.fs, []);
+
+            tc.verifyClass(pxx1, 'double', 'Output pxx should be double');
+            tc.verifySize(pxx1, size(pxx2), 'Trimmed signal should have same size as clean signal');
+            tc.verifyTrue(all(~isnan(pxx1)), 'Trimmed signal should not have NaN output');
+        end
+
+        function testGapInterpolation(tc)
+            % Test gap interpolation with maxGapLength parameter
+            ecg = tc.loadFixtureData();
+            testSignal = ecg(1:1000);
+
+            % Create signal with small gaps that should be interpolated
+            signalWithSmallGaps = testSignal;
+            signalWithSmallGaps(100:102) = NaN;  % 3-sample gap
+            signalWithSmallGaps(200:204) = NaN;  % 5-sample gap
+
+            % Test with maxGapLength = 10 (should interpolate both gaps)
+            [pxx1, ~] = nanpwelch(signalWithSmallGaps, 256, 128, 512, tc.fs, 10);
+            tc.verifyClass(pxx1, 'double', 'Output pxx should be double');
+            tc.verifyTrue(all(~isnan(pxx1)), 'Small gaps should be interpolated');
+
+            % Test with maxGapLength = 2 (should not interpolate 5-sample gap)
+            [pxx2, ~] = nanpwelch(signalWithSmallGaps, 256, 128, 512, tc.fs, 2);
+            tc.verifyClass(pxx2, 'double', 'Output pxx should be double');
+
+            % Create signal with large gap that should not be interpolated
+            signalWithLargeGap = testSignal;
+            signalWithLargeGap(400:450) = NaN;  % 51-sample gap
+
+            % Test with maxGapLength = 10 (should not interpolate large gap)
+            [pxx3, ~] = nanpwelch(signalWithLargeGap, 256, 128, 512, tc.fs, 10);
+            tc.verifyClass(pxx3, 'double', 'Output pxx should be double');
+            tc.verifyTrue(all(~isnan(pxx3)), 'Should average across valid segments');
+        end
+
         function testBasicFunctionality(tc)
             % Test basic functionality with ECG signal from fixtures
             ecg = tc.loadFixtureData();
@@ -105,11 +150,11 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             tc.verifyWarningFree(@() nanpwelch(ecg, window, 128, 512, tc.fs, []), ...
                 'Function should accept vector window');
 
-            % Test with optional minDistance parameter
+            % Test with optional maxGapLength parameter
             tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, 50), ...
-                'Function should accept minDistance parameter');
+                'Function should accept maxGapLength parameter');
             tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, []), ...
-                'Function should accept empty minDistance parameter');
+                'Function should accept empty maxGapLength parameter');
         end
     end
 

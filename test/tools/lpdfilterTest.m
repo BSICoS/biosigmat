@@ -197,7 +197,7 @@ classdef lpdfilterTest < matlab.unittest.TestCase
             stopFreqHigh = 8.5; % Stop frequency for high fs
             
             % Create test signals at different sampling rates
-            duration = 5; % seconds
+            duration = 30; % seconds
             tLow = (0:1/fsLow:duration-1/fsLow)';
             tHigh = (0:1/fsHigh:duration-1/fsHigh)';
             

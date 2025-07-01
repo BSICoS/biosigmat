@@ -71,7 +71,7 @@ end
 if isempty(filterCoeff)
     % Calculate default passFreq if not provided
     if isempty(passFreq)
-        passFreq = stopFreq - 0.25; % Set passband 0.25 Hz below stopband
+        passFreq = stopFreq - 0.2; % Set passband 0.25 Hz below stopband
     end
     
     % Validate frequencies
@@ -106,16 +106,10 @@ if isempty(filterCoeff)
     filterCoeff = filterObj.Numerator * fs/(2*pi);
 end
 
-% The filtfilt function requires the signal to be at least 3x the filter order.
-% For short signals, fall back to `filter` and compensate for the delay manually.
 coeffLength = length(filterCoeff) - 1;
-if length(signal) > 3 * coeffLength
-    filteredSignal = filtfilt(filterCoeff, 1, signal);
-else
-    delay = round(coeffLength/2);
-    tempSignal = filter(filterCoeff, 1, [signal; zeros(delay, 1)]);
-    filteredSignal = tempSignal(delay+1:end);
-end
+delay = round(coeffLength/2);
+tempSignal = filter(filterCoeff, 1, [signal; zeros(delay, 1)]);
+filteredSignal = tempSignal(delay+1:end);
 
 if any(nanIdx)
     filteredSignal(nanIdx) = NaN;

@@ -56,17 +56,13 @@ maxGapLength = parser.Results.maxGapLength;
 x = x(:);
 window = window(:);
 
-windowLength = getWindowLength(window);
-
 % Trim NaN values at the beginning and end of the signal
 firstValidIndex = find(~isnan(x), 1, 'first');
 lastValidIndex = find(~isnan(x), 1, 'last');
 
 if isempty(firstValidIndex)
-    % All values are NaN - return NaN result
-    varargout{1} = [];
-    varargout{2} = [];
-    varargout{3} = [];
+    % All values are NaN - return empty result
+    [varargout{1:3}] = setEmptyOutputs();
     return;
 end
 
@@ -78,9 +74,7 @@ if length(x) < windowLength
     warning('nanpwelch:signalTooShort', ...
         'Signal after trimming NaN values (%d samples) is shorter than window length (%d samples). Cannot compute PSD.', ...
         length(x), windowLength);
-    varargout{1} = [];
-    varargout{2} = [];
-    varargout{3} = [];
+    [varargout{1:3}] = setEmptyOutputs();
     return;
 end
 
@@ -158,10 +152,14 @@ else
     % No valid segments - return empty result and warn
     warning('nanpwelch:noValidSegments', ...
         'All signal segments are shorter than window length (%d samples). Cannot compute PSD.', windowLength);
-    varargout{1} = [];
-    varargout{2} = [];
-    varargout{3} = [];
+    [varargout{1:3}] = setEmptyOutputs();
 end
+end
+
+function [pxx, f, pxxSegments] = setEmptyOutputs()
+pxx = [];
+f = [];
+pxxSegments = [];
 end
 
 function windowLength = getWindowLength(window)

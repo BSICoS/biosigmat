@@ -208,8 +208,8 @@ classdef lpdfilterTest < matlab.unittest.TestCase
             signalHigh = sin(2*pi*freq1*tHigh) + 0.5*sin(2*pi*freq2*tHigh);
             
             % Design filters with specified cutoff frequencies
-            [~, coeffLow] = lpdfilter(signalLow, fsLow, stopFreqLow, 'PassFreq', 7, 'Order', 20);
-            [~, coeffHigh] = lpdfilter(signalHigh, fsHigh, stopFreqHigh, 'PassFreq', 7.5, 'Order', 100);
+            [~, coeffLow] = lpdfilter(signalLow, fsLow, stopFreqLow);
+            [~, coeffHigh] = lpdfilter(signalHigh, fsHigh, stopFreqHigh);
             
             % Verify filter coefficients are valid
             tc.verifyTrue(all(isfinite(coeffLow)), ...

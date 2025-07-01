@@ -16,7 +16,7 @@ classdef lpdfilterTest < matlab.unittest.TestCase
     methods (TestClassSetup)
         function addPathsAndData(tc)
             % Add required paths
-            addpath(fullfile(pwd, '..', '..', 'src', 'ppg'));
+            addpath(fullfile(pwd, '..', '..', 'src', 'tools'));
 
             % Load real PPG data from fixtures
             data = readtable(fullfile(pwd, '..', '..', 'fixtures', 'ppg', 'ppg_signals.csv'));

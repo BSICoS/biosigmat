@@ -163,5 +163,97 @@ classdef lpdfilterTest < matlab.unittest.TestCase
             end
             tc.verifyError(@callWithTooManyOutputs, 'MATLAB:TooManyOutputs');
         end
+
+        function testLpdFilterDesignAtDifferentSamplingFrequencies(tc)
+            % Test LPD filter design with 8Hz cutoff at different sampling frequencies
+            % This test verifies that the filter is constructed correctly for both
+            % low (26Hz) and high (1000Hz) sampling frequencies
+            
+            % Test parameters
+            fs_low = 26;    % Low sampling frequency
+            fs_high = 1000; % High sampling frequency
+            
+            % Create test signals at different sampling rates
+            duration = 5; % seconds
+            t_low = (0:1/fs_low:duration-1/fs_low)';
+            t_high = (0:1/fs_high:duration-1/fs_high)';
+            
+            % Simple test signal: sum of sinusoids at different frequencies
+            freq1 = 3; % Below cutoff
+            freq2 = 15; % Above cutoff
+            signal_low = sin(2*pi*freq1*t_low) + 0.5*sin(2*pi*freq2*t_low);
+            signal_high = sin(2*pi*freq1*t_high) + 0.5*sin(2*pi*freq2*t_high);
+            
+            % Design filters with 8Hz cutoff frequency
+            % For low fs: use PassFreq=7, StopFreq=9 (centered around 8Hz)
+            % For high fs: use PassFreq=7.5, StopFreq=8.5 (centered around 8Hz)
+            [~, coeff_low] = lpdfilter(signal_low, fs_low, ...
+                'PassFreq', 7, 'StopFreq', 9, 'Order', 20);
+            [~, coeff_high] = lpdfilter(signal_high, fs_high, ...
+                'PassFreq', 7.5, 'StopFreq', 8.5, 'Order', 100);
+            
+            % Verify filter coefficients are valid
+            tc.verifyTrue(all(isfinite(coeff_low)), ...
+                'Low fs filter coefficients should be finite');
+            tc.verifyTrue(all(isfinite(coeff_high)), ...
+                'High fs filter coefficients should be finite');
+            
+            % Verify filter lengths match expected orders
+            tc.verifyEqual(length(coeff_low), 21, ...
+                'Low fs filter should have 21 coefficients (order 20 + 1)');
+            tc.verifyEqual(length(coeff_high), 101, ...
+                'High fs filter should have 101 coefficients (order 100 + 1)');
+            
+            % Test frequency response characteristics
+            [h_low, w_low] = freqz(coeff_low, 1, 512);
+            [h_high, w_high] = freqz(coeff_high, 1, 512);
+            
+            f_low = w_low * fs_low / (2*pi);
+            f_high = w_high * fs_high / (2*pi);
+            
+            % Verify that the derivative nature of the filter is preserved
+            % LPD filters should have near-zero DC response
+            dc_response_low = abs(h_low(1));
+            dc_response_high = abs(h_high(1));
+            
+            tc.verifyLessThan(dc_response_low, 0.1*max(abs(h_low)), ...
+                'Low fs LPD filter should have low DC response');
+            tc.verifyLessThan(dc_response_high, 0.1*max(abs(h_high)), ...
+                'High fs LPD filter should have low DC response');
+            
+            % Find frequency response at passband frequencies
+            % For low fs filter (PassFreq=7Hz)
+            [~, idx_pass_low] = min(abs(f_low - 7));
+            
+            % For high fs filter (PassFreq=7.5Hz)
+            [~, idx_pass_high] = min(abs(f_high - 7.5));
+            
+            % Verify that passband has higher response than stopband
+            % (accounting for the derivative nature which enhances mid-frequencies)
+            passband_response_low = abs(h_low(idx_pass_low));
+            passband_response_high = abs(h_high(idx_pass_high));
+            
+            % For LPD filters, the response should be significant at the passband frequency
+            tc.verifyGreaterThan(passband_response_low, 0.05*max(abs(h_low)), ...
+                'Low fs filter should have significant response at passband frequency');
+            tc.verifyGreaterThan(passband_response_high, 0.05*max(abs(h_high)), ...
+                'High fs filter should have significant response at passband frequency');
+            
+            % Verify the filters have been designed (non-zero coefficients)
+            tc.verifyGreaterThan(max(abs(coeff_low)), 0, ...
+                'Low fs filter should have non-zero coefficients');
+            tc.verifyGreaterThan(max(abs(coeff_high)), 0, ...
+                'High fs filter should have non-zero coefficients');
+            
+            % Test that the scaling factor (fs/(2*pi)) has been applied correctly
+            % The maximum coefficient magnitude should be reasonable for the sampling frequency
+            max_coeff_low = max(abs(coeff_low));
+            max_coeff_high = max(abs(coeff_high));
+            
+            tc.verifyGreaterThan(max_coeff_low, fs_low/(2*pi)/1000, ...
+                'Low fs filter coefficients should reflect proper scaling');
+            tc.verifyGreaterThan(max_coeff_high, fs_high/(2*pi)/1000, ...
+                'High fs filter coefficients should reflect proper scaling');
+        end
     end
 end

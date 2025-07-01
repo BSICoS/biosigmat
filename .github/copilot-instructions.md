@@ -19,6 +19,7 @@
 - Group related code blocks with comments that explain the general approach or algorithm
 - Avoid redundant comments that simply restate what self-explanatory variable, function, or class names already convey
 - Focus comments on explaining the "why" and "how" of code blocks, not the obvious "what"
+- Functions in the `tools` directory should include usage examples in their help documentation rather than having separate example files
 
 ### Indentation
 - Always use 4 spaces for indentation.
@@ -106,6 +107,14 @@ function outputSignal = processSignal(inputSignal, windowSize)
 %
 % Outputs:
 %   outputSignal - The processed signal
+%
+% Example:
+%   % Process a simple sine wave with a window size of 5
+%   t = 0:0.01:1;
+%   signal = sin(2*pi*10*t)';
+%   processed = processSignal(signal, 5);
+%   plot(t, signal, 'b', t, processed, 'r');
+%   legend('Original', 'Processed');
 
 % Check number of input and output arguments
 narginchk(2, 2);

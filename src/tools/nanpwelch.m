@@ -1,4 +1,4 @@
-function [pxx, f, pxxSegments] = nanpwelch(x, window, noverlap, nfft, fs, maxGapLength)
+function varargout = nanpwelch(x, window, noverlap, nfft, fs, maxGapLength)
 % NANPWELCH Compute Welch periodogram when signal has NaN segments
 %
 % This function computes the Welch power spectral density estimate for signals
@@ -64,13 +64,9 @@ lastValidIndex = find(~isnan(x), 1, 'last');
 
 if isempty(firstValidIndex)
     % All values are NaN - return NaN result
-    pxx = NaN(ceil(nfft / 2), 1);
-    if nargout > 1
-        [~, f] = pwelch(ones(windowLength, 1), window, noverlap, nfft, fs);
-    end
-    if nargout > 2
-        pxxSegments = [];
-    end
+    varargout{1} = [];
+    varargout{2} = [];
+    varargout{3} = [];
     return;
 end
 
@@ -82,27 +78,19 @@ if length(x) < windowLength
     warning('nanpwelch:signalTooShort', ...
         'Signal after trimming NaN values (%d samples) is shorter than window length (%d samples). Cannot compute PSD.', ...
         length(x), windowLength);
-    pxx = [];
-    if nargout > 1
-        f = [];
-    end
-    if nargout > 2
-        pxxSegments = [];
-    end
+    varargout{1} = [];
+    varargout{2} = [];
+    varargout{3} = [];
     return;
 end
 
 % Find NaN gaps in the trimmed signal
 nanIndices = isnan(x);
 if ~any(nanIndices)
-    if nargout > 1
-        [pxx, f] = pwelch(x, window, noverlap, nfft, fs);
-    else
-        pxx = pwelch(x, window, noverlap, nfft, fs);
-    end
-    if nargout > 2
-        pxxSegments = pxx;  % Single segment case
-    end
+    [pxx, f] = pwelch(x, window, noverlap, nfft, fs);
+    varargout{1} = pxx;
+    varargout{2} = f;
+    varargout{3} = pxx;  % Single segment case
     return;
 end
 
@@ -155,39 +143,31 @@ for i = 1:length(segmentStarts)
     if segmentLength >= windowLength
         % Compute Welch periodogram
         numValidSegments = numValidSegments + 1;
-        if nargout > 1
-            [pxxSegments(:, numValidSegments), f] = pwelch(segment, window, ...
-                noverlap, nfft, fs); %#ok<*AGROW>
-        else
-            pxxSegments(:, numValidSegments) = pwelch(segment, window, ...
-                noverlap, nfft, fs);
-        end
+        [pxxSegments(:, numValidSegments), f] = pwelch(segment, window, ...
+            noverlap, nfft, fs); %#ok<*AGROW>
     end
 end
 
 % Average power across all valid segments
 if numValidSegments > 0
     pxx = mean(pxxSegments, 2);
-    % Keep pxxSegments for third output if requested
+    varargout{1} = pxx;
+    varargout{2} = f;
+    varargout{3} = pxxSegments;
 else
     % No valid segments - return empty result and warn
     warning('nanpwelch:noValidSegments', ...
         'All signal segments are shorter than window length (%d samples). Cannot compute PSD.', windowLength);
-    pxx = [];
-    if nargout > 1
-        f = [];
-    end
-    if nargout > 2
-        pxxSegments = [];
-    end
+    varargout{1} = [];
+    varargout{2} = [];
+    varargout{3} = [];
+end
 end
 
 function windowLength = getWindowLength(window)
-    if isscalar(window)
-        windowLength = window;
-    else
-        windowLength = length(window);
-    end
+if isscalar(window)
+    windowLength = window;
+else
+    windowLength = length(window);
 end
-
 end

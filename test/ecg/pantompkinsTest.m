@@ -10,7 +10,6 @@
 
 classdef pantompkinsTest < matlab.unittest.TestCase
     properties
-        fixturesDir = fullfile('..', '..', 'fixtures', 'ecg');
         fs = 256;
     end
 

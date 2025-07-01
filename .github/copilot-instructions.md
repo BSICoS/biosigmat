@@ -77,6 +77,7 @@ Test files must:
 - Define individual test methods inside a `methods (Test)` block, each prefixed with `test`
 - Use `tc.verify*` assertions (e.g., `verifyEqual`, `verifyTrue`, `verifyWarning`) for pass/fail checks
 - Use descriptive method names and comments for clarity
+- Use fixture data from the `fixtures/` directory whenever possible instead of generating test data programmatically
 - Include comprehensive input/output validation testing for the validations implemented in the function:
   - Test invalid input types only if the function validates them (empty arrays, scalars, non-numeric data, strings, character arrays)
   - Test special input types only if the function handles them (logical arrays, complex numbers)

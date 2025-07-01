@@ -8,7 +8,7 @@ classdef lpdfilterTest < matlab.unittest.TestCase
 
     properties
         fs = 100; % Common sampling frequency for tests
-        fs_orig = 1000; % Original sampling frequency of the fixture
+        fsOrig = 1000; % Original sampling frequency of the fixture
         signal;
         t;
     end
@@ -23,52 +23,56 @@ classdef lpdfilterTest < matlab.unittest.TestCase
             
             % Use 30 seconds of data
             duration = 30;
-            t_orig = (0:duration*tc.fs_orig-1)'/tc.fs_orig;
-            signal_orig = data.sig(1:length(t_orig));
+            tOrig = (0:duration*tc.fsOrig-1)'/tc.fsOrig;
+            signalOrig = data.sig(1:length(tOrig));
 
             % Resample to the test frequency
-            [tc.signal, tc.t] = resample(signal_orig, t_orig, tc.fs);
+            [tc.signal, tc.t] = resample(signalOrig, tOrig, tc.fs);
         end
     end
 
     methods (Test)
         function testBasicFunctionality(tc)
+            % Define a stop frequency for testing
+            stopFreq = 8.0;
+            
             % Execute function under test with default parameters
-            [filteredSignal, filterCoeff] = lpdfilter(tc.signal, tc.fs);
+            [filteredSignal, filterCoeff] = lpdfilter(tc.signal, tc.fs, stopFreq);
 
             % Basic verifications
             tc.verifySize(filteredSignal, size(tc.signal), 'Filtered signal size mismatch');
             tc.verifyNotEqual(filteredSignal, tc.signal, 'Signal should be modified by filter');
             tc.verifyTrue(all(isfinite(filteredSignal)), 'Filtered signal should be finite');
 
-            % Verify filter characteristics (default order is fs/2)
-            expectedOrder = round(tc.fs/2);
-            if mod(expectedOrder, 2) ~= 0, expectedOrder = expectedOrder + 1; end
-            tc.verifyEqual(length(filterCoeff), expectedOrder + 1, ...
-                'Filter length should match default order');
+            % Verify filter coefficients are non-empty
+            tc.verifyTrue(~isempty(filterCoeff), 'Filter coefficients should be generated');
+            tc.verifyTrue(all(isfinite(filterCoeff)), 'Filter coefficients should be finite');
         end
 
         function testInvalidRequiredInputs(tc)
             % Test for not enough inputs
             tc.verifyError(@() lpdfilter(), 'MATLAB:narginchk:notEnoughInputs');
             tc.verifyError(@() lpdfilter(tc.signal), 'MATLAB:narginchk:notEnoughInputs');
+            tc.verifyError(@() lpdfilter(tc.signal, tc.fs), 'MATLAB:narginchk:notEnoughInputs');
             
             % Test with invalid signal and fs
-            tc.verifyError(@() lpdfilter([], tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation');
-            tc.verifyError(@() lpdfilter('not-numeric', tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation');
-            tc.verifyError(@() lpdfilter(tc.signal, -100), 'MATLAB:InputParser:ArgumentFailedValidation');
-            tc.verifyError(@() lpdfilter(tc.signal, 0), 'MATLAB:InputParser:ArgumentFailedValidation');
-            tc.verifyError(@() lpdfilter(tc.signal, [100 100]), 'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() lpdfilter([], tc.fs, 8.0), 'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() lpdfilter('not-numeric', tc.fs, 8.0), 'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() lpdfilter(tc.signal, -100, 8.0), 'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() lpdfilter(tc.signal, 0, 8.0), 'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() lpdfilter(tc.signal, [100 100], 8.0), 'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, -1), 'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, 0), 'MATLAB:InputParser:ArgumentFailedValidation');
         end
 
         function testInvalidNameValueInputs(tc)
             % Test invalid frequency parameters
-            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, 'PassFreq', 10, 'StopFreq', 9), 'lpdfilter:invalidFrequencies');
-            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, 'StopFreq', tc.fs/2), 'lpdfilter:invalidStopFreq');
+            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, 9, 'PassFreq', 10), 'lpdfilter:invalidFrequencies');
+            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, tc.fs/2), 'lpdfilter:invalidStopFreq');
 
             % Test invalid order
-            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, 'Order', 51), 'MATLAB:InputParser:ArgumentFailedValidation'); % Must be even
-            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, 'Order', -10), 'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, 8.0, 'Order', 51), 'MATLAB:InputParser:ArgumentFailedValidation'); % Must be even
+            tc.verifyError(@() lpdfilter(tc.signal, tc.fs, 8.0, 'Order', -10), 'MATLAB:InputParser:ArgumentFailedValidation');
         end
 
         function testNaNHandling(tc)
@@ -76,13 +80,14 @@ classdef lpdfilterTest < matlab.unittest.TestCase
             signalWithNaNs = tc.signal;
             nanIndices = [1, 5, 25, 45, length(signalWithNaNs)];
             signalWithNaNs(nanIndices) = NaN;
+            stopFreq = 8.0;
             
             % Execute function with pre-computed coefficients to test that path
-            [~, coeffs] = lpdfilter(tc.signal, tc.fs);
-            filteredSignal1 = lpdfilter(signalWithNaNs, tc.fs, 'Coefficients', coeffs);
+            [~, coeffs] = lpdfilter(tc.signal, tc.fs, stopFreq);
+            filteredSignal1 = lpdfilter(signalWithNaNs, tc.fs, stopFreq, 'Coefficients', coeffs);
             
             % Execute function without pre-computed coefficients to test that path
-            filteredSignal2 = lpdfilter(signalWithNaNs, tc.fs);
+            filteredSignal2 = lpdfilter(signalWithNaNs, tc.fs, stopFreq);
             
             % Verify results are identical
             tc.verifyEqual(filteredSignal1, filteredSignal2, ...
@@ -100,9 +105,10 @@ classdef lpdfilterTest < matlab.unittest.TestCase
         function testAllNaNInput(tc)
             % Create an all-NaN signal
             allNanSignal = NaN(size(tc.signal));
+            stopFreq = 8.0;
             
             % Execute function
-            filteredSignal = lpdfilter(allNanSignal, tc.fs);
+            filteredSignal = lpdfilter(allNanSignal, tc.fs, stopFreq);
             
             % fillmissing with 'linear' on an all-NaN vector results in an all-NaN vector.
             % The subsequent filtering should also result in all-NaNs.
@@ -111,9 +117,10 @@ classdef lpdfilterTest < matlab.unittest.TestCase
 
         function testOptionalParameters(tc)
             % Test with custom parameters
-            [filteredSignal1, filterCoeff1] = lpdfilter(tc.signal, tc.fs);
-            [filteredSignal2, filterCoeff2] = lpdfilter(tc.signal, tc.fs, ...
-                'Order', 20, 'PassFreq', 5, 'StopFreq', 10);
+            stopFreq = 8.0;
+            [filteredSignal1, filterCoeff1] = lpdfilter(tc.signal, tc.fs, stopFreq);
+            [filteredSignal2, filterCoeff2] = lpdfilter(tc.signal, tc.fs, stopFreq, ...
+                'Order', 20, 'PassFreq', 5);
 
             % Verify results are different
             tc.verifyNotEqual(length(filterCoeff1), length(filterCoeff2), ...
@@ -124,20 +131,22 @@ classdef lpdfilterTest < matlab.unittest.TestCase
 
         function testColumnVectorOutput(tc)
             % Test row vector input
-            row_signal = [1, 2, 3, 4, 5];
-            filteredSignal = lpdfilter(row_signal, tc.fs);
-            tc.verifySize(filteredSignal, [length(row_signal), 1], 'Output should be a column vector');
+            rowSignal = [1, 2, 3, 4, 5];
+            stopFreq = 8.0;
+            filteredSignal = lpdfilter(rowSignal, tc.fs, stopFreq);
+            tc.verifySize(filteredSignal, [length(rowSignal), 1], 'Output should be a column vector');
         end
 
         function testPreComputedCoefficients(tc)
             % Get filter coefficients from a first run
-            [~, filterCoeff] = lpdfilter(tc.signal, tc.fs);
+            stopFreq = 8.0;
+            [~, filterCoeff] = lpdfilter(tc.signal, tc.fs, stopFreq);
 
             % Filter signal using pre-computed coefficients
-            filteredSignal1 = lpdfilter(tc.signal, tc.fs, 'Coefficients', filterCoeff);
+            filteredSignal1 = lpdfilter(tc.signal, tc.fs, stopFreq, 'Coefficients', filterCoeff);
 
             % Filter signal computing coefficients again
-            filteredSignal2 = lpdfilter(tc.signal, tc.fs);
+            filteredSignal2 = lpdfilter(tc.signal, tc.fs, stopFreq);
 
             % Results should be identical
             tc.verifyEqual(filteredSignal1, filteredSignal2, ...
@@ -147,9 +156,10 @@ classdef lpdfilterTest < matlab.unittest.TestCase
         function testShortSignalHandling(tc)
             % Create a signal shorter than 3x the default filter order
             shortSignal = tc.signal(1:10); % Default order is ~50
+            stopFreq = 8.0;
             
             % Execute function
-            filteredSignal = lpdfilter(shortSignal, tc.fs);
+            filteredSignal = lpdfilter(shortSignal, tc.fs, stopFreq);
             
             % Verify output is valid
             tc.verifySize(filteredSignal, size(shortSignal), 'Filtered signal size mismatch for short input');
@@ -159,9 +169,20 @@ classdef lpdfilterTest < matlab.unittest.TestCase
         function testNargout(tc)
             % Test for too many output arguments
             function callWithTooManyOutputs()
-                [~,~,~] = lpdfilter(tc.signal, tc.fs);
+                [~,~,~] = lpdfilter(tc.signal, tc.fs, 8.0);
             end
             tc.verifyError(@callWithTooManyOutputs, 'MATLAB:TooManyOutputs');
+        end
+
+        function testAutoCalculatedParameters(tc)
+            % Test that auto-calculated parameters work correctly
+            stopFreq = 8.0;
+            [filteredSignal, filterCoeff] = lpdfilter(tc.signal, tc.fs, stopFreq);
+            
+            % Verify results
+            tc.verifyTrue(~isempty(filteredSignal), 'Filtered signal should not be empty');
+            tc.verifyTrue(~isempty(filterCoeff), 'Filter coefficients should not be empty');
+            tc.verifyTrue(all(isfinite(filterCoeff)), 'Filter coefficients should be finite');
         end
 
         function testLpdFilterDesignAtDifferentSamplingFrequencies(tc)
@@ -170,89 +191,87 @@ classdef lpdfilterTest < matlab.unittest.TestCase
             % low (26Hz) and high (1000Hz) sampling frequencies
             
             % Test parameters
-            fs_low = 26;    % Low sampling frequency
-            fs_high = 1000; % High sampling frequency
+            fsLow = 26;    % Low sampling frequency
+            fsHigh = 1000; % High sampling frequency
+            stopFreqLow = 9;  % Stop frequency for low fs
+            stopFreqHigh = 8.5; % Stop frequency for high fs
             
             % Create test signals at different sampling rates
             duration = 5; % seconds
-            t_low = (0:1/fs_low:duration-1/fs_low)';
-            t_high = (0:1/fs_high:duration-1/fs_high)';
+            tLow = (0:1/fsLow:duration-1/fsLow)';
+            tHigh = (0:1/fsHigh:duration-1/fsHigh)';
             
             % Simple test signal: sum of sinusoids at different frequencies
             freq1 = 3; % Below cutoff
             freq2 = 15; % Above cutoff
-            signal_low = sin(2*pi*freq1*t_low) + 0.5*sin(2*pi*freq2*t_low);
-            signal_high = sin(2*pi*freq1*t_high) + 0.5*sin(2*pi*freq2*t_high);
+            signalLow = sin(2*pi*freq1*tLow) + 0.5*sin(2*pi*freq2*tLow);
+            signalHigh = sin(2*pi*freq1*tHigh) + 0.5*sin(2*pi*freq2*tHigh);
             
-            % Design filters with 8Hz cutoff frequency
-            % For low fs: use PassFreq=7, StopFreq=9 (centered around 8Hz)
-            % For high fs: use PassFreq=7.5, StopFreq=8.5 (centered around 8Hz)
-            [~, coeff_low] = lpdfilter(signal_low, fs_low, ...
-                'PassFreq', 7, 'StopFreq', 9, 'Order', 20);
-            [~, coeff_high] = lpdfilter(signal_high, fs_high, ...
-                'PassFreq', 7.5, 'StopFreq', 8.5, 'Order', 100);
+            % Design filters with specified cutoff frequencies
+            [~, coeffLow] = lpdfilter(signalLow, fsLow, stopFreqLow, 'PassFreq', 7, 'Order', 20);
+            [~, coeffHigh] = lpdfilter(signalHigh, fsHigh, stopFreqHigh, 'PassFreq', 7.5, 'Order', 100);
             
             % Verify filter coefficients are valid
-            tc.verifyTrue(all(isfinite(coeff_low)), ...
+            tc.verifyTrue(all(isfinite(coeffLow)), ...
                 'Low fs filter coefficients should be finite');
-            tc.verifyTrue(all(isfinite(coeff_high)), ...
+            tc.verifyTrue(all(isfinite(coeffHigh)), ...
                 'High fs filter coefficients should be finite');
             
             % Verify filter lengths match expected orders
-            tc.verifyEqual(length(coeff_low), 21, ...
+            tc.verifyEqual(length(coeffLow), 21, ...
                 'Low fs filter should have 21 coefficients (order 20 + 1)');
-            tc.verifyEqual(length(coeff_high), 101, ...
+            tc.verifyEqual(length(coeffHigh), 101, ...
                 'High fs filter should have 101 coefficients (order 100 + 1)');
             
             % Test frequency response characteristics
-            [h_low, w_low] = freqz(coeff_low, 1, 512);
-            [h_high, w_high] = freqz(coeff_high, 1, 512);
+            [hLow, wLow] = freqz(coeffLow, 1, 512);
+            [hHigh, wHigh] = freqz(coeffHigh, 1, 512);
             
-            f_low = w_low * fs_low / (2*pi);
-            f_high = w_high * fs_high / (2*pi);
+            fLow = wLow * fsLow / (2*pi);
+            fHigh = wHigh * fsHigh / (2*pi);
             
             % Verify that the derivative nature of the filter is preserved
             % LPD filters should have near-zero DC response
-            dc_response_low = abs(h_low(1));
-            dc_response_high = abs(h_high(1));
+            dcResponseLow = abs(hLow(1));
+            dcResponseHigh = abs(hHigh(1));
             
-            tc.verifyLessThan(dc_response_low, 0.1*max(abs(h_low)), ...
+            tc.verifyLessThan(dcResponseLow, 0.1*max(abs(hLow)), ...
                 'Low fs LPD filter should have low DC response');
-            tc.verifyLessThan(dc_response_high, 0.1*max(abs(h_high)), ...
+            tc.verifyLessThan(dcResponseHigh, 0.1*max(abs(hHigh)), ...
                 'High fs LPD filter should have low DC response');
             
             % Find frequency response at passband frequencies
             % For low fs filter (PassFreq=7Hz)
-            [~, idx_pass_low] = min(abs(f_low - 7));
+            [~, idxPassLow] = min(abs(fLow - 7));
             
             % For high fs filter (PassFreq=7.5Hz)
-            [~, idx_pass_high] = min(abs(f_high - 7.5));
+            [~, idxPassHigh] = min(abs(fHigh - 7.5));
             
             % Verify that passband has higher response than stopband
             % (accounting for the derivative nature which enhances mid-frequencies)
-            passband_response_low = abs(h_low(idx_pass_low));
-            passband_response_high = abs(h_high(idx_pass_high));
+            passbandResponseLow = abs(hLow(idxPassLow));
+            passbandResponseHigh = abs(hHigh(idxPassHigh));
             
             % For LPD filters, the response should be significant at the passband frequency
-            tc.verifyGreaterThan(passband_response_low, 0.05*max(abs(h_low)), ...
+            tc.verifyGreaterThan(passbandResponseLow, 0.05*max(abs(hLow)), ...
                 'Low fs filter should have significant response at passband frequency');
-            tc.verifyGreaterThan(passband_response_high, 0.05*max(abs(h_high)), ...
+            tc.verifyGreaterThan(passbandResponseHigh, 0.05*max(abs(hHigh)), ...
                 'High fs filter should have significant response at passband frequency');
             
             % Verify the filters have been designed (non-zero coefficients)
-            tc.verifyGreaterThan(max(abs(coeff_low)), 0, ...
+            tc.verifyGreaterThan(max(abs(coeffLow)), 0, ...
                 'Low fs filter should have non-zero coefficients');
-            tc.verifyGreaterThan(max(abs(coeff_high)), 0, ...
+            tc.verifyGreaterThan(max(abs(coeffHigh)), 0, ...
                 'High fs filter should have non-zero coefficients');
             
             % Test that the scaling factor (fs/(2*pi)) has been applied correctly
             % The maximum coefficient magnitude should be reasonable for the sampling frequency
-            max_coeff_low = max(abs(coeff_low));
-            max_coeff_high = max(abs(coeff_high));
+            maxCoeffLow = max(abs(coeffLow));
+            maxCoeffHigh = max(abs(coeffHigh));
             
-            tc.verifyGreaterThan(max_coeff_low, fs_low/(2*pi)/1000, ...
+            tc.verifyGreaterThan(maxCoeffLow, fsLow/(2*pi)/1000, ...
                 'Low fs filter coefficients should reflect proper scaling');
-            tc.verifyGreaterThan(max_coeff_high, fs_high/(2*pi)/1000, ...
+            tc.verifyGreaterThan(maxCoeffHigh, fsHigh/(2*pi)/1000, ...
                 'High fs filter coefficients should reflect proper scaling');
         end
     end

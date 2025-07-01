@@ -39,11 +39,7 @@ addOptional(parser, 'maxGapLength', [], @(x) isempty(x) || (isnumeric(x) && issc
 parse(parser, x, window, noverlap, nfft, fs, maxGapLength);
 
 % Additional validation: window size vs signal length
-if isscalar(window)
-    windowLength = window;
-else
-    windowLength = length(window);
-end
+windowLength = getWindowLength(parser.Results.window);
 if windowLength > length(x)
     error('nanpwelch:windowTooLarge', ...
         'Window length (%d) cannot be larger than signal length (%d)', windowLength, length(x));
@@ -60,12 +56,7 @@ maxGapLength = parser.Results.maxGapLength;
 x = x(:);
 window = window(:);
 
-% Determine window length
-if isscalar(window)
-    windowLength = window;
-else
-    windowLength = length(window);
-end
+windowLength = getWindowLength(window);
 
 % Trim NaN values at the beginning and end of the signal
 firstValidIndex = find(~isnan(x), 1, 'first');
@@ -104,13 +95,10 @@ end
 % Find NaN gaps in the trimmed signal
 nanIndices = isnan(x);
 if ~any(nanIndices)
-    % No NaN values - process entire trimmed signal
-    [b, a] = butter(4, 0.04 * 2 / fs, 'high');
-    filteredSignal = filtfilt(b, a, x);
     if nargout > 1
-        [pxx, f] = pwelch(filteredSignal, window, noverlap, nfft, fs);
+        [pxx, f] = pwelch(x, window, noverlap, nfft, fs);
     else
-        pxx = pwelch(filteredSignal, window, noverlap, nfft, fs);
+        pxx = pwelch(x, window, noverlap, nfft, fs);
     end
     if nargout > 2
         pxxSegments = pxx;  % Single segment case
@@ -191,6 +179,14 @@ else
     end
     if nargout > 2
         pxxSegments = [];
+    end
+end
+
+function windowLength = getWindowLength(window)
+    if isscalar(window)
+        windowLength = window;
+    else
+        windowLength = length(window);
     end
 end
 

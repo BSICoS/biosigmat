@@ -55,8 +55,17 @@ passFreq = p.Results.PassFreq;
 stopFreq = p.Results.StopFreq;
 filterCoeff = p.Results.Coefficients;
 
+% Ensure signal is a column vector for processing
+signal = signal(:);
+
+% Handle NaN values by using fillmissing
 nanIdx = isnan(signal);
 if any(nanIdx)
+    if all(nanIdx)
+        filteredSignal = signal;
+        return;
+    end
+    % Fill NaN values using linear interpolation
     signal = fillmissing(signal, 'linear');
 end
 

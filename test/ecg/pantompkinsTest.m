@@ -10,7 +10,6 @@
 
 classdef pantompkinsTest < matlab.unittest.TestCase
     properties
-        fixturesDir = fullfile('..', '..', 'fixtures', 'ecg');
         fs = 256;
     end
 
@@ -34,12 +33,8 @@ classdef pantompkinsTest < matlab.unittest.TestCase
     end
 
     methods (Access = private)
-        function fixturesPath = getFixturesPath(~)
+        function [ecg, tk] = loadFixtureData(~)
             fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
-        end
-
-        function [ecg, tk] = loadFixtureData(tc)
-            fixturesPath = tc.getFixturesPath();
 
             % Load ECG signal and expected R-wave times from CSV files
             signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));

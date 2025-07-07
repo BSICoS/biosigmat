@@ -1,6 +1,9 @@
 % runTests.m
 % Script to run all MATLAB tests
 
+% Add the common test directory to the path for shared test utilities
+addpath('test/common');
+
 % Create a test suite from the test folder
 suite = testsuite('test', 'IncludeSubfolders', true);
 

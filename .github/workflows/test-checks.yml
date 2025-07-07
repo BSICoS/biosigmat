@@ -18,8 +18,8 @@ jobs:
         run: |
           echo "Searching for MATLAB function files and corresponding tests..."
 
-          # Find all .m files in src/** (excluding hidden dirs)
-          find src -type f -name '*.m' | while read -r srcfile; do
+          # Find all .m files in src/** (excluding hidden dirs and private folders)
+          find src -type f -name '*.m' | grep -v '/private/' | while read -r srcfile; do
             # Get the function name without extension
             funcname=$(basename "$srcfile" .m)
             

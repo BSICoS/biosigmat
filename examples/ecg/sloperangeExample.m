@@ -35,8 +35,8 @@ nk = round(tk * fs) + 1;  % Convert to sample indices
 ecg = ecg(:);
 
 % Calculate the first derivative of the ECG signal
-decg = diff(ecg);
-decg = [decg(1); decg];  % Pad to maintain original length
+b = lpdfilter(fs, 50, 'Order', 4);
+decg = nanfilter(b, 1, ecg, 0);
 
 % Apply sloperange function to extract EDR signal
 [edr, upslopes, downslopes, upslopeMaxPosition, downslopeMinPosition] = sloperange(decg, tk, fs);

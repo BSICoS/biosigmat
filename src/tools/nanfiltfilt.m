@@ -40,7 +40,7 @@ parser.FunctionName = 'nanfiltfilt';
 addRequired(parser, 'b', @(v) isnumeric(v) && isvector(v));
 addRequired(parser, 'a', @(v) isnumeric(v) && isvector(v));
 addRequired(parser, 'x', @(v) ismatrix(v));
-addOptional(parser, 'maxgap', [], @(v) isempty(v) || (isnumeric(v) && isscalar(v) && v >= 0));
+addOptional(parser, 'maxgap', 0, @(v) isempty(v) || (isnumeric(v) && isscalar(v) && v >= 0));
 
 if nargin < 4
     parse(parser, b, a, x);
@@ -51,12 +51,7 @@ end
 b = parser.Results.b;
 a = parser.Results.a;
 x = parser.Results.x;
-if isempty(parser.Results.maxgap)
-    warning('nanfiltfilt:maxgapNotSpecified', 'maxgap not specified. All NaN segments will be preserved regardless of size.');
-    maxgap = 0;
-else
-    maxgap = parser.Results.maxgap;
-end
+maxgap = parser.Results.maxgap;
 
 % Use common NaN filtering logic
 y = processNanSignal(b, a, x, maxgap, @filtfilt);

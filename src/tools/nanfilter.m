@@ -43,24 +43,12 @@ function y = nanfilter(b, a, x, maxgap)
 narginchk(3, 4);
 nargoutchk(0, 1);
 
-% Parse and validate inputs
-parser = inputParser;
-parser.FunctionName = 'nanfilter';
-addRequired(parser, 'b', @(v) isnumeric(v) && isvector(v));
-addRequired(parser, 'a', @(v) isnumeric(v) && isvector(v));
-addRequired(parser, 'x', @(v) ismatrix(v));
-addOptional(parser, 'maxgap', 0, @(v) isempty(v) || (isnumeric(v) && isscalar(v) && v >= 0));
-
+% Parse and validate inputs using common parsing function
 if nargin < 4
-    parse(parser, b, a, x);
+    [b, a, x, maxgap] = parseNanFiltering('nanfilter', b, a, x);
 else
-    parse(parser, b, a, x, maxgap);
+    [b, a, x, maxgap] = parseNanFiltering('nanfilter', b, a, x, maxgap);
 end
-
-b = parser.Results.b;
-a = parser.Results.a;
-x = parser.Results.x;
-maxgap = parser.Results.maxgap;
 
 % Use common NaN filtering logic
 y = processNanSignal(b, a, x, maxgap, @filter);

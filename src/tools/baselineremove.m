@@ -1,12 +1,12 @@
 function [cleanedSignal, baseline, fiducialPoints] = baselineremove(signal, fiducialPoints, varargin)
 % BASELINEREMOVE Removes baseline wander from biosignals using cubic spline interpolation
 %
-%   This function removes baseline wander from biosignals (e.g., ECG) by 
+%   This function removes baseline wander from biosignals (e.g., ECG) by
 %   interpolating between fiducial points that represent the isoelectric line.
-%   The interpolation is performed using cubic splines, and the resulting 
+%   The interpolation is performed using cubic splines, and the resulting
 %   baseline estimate is subtracted from the original signal.
 %
-%   [cleanedSignal, baseline, fiducialValues] = baselineremove(signal, fiducialPoints) removes 
+%   [cleanedSignal, baseline, fiducialValues] = baselineremove(signal, fiducialPoints) removes
 %   baseline wander from the signal using the specified fiducial points.
 %
 %   [cleanedSignal, baseline, fiducialValues] = baselineremove(signal, fiducialPoints, Name, Value)
@@ -25,7 +25,7 @@ function [cleanedSignal, baseline, fiducialPoints] = baselineremove(signal, fidu
 %                    'derivative': Refine points by finding minimal slope using filtered
 %                                  derivative signal to improve isoelectric point detection
 %                    Default: 'derivative'
-%   'RefineWindow' - Window size (in samples) for refining fiducial points when 
+%   'RefineWindow' - Window size (in samples) for refining fiducial points when
 %                    using 'derivative' method.
 %                    Default: 10
 %   'SamplingFreq' - Sampling frequency in Hz. Used for filtering the derivative signal.
@@ -45,13 +45,13 @@ function [cleanedSignal, baseline, fiducialPoints] = baselineremove(signal, fidu
 %   t = (0:length(signal)-1)' / fs;  % Time vector in seconds
 %   fiducialPoints = rPeaks - round(0.08*fs);  % 80 ms before R-peak (PR interval)
 %   [cleanedSignal, baseline, fiducialValues] = baselineremove(signal, fiducialPoints, 'SamplingFreq', fs);
-%   
+%
 %   % Visualize results
 %   figure;
 %   subplot(2,1,1); plot(t, signal, 'b', t, baseline, 'r', 'LineWidth', 2); hold on;
 %   plot(t(rPeaks), signal(rPeaks), 'ro', t(fiducialPoints), signal(fiducialPoints), 'g*');
 %   title('Original Signal with Baseline and Detections'); xlabel('Time (s)'); grid on;
-%   
+%
 %   subplot(2,1,2); plot(t, cleanedSignal, 'b'); hold on;
 %   plot(t(rPeaks), cleanedSignal(rPeaks), 'ro', t(fiducialPoints), cleanedSignal(fiducialPoints), 'g*');
 %   title('Baseline-Corrected Signal'); xlabel('Time (s)'); grid on;
@@ -101,24 +101,24 @@ end
 % Refine fiducial points if requested
 if strcmp(method, 'derivative')
     refinedPoints = zeros(size(fiducialPoints));
-    
+
     % Use lpdfilter to calculate a filtered derivative of the signal
-    [filteredDerivative, ~] = lpdfilter(signal, fs, filterFreq);
+    b = lpdfilter(fs, filterFreq);
+    filteredDerivative = filter(b,1,signal);
 
     % Get second derivative to find inflection points (where curvature changes)
-    [secondDerivative, ~] = lpdfilter(filteredDerivative, fs, filterFreq/2);
-    
+    secondDerivative = filter(b, 1, filteredDerivative);
     % Calculate signal energy as additional feature
     windowLength = round(fs/40); % ~25ms window for feature extraction
     energySignal = movvar(signal, windowLength);
-    
+
     for i = 1:length(fiducialPoints)
         idx = fiducialPoints(i);
-        
+
         % Define window boundaries
         startIdx = max(1, idx - refineWindow);
         endIdx = min(length(signal), idx + refineWindow);%+0.1*fs;
-        
+
         % Extract features within the window
         windowSignal = signal(startIdx:endIdx);
         windowDerivative = filteredDerivative(startIdx:endIdx);
@@ -130,22 +130,22 @@ if strcmp(method, 'derivative')
         % - Low absolute second derivative (consistent slope/no inflection)
         % - Low variance (stable signal)
         % - Close to the median value in the window (avoid peaks/outliers)
-        
+
         normDeriv = abs(windowDerivative) / max(abs(windowDerivative) + eps);
         norm2ndDeriv = abs(window2ndDeriv) / max(abs(window2ndDeriv) + eps);
         normEnergy = windowEnergy / max(windowEnergy + eps);
         distFromMedian = abs(windowSignal - median(windowSignal)) / max(abs(windowSignal - median(windowSignal)) + eps);
-        
+
         % Combine metrics with weighted sum (lower is better)
         compositeScore = 0.4*normDeriv + 0.3*norm2ndDeriv + 0.2*normEnergy + 0.1*distFromMedian;
-        
+
         % Find the optimal point
         [~, optIdx] = min(compositeScore);
-        
+
         % Update the fiducial point to the refined position
         refinedPoints(i) = startIdx + optIdx - 1;
     end
-    
+
     fiducialPoints = refinedPoints;
 end
 
@@ -159,10 +159,10 @@ ypoints = signal(fiducialPoints);
 
 for i = 1:length(fiducialPoints)
     idx = fiducialPoints(i);
-    
+
     startIdx = max(1, idx - floor(windowSize/2));
     endIdx = min(length(signal), idx + floor(windowSize/2));
-    
+
     ypoints(i) = mean(signal(startIdx:endIdx));
 end
 

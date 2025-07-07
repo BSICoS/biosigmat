@@ -48,8 +48,8 @@ classdef sloperangeTest < matlab.unittest.TestCase
             tk = peaksData.tk(:);
 
             % Compute derivative of ECG (sloperange expects decg, not ecg)
-            decg = diff(ecg);
-            decg = [decg(1); decg]; % Maintain same length as original ECG
+            b = lpdfilter(tc.fs, 50, 'Order', 4);
+            decg = nanfilter(b, 1, ecg, 0);
         end
     end
 

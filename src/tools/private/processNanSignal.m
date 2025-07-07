@@ -39,7 +39,7 @@ idxNan = isnan(x);
 
 % Handle row vectors by transposing
 wasRowVector = false;
-if isvector(x) && size(x, 1) == 1
+if isrow(x)
     wasRowVector = true;
     x = x';
     idxNan = idxNan';

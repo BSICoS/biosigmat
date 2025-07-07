@@ -52,7 +52,6 @@ The project is organized as follows:
 
 - Use camelCase for variable names (e.g., `filteredSignal`, `nanIndices`)
 - Use camelCase for function names (e.g., `nanFiltFilt`, `findSequences`)
-- Use PascalCase for struct names (e.g., `Setup`)
 - Use descriptive names that clearly indicate the purpose of the variable or function
 
 ### Code Structure

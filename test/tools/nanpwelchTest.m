@@ -53,11 +53,6 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             tc.verifyError(@() nanpwelch('invalid', 256, 128, 512, tc.fs, []), ...
                 'MATLAB:InputParser:ArgumentFailedValidation');
 
-            % Test matrix input (non-vector)
-            matrix = rand(10, 10);
-            tc.verifyError(@() nanpwelch(matrix, 256, 128, 512, tc.fs, []), ...
-                'MATLAB:InputParser:ArgumentFailedValidation');
-
             % Test empty window
             tc.verifyError(@() nanpwelch(ecg, [], 128, 512, tc.fs, []), ...
                 'MATLAB:InputParser:ArgumentFailedValidation');
@@ -220,6 +215,37 @@ classdef nanpwelchTest < matlab.unittest.TestCase
                 'Function should accept maxGapLength parameter');
             tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, []), ...
                 'Function should accept empty maxGapLength parameter');
+        end
+
+        function testMatrixInputs(tc)
+            ecg = tc.loadFixtureData();
+
+            % Create matrix with multiple signals
+            ecg2 = ecg + 0.1 * randn(size(ecg));
+            ecg3 = ecg + 0.2 * randn(size(ecg));
+            signalMatrix = [ecg, ecg2, ecg3];
+
+            % Test basic matrix functionality
+            [pxx, f, pxxSegments] = nanpwelch(signalMatrix, 256, 128, 512, tc.fs, []);
+            tc.verifyClass(pxx, 'double', 'Output pxx should be double');
+            tc.verifyClass(f, 'double', 'Output f should be double');
+            tc.verifySize(pxx, [257, 3], 'Output pxx should be matrix with 3 columns');
+            tc.verifySize(f, [257, 1], 'Output f should be column vector of correct size');
+            tc.verifyTrue(all(pxx(:) >= 0), 'Power spectral density should be non-negative');
+            tc.verifyTrue(all(f >= 0), 'Frequency vector should be non-negative');
+            tc.verifyClass(pxxSegments, 'cell', 'Output pxxSegments should be cell array for matrix input');
+            tc.verifySize(pxxSegments, [3, 1], 'pxxSegments should be 3x1 cell array');
+            tc.verifyTrue(all(cellfun(@(x) isa(x, 'double'), pxxSegments)), 'Each cell should contain double array');
+
+            % Test with NaN values in matrix
+            matrixWithNaN = signalMatrix;
+            matrixWithNaN(100:200, 1) = NaN;  % Add NaN to first column
+            matrixWithNaN(300:400, 2) = NaN;  % Add NaN to second column
+
+            [pxxNaN, fNaN] = nanpwelch(matrixWithNaN, 256, 128, 512, tc.fs, 50);
+            tc.verifySize(pxxNaN, [257, 3], 'Matrix with NaN should produce matrix output');
+            tc.verifySize(fNaN, [257, 1], 'Frequency output should be column vector');
+            tc.verifyTrue(all(pxxNaN(:) >= 0), 'Power spectral density with NaN should be non-negative');
         end
     end
 

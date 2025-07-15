@@ -2,7 +2,7 @@
 %   - Input validation for common real-world error cases
 %   - Basic functionality with ECG signal from fixtures
 %   - Special signal cases (all NaN, empty inputs)
-%   - Gap interpolation functionality with maxGapLength parameter
+%   - Gap interpolation functionality with maxgap parameter
 
 classdef nanpwelchTest < matlab.unittest.TestCase
 
@@ -169,12 +169,12 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             signalWithSmallGaps(100:102) = NaN;  % 3-sample gap
             signalWithSmallGaps(200:204) = NaN;  % 5-sample gap
 
-            % Test with maxGapLength = 10 (should interpolate both gaps)
+            % Test with maxgap = 10 (should interpolate both gaps)
             [pxx1, ~] = nanpwelch(signalWithSmallGaps, 256, 128, 512, tc.fs, 10);
             tc.verifyClass(pxx1, 'double', 'Output pxx should be double');
             tc.verifyTrue(all(~isnan(pxx1)), 'Small gaps should be interpolated');
 
-            % Test with maxGapLength = 2 (should not interpolate 5-sample gap)
+            % Test with maxgap = 2 (should not interpolate 5-sample gap)
             [pxx2, ~] = nanpwelch(signalWithSmallGaps, 256, 128, 512, tc.fs, 2);
             tc.verifyClass(pxx2, 'double', 'Output pxx should be double');
 
@@ -182,7 +182,7 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             signalWithLargeGap = testSignal;
             signalWithLargeGap(400:450) = NaN;  % 51-sample gap
 
-            % Test with maxGapLength = 10 (should not interpolate large gap)
+            % Test with maxgap = 10 (should not interpolate large gap)
             [pxx3, ~] = nanpwelch(signalWithLargeGap, 256, 128, 512, tc.fs, 10);
             tc.verifyClass(pxx3, 'double', 'Output pxx should be double');
             tc.verifyTrue(all(~isnan(pxx3)), 'Should average across valid segments');
@@ -210,11 +210,11 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             tc.verifyWarningFree(@() nanpwelch(ecg, window, 128, 512, tc.fs, []), ...
                 'Function should accept vector window');
 
-            % Test with optional maxGapLength parameter
+            % Test with optional maxgap parameter
             tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, 50), ...
-                'Function should accept maxGapLength parameter');
+                'Function should accept maxgap parameter');
             tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, []), ...
-                'Function should accept empty maxGapLength parameter');
+                'Function should accept empty maxgap parameter');
         end
 
         function testMatrixInputs(tc)

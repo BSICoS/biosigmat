@@ -1,10 +1,10 @@
-function varargout = nanpwelch(x, window, noverlap, nfft, fs, maxGapLength)
+function varargout = nanpwelch(x, window, noverlap, nfft, fs, maxgap)
 % NANPWELCH Compute Welch periodogram when signal has NaN segments
 %
 % This function computes the Welch power spectral density estimate for signals
 % containing NaN values. It trims NaN values at the beginning and end of the
-% signal, interpolates small gaps (≤ maxGapLength), and splits the signal at
-% large gaps (> maxGapLength). The power spectral density is computed for each
+% signal, interpolates small gaps (≤ maxgap), and splits the signal at
+% large gaps (> maxgap). The power spectral density is computed for each
 % valid segment and averaged across all segments.
 %
 % Inputs:
@@ -13,7 +13,7 @@ function varargout = nanpwelch(x, window, noverlap, nfft, fs, maxGapLength)
 %   noverlap - Number of overlapped samples (scalar)
 %   nfft - Number of DFT points (scalar)
 %   fs - Sample rate in Hz (scalar)
-%   maxGapLength - Maximum gap length in samples to interpolate (scalar, optional)
+%   maxgap - Maximum gap length in samples to interpolate (scalar, optional)
 %                  If empty or not provided, no interpolation is performed
 %
 % Outputs:
@@ -37,9 +37,9 @@ addRequired(parser, 'window', @(x) isnumeric(x) && (isscalar(x) || isvector(x)) 
 addRequired(parser, 'noverlap', @(x) isnumeric(x) && isscalar(x) && x >= 0);
 addRequired(parser, 'nfft', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addOptional(parser, 'maxGapLength', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x >= 0));
+addOptional(parser, 'maxgap', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x >= 0));
 
-parse(parser, x, window, noverlap, nfft, fs, maxGapLength);
+parse(parser, x, window, noverlap, nfft, fs, maxgap);
 
 % Additional validation: window size vs signal length
 windowLength = getWindowLength(parser.Results.window);
@@ -53,7 +53,7 @@ window = parser.Results.window;
 noverlap = parser.Results.noverlap;
 nfft = parser.Results.nfft;
 fs = parser.Results.fs;
-maxGapLength = parser.Results.maxGapLength;
+maxgap = parser.Results.maxgap;
 
 window = window(:);
 if isvector(x)
@@ -103,16 +103,16 @@ for signalIdx = 1:numSignals
                 % Process signal with NaN gaps
                 processedSignal = trimmedSignal;
 
-                % If maxGapLength is specified, interpolate small gaps
-                if ~isempty(maxGapLength)
+                % If maxgap is specified, interpolate small gaps
+                if ~isempty(maxgap)
                     % Find NaN sequences
                     nanSeqStarts = find(diff([0; nanIndices]) > 0);
                     nanSeqEnds = find(diff([nanIndices; 0]) < 0);
 
-                    % Interpolate gaps that are ≤ maxGapLength
+                    % Interpolate gaps that are ≤ maxgap
                     for i = 1:length(nanSeqStarts)
                         gapLength = nanSeqEnds(i) - nanSeqStarts(i) + 1;
-                        if gapLength <= maxGapLength
+                        if gapLength <= maxgap
                             % Get indices for interpolation (including boundary points)
                             startIdx = max(1, nanSeqStarts(i) - 1);
                             endIdx = min(length(processedSignal), nanSeqEnds(i) + 1);

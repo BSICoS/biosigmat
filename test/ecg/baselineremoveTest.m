@@ -1,13 +1,14 @@
 % Tests covering:
-%   - Basic functionality with real ECG data from fixtures
-%   - Error handling (invalid inputs, out-of-range fiducial points)
+%   - Basic functionality with real ECG data from fixtures using R-peaks and offset
+%   - Error handling (invalid inputs, negative offset, invalid window size)
 %   - Different window size effect
 
 classdef baselineremoveTest < matlab.unittest.TestCase
     properties
         ecg
-        rPeakSamples
+        tk
         fs
+        offset
     end
 
 
@@ -25,52 +26,44 @@ classdef baselineremoveTest < matlab.unittest.TestCase
             tc.ecg = edrData(:, 2);
 
             tkData = readmatrix('../../fixtures/ecg/ecg_tk.csv');
-            tc.rPeakSamples = tkData(:, 2);
+            tc.tk = tkData(:, 2);
 
             tc.fs = 256;
+            tc.offset = round(0.15 * tc.fs);
         end
     end
 
     methods (Test)
         function testBasicFunctionality(tc)
-            prInterval = round(0.08 * tc.fs);
-            fiducialPoints = tc.rPeakSamples - prInterval;
-            fiducialPoints = fiducialPoints(fiducialPoints > 1 & fiducialPoints <= length(tc.ecg));
-
-            [cleanedSignal, baseline, fiducialValues] = baselineremove(tc.ecg, fiducialPoints);
+            [ecgDetrended, baseline] = baselineremove(tc.ecg, tc.tk, tc.offset);
 
             % Verify function executed successfully
-            tc.verifySize(cleanedSignal, size(tc.ecg), 'Output signal size mismatch');
+            tc.verifySize(ecgDetrended, size(tc.ecg), 'Output signal size mismatch');
             tc.verifySize(baseline, size(tc.ecg), 'Baseline size mismatch');
-            tc.verifySize(fiducialValues, size(fiducialPoints), 'Fiducial values size mismatch');
-            tc.verifyNotEqual(cleanedSignal, tc.ecg, 'Signal was not modified');
+            tc.verifyNotEqual(ecgDetrended, tc.ecg, 'Signal was not modified');
         end
 
         function testInvalidInputs(tc)
-            signal = sin(1:100)';
-            fiducialPoints = [25; 50; 75];
-
-            % Test invalid fiducial points
-            tc.verifyError(@() baselineremove(signal, [-1; 50]), ...
+            % Test invalid tk indices
+            tc.verifyError(@() baselineremove(tc.ecg, [-1; 50], tc.offset), ...
                 'MATLAB:InputParser:ArgumentFailedValidation');
 
             % Test empty signal
-            tc.verifyError(@() baselineremove([], fiducialPoints), ...
+            tc.verifyError(@() baselineremove([], tc.tk, tc.offset), ...
+                'MATLAB:InputParser:ArgumentFailedValidation');
+
+            % Test invalid offset
+            tc.verifyError(@() baselineremove(tc.ecg, tc.tk, -1), ...
                 'MATLAB:InputParser:ArgumentFailedValidation');
 
             % Test invalid window size
-            tc.verifyError(@() baselineremove(signal, fiducialPoints, 'WindowSize', 0), ...
+            tc.verifyError(@() baselineremove(tc.ecg, tc.tk, tc.offset, 0), ...
                 'MATLAB:InputParser:ArgumentFailedValidation');
         end
 
         function testWindowSizeEffect(tc)
-            % Use preloaded fixture data
-            prInterval = round(0.08 * tc.fs);
-            fiducialPoints = tc.rPeakSamples - prInterval;
-            fiducialPoints = fiducialPoints(fiducialPoints > 1 & fiducialPoints <= length(tc.ecg));
-
-            [clean1, ~] = baselineremove(tc.ecg, fiducialPoints, 'WindowSize', 3);
-            [clean2, ~] = baselineremove(tc.ecg, fiducialPoints, 'WindowSize', 11);
+            clean1 = baselineremove(tc.ecg, tc.tk, tc.offset, 3);
+            clean2 = baselineremove(tc.ecg, tc.tk, tc.offset, 11);
 
             tc.verifyNotEqual(clean1, clean2, 'Window size had no effect');
         end

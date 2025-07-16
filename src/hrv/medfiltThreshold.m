@@ -38,9 +38,12 @@ if length(dtk) < window
     window = length(dtk);
 end
 
+% Ensure window is odd for symmetric median filtering
+halfWindow = floor(window / 2);
+
 % Apply median filtering with boundary padding
-mf = medfilt1([flipud(dtk(1:window/2)); dtk; flipud(dtk(end-window/2+1:end))], window-1);
+mf = medfilt1([flipud(dtk(1:halfWindow)); dtk; flipud(dtk(end-halfWindow+1:end))], window-1);
 mf(mf > maxthreshold) = maxthreshold;
-threshold = factor * (mf(window/2+1:end-window/2));
+threshold = factor * (mf(halfWindow+1:end-halfWindow));
 
 end

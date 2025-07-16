@@ -14,7 +14,7 @@ classdef tdmetricsTest < matlab.unittest.TestCase
         function testPlaceholder(tc)
             % Placeholder test to ensure tdmetrics function runs without errors
             tm = [0.8, 0.85, 0.82, 0.78, 0.81];
-            Output = tdmetrics(tm);
+            Output = tdmetrics(tm, true);
             tc.verifyNotEmpty(Output, 'Output should not be empty');
         end
     end

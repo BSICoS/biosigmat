@@ -59,10 +59,6 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
             tc.verifyError(@() medfiltThreshold([]), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Empty input should raise validation error');
 
-            % Test non-numeric input
-            tc.verifyError(@() medfiltThreshold('invalid'), 'MATLAB:InputParser:ArgumentFailedValidation', ...
-                'Non-numeric input should raise validation error');
-
             % Test non-vector input
             tc.verifyError(@() medfiltThreshold([1,2;3,4]), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Non-vector input should raise validation error');

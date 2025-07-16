@@ -1,4 +1,4 @@
-function varargout = nanpwelch(x, window, noverlap, nfft, fs, maxgap)
+function varargout = nanpwelch(x, window, noverlap, nfft, fs, varargin)
 % NANPWELCH Compute Welch periodogram when signal has NaN segments
 %
 % This function computes the Welch power spectral density estimate for signals
@@ -39,7 +39,7 @@ addRequired(parser, 'nfft', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addOptional(parser, 'maxgap', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x >= 0));
 
-parse(parser, x, window, noverlap, nfft, fs, maxgap);
+parse(parser, x, window, noverlap, nfft, fs, varargin{:});
 
 % Additional validation: window size vs signal length
 windowLength = getWindowLength(parser.Results.window);

@@ -43,7 +43,7 @@ classdef nanpwelchTest < matlab.unittest.TestCase
 
             % Test too many arguments
             tc.verifyError(@() nanpwelch(ecg, 256, 128, 512, tc.fs, 50, 'extra'), ...
-                'MATLAB:TooManyInputs');
+                'MATLAB:narginchk:tooManyInputs');
 
             % Test empty input signal
             tc.verifyError(@() nanpwelch([], 256, 128, 512, tc.fs, []), ...

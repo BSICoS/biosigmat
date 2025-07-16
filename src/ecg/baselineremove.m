@@ -1,98 +1,74 @@
-function [cleanedSignal, baseline, fiducialValues] = baselineremove(signal, fiducialPoints, varargin)
+function [ecgDetrended, baseline] = baselineremove(ecg, tk, offset, varargin)
 % BASELINEREMOVE Removes baseline wander from biosignals using cubic spline interpolation
 %
-%   This function removes baseline wander from biosignals (e.g., ECG) by
-%   interpolating between fiducial points that represent the isoelectric line.
-%   The interpolation is performed using cubic splines, and the resulting
-%   baseline estimate is subtracted from the original signal.
+%   Removes baseline wander from ECG signals by interpolating between fiducial points
+%   computed as (tk - offset), where tk are typically R-peak indices and offset is the number of samples
+%   before each tk to use as the fiducial point (e.g., PR interval in ECG).
+%   The interpolation is performed using cubic splines, and the resulting baseline estimate is subtracted.
 %
-%   [cleanedSignal, baseline, fiducialValues] = baselineremove(signal, fiducialPoints) removes
-%   baseline wander from the signal using the specified fiducial points.
+%   [ecgDetrended, baseline] = baselineremove(ecg, tk, offset) removes baseline wander
+%   using fiducial points computed as (tk - offset), with default window size 5.
 %
-%   [cleanedSignal, baseline, fiducialValues] = baselineremove(signal, fiducialPoints, Name, Value)
-%   allows specifying additional options using name-value pairs.
+%   [ecgDetrended, baseline] = baselineremove(ecg, tk, offset, window) allows specifying
+%   the number of samples to use for estimation at each fiducial point.
 %
 % Inputs:
-%   signal         - Input signal vector to be filtered (column vector)
-%   fiducialPoints - Vector containing indices of fiducial points that represent
-%                    the isoelectric line (e.g., PR interval in ECG)
-%
-% Name-Value Pair Arguments:
-%   'WindowSize'   - Number of samples to use for estimation at each fiducial point.
-%                    Default: 5
+%   ecg   - Input signal to be filtered (column vector)
+%   tk       - Vector containing indices of R-peaks (or other fiducial events)
+%   offset   - Number of samples to subtract from each tk to obtain fiducial points
+%   window   - (Optional) Number of samples to use for estimation at each fiducial point (default: 5)
 %
 % Outputs:
-%   cleanedSignal  - Signal with baseline wander removed
-%   baseline       - The estimated baseline that was removed from the signal
-%   fiducialValues - Signal values at the fiducial points used for interpolation
-%
-% Example:
-%   % Remove baseline wander from an ECG signal using R-wave indices
-%   fs = 250;  % Sampling frequency in Hz
-%   t = (0:length(signal)-1)' / fs;  % Time vector in seconds
-%   fiducialPoints = rPeaks - round(0.08*fs);  % 80 ms before R-peak (PR interval)
-%   [cleanedSignal, baseline, fiducialValues] = baselineremove(signal, fiducialPoints);
-%
-%   % Visualize results
-%   figure;
-%   subplot(2,1,1); plot(t, signal, 'b', t, baseline, 'r', 'LineWidth', 2); hold on;
-%   plot(t(rPeaks), signal(rPeaks), 'ro', t(fiducialPoints), signal(fiducialPoints), 'g*');
-%   title('Original Signal with Baseline and Detections'); xlabel('Time (s)'); grid on;
-%
-%   subplot(2,1,2); plot(t, cleanedSignal, 'b'); hold on;
-%   plot(t(rPeaks), cleanedSignal(rPeaks), 'ro', t(fiducialPoints), cleanedSignal(fiducialPoints), 'g*');
-%   title('Baseline-Corrected Signal'); xlabel('Time (s)'); grid on;
+%   ecgDetrended  - ecg with baseline wander removed
+%   baseline       - The estimated baseline that was removed from the ecg
+
 
 % Check number of input and output arguments
-narginchk(2, Inf);
-nargoutchk(0, 3);
+narginchk(3, 4);
+nargoutchk(0, 2);
 
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'baselineremove';
-addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addRequired(parser, 'fiducialPoints', @(x) isnumeric(x) && isvector(x) && all(x > 0));
-addParameter(parser, 'WindowSize', 5, @(x) isnumeric(x) && isscalar(x) && x > 0 && mod(x,1) == 0);
+addRequired(parser, 'ecg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
+addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x) && all(x > 0));
+addRequired(parser, 'offset', @(x) isnumeric(x) && isscalar(x) && x >= 0 && mod(x,1) == 0);
+addOptional(parser, 'window', 5, @(x) isnumeric(x) && isscalar(x) && x > 0 && mod(x,1) == 0);
 
-parse(parser, signal, fiducialPoints, varargin{:});
+parse(parser, ecg, tk, offset, varargin{:});
 
-signal = parser.Results.signal(:);  % Ensure column vector
-fiducialPoints = parser.Results.fiducialPoints(:);  % Ensure column vector
-windowSize = parser.Results.WindowSize;
+ecg = parser.Results.ecg(:);
+tk = parser.Results.tk(:);
+offset = parser.Results.offset;
+window = parser.Results.window;
 
-% Ensure fiducial points are integers within valid range
-fiducialPoints = round(fiducialPoints);
-fiducialPoints = fiducialPoints(fiducialPoints >= 1 & fiducialPoints <= length(signal));
+
+% Compute fiducial points as tk - offset
+fiducialPoints = round(tk - offset);
+fiducialPoints = fiducialPoints(fiducialPoints >= 1 & fiducialPoints <= length(ecg));
+fiducialPoints = unique(fiducialPoints);
 
 if isempty(fiducialPoints)
-    warning('baselineremove:noValidFiducialPoints', 'No valid fiducial points provided. Returning original signal.');
-    cleanedSignal = signal;
-    baseline = zeros(size(signal));
-    fiducialValues = [];
+    warning('baselineremove:noValidFiducialPoints', 'No valid fiducial points computed. Returning original ecg.');
+    ecgDetrended = ecg;
+    baseline = zeros(size(ecg));
     return;
 end
 
-% Sort fiducial points in ascending order and remove duplicates
-fiducialPoints = unique(fiducialPoints);
-n = length(signal);
-xpoints = (1:n)';
-
 % Calculate mean values around each fiducial point
-fiducialValues = signal(fiducialPoints);
-
+fiducialValues = zeros(size(fiducialPoints));
 for i = 1:length(fiducialPoints)
     idx = fiducialPoints(i);
-
-    startIdx = max(1, idx - floor(windowSize/2));
-    endIdx = min(length(signal), idx + floor(windowSize/2));
-
-    fiducialValues(i) = mean(signal(startIdx:endIdx));
+    startIdx = max(1, idx - floor(window/2));
+    endIdx = min(length(ecg), idx + floor(window/2));
+    fiducialValues(i) = mean(ecg(startIdx:endIdx));
 end
 
 % Create cubic spline interpolation of the baseline
-baseline = spline(fiducialPoints, fiducialValues, xpoints);
+xq = 1:length(ecg);
+baseline = spline(fiducialPoints, fiducialValues, xq');
 
-% Remove baseline from signal
-cleanedSignal = signal - baseline;
+% Remove baseline from ecg
+ecgDetrended = ecg - baseline;
 
 end

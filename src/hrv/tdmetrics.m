@@ -1,61 +1,46 @@
-function Output = tdmetrics(tm, removeOutliers)
+function Output = tdmetrics(dtk)
 % TDMETRICS Compute classical time domain indices for heart rate variability analysis
 %
 %   Computes standard time domain metrics used in heart rate variability (HRV) analysis
-%   from a series of normal beat time occurrences. The function calculates various
-%   statistical measures of RR intervals and their differences to quantify heart rate
-%   variability patterns.
+%   from a series of event time occurrences.
 %
-%   Output = tdmetrics(tm) computes time domain indices with outlier removal enabled by default.
-%
-%   Output = tdmetrics(tm, removeOutliers) allows specification of outlier handling.
+%   Output = tdmetrics(dtk) computes time domain indices from interval series (dtk).
 %
 % Inputs:
-%   tm             - Normal beat time occurrence series (in seconds) as a numeric vector
-%   removeOutliers - Optional. Logical flag to treat gaps as NaNs (default: true)
+%   dtk    - Interval series (in seconds) as a numeric vector
 %
 % Outputs:
 %   Output - Structure containing the following time domain metrics:
-%       MHR    - Mean heart rate (beats/min)
-%       SDNN   - Standard deviation of normal-to-normal (NN) intervals (ms)
-%       SDSD   - Standard deviation of differences between adjacent NN intervals (ms)
-%       RMSSD  - Root mean square of successive differences of NN intervals (ms)
+%       mhr    - Mean heart rate (beats/min)
+%       sdnn   - Standard deviation of normal-to-normal (NN) intervals (ms)
+%       sdsd   - Standard deviation of differences between adjacent NN intervals (ms)
+%       rmssd  - Root mean square of successive differences of NN intervals (ms)
 %       pNN50  - Proportion of interval differences > 50ms with respect to all NN intervals (%)
 
 
 % Check number of input and output arguments
-narginchk(1, 2);
+narginchk(1, 1);
 nargoutchk(0, 1);
 
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'tdmetrics';
-addRequired(parser, 'tm', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
+addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addOptional(parser, 'removeOutliers', true, @(x) islogical(x) && isscalar(x));
 
-parse(parser, tm, removeOutliers);
+parse(parser, dtk);
 
-tm = parser.Results.tm(:);
-removeOutliers = parser.Results.removeOutliers;
+dtk = parser.Results.tk(:);
 
-% Compute RR intervals from beat times
-rr = diff(tm);
+% Compute successive differences
+ddtk = diff(dtk);
 
-% Apply outlier removal if requested
-if removeOutliers
-    threshold = medfiltThreshold(rr);
-    rr(rr > threshold) = nan;
-end
-
-% Compute successive differences of RR intervals
-drr = diff(rr);
-
-% Compute time domain indices
-mhr = mean(60 ./ rr, 'omitnan');
-sdnn = 1000 * std(rr, 'omitnan');
-rmssd = 1000 * norm(drr(~isnan(drr))) / sqrt(length(drr(~isnan(drr))));
-sdsd = 1000 * std(drr, 'omitnan');
-pNN50 = 100 * (sum(abs(drr) > 0.050)) / sum(~isnan(drr));
+% Compute time-domain metrics
+mhr = mean(60 ./ dtk, 'omitnan');
+sdnn = 1000 * std(dtk, 'omitnan');
+rmssd = 1000 * norm(ddtk(~isnan(ddtk))) / sqrt(length(ddtk(~isnan(ddtk))));
+sdsd = 1000 * std(ddtk, 'omitnan');
+pNN50 = 100 * (sum(abs(ddtk) > 0.05)) / sum(~isnan(ddtk));
 
 % Construct output structure
 Output.mhr = mhr;

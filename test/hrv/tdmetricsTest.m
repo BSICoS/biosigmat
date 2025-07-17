@@ -3,19 +3,34 @@
 
 classdef tdmetricsTest < matlab.unittest.TestCase
 
+    properties
+        dtk
+    end
+
     methods (TestClassSetup)
         function addCodeToPath(~)
-            % Add source path for the function under test
             addpath('../../src/hrv');
         end
     end
 
+    methods (TestMethodSetup)
+        function loadFixtures(tc)
+            tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
+            tk = tkData.tk;
+            tc.dtk = diff(tk);
+        end
+    end
+
     methods (Test)
-        function testPlaceholder(tc)
-            % Placeholder test to ensure tdmetrics function runs without errors
-            tm = [0.8, 0.85, 0.82, 0.78, 0.81];
-            Output = tdmetrics(tm, true);
-            tc.verifyNotEmpty(Output, 'Output should not be empty');
+        function testBasicFuntionality(tc)
+            Output = tdmetrics(tc.dtk);
+
+            % Verify metrics match expected results
+            tc.verifyEqual(Output.mhr, 85.34, 'AbsTol', 0.01, 'Mean heart rate mismatch');
+            tc.verifyEqual(Output.sdnn, 40.26, 'AbsTol', 0.01, 'SDNN mismatch');
+            tc.verifyEqual(Output.sdsd, 18.62, 'AbsTol', 0.01, 'SDSD mismatch');
+            tc.verifyEqual(Output.rmssd, 18.55, 'AbsTol', 0.01, 'RMSSD mismatch');
+            tc.verifyEqual(Output.pNN50, 1.47, 'AbsTol', 0.01, 'pNN50 mismatch');
         end
     end
 end

@@ -44,7 +44,13 @@ try
         for i = 1:length(failedTests)
             fprintf('FAILED: %s\n', failedTests(i).Name);
             if ~isempty(failedTests(i).Details)
-                fprintf('  Details: %s\n', failedTests(i).Details.DiagnosticRecord.Report);
+                details = failedTests(i).Details;
+                fprintf('  Details: %s\n', details.DiagnosticRecord.Report);
+                if ~isempty(details.DiagnosticRecord.Stack)
+                    fprintf('  Location: %s (line %d)\n', ...
+                        details.DiagnosticRecord.Stack(1).file, ...
+                        details.DiagnosticRecord.Stack(1).line);
+                end
             end
         end
     end
@@ -52,6 +58,16 @@ try
     % Display total execution time
     totalTime = sum([results.Duration]);
     fprintf('\nTotal execution time: %.2f seconds\n', totalTime);
+
+    % Display slowest tests for performance monitoring
+    if length(results) > 0
+        [~, slowestIdx] = maxk([results.Duration], min(5, length(results)));
+        fprintf('\n=== Slowest Tests ===\n');
+        for i = 1:length(slowestIdx)
+            idx = slowestIdx(i);
+            fprintf('%.4f seconds - %s\n', results(idx).Duration, results(idx).Name);
+        end
+    end
 
     % Generate GitHub Actions summary
     if isCI()
@@ -88,6 +104,14 @@ try
         fid = fopen(summaryFile, 'w');
         if fid ~= -1
             fprintf(fid, '# MATLAB Test Results\n\n');
+
+            % Add status badge
+            if all([results.Passed])
+                fprintf(fid, '✅ **All tests passed!**\n\n');
+            else
+                fprintf(fid, '❌ **Some tests failed**\n\n');
+            end
+
             fprintf(fid, '## Summary\n\n');
             fprintf(fid, '| Metric | Value |\n');
             fprintf(fid, '|--------|-------|\n');
@@ -96,16 +120,29 @@ try
             fprintf(fid, '| Failed | %d |\n', sum([results.Failed]));
             fprintf(fid, '| Incomplete | %d |\n', sum([results.Incomplete]));
             fprintf(fid, '| Success Rate | %.1f%% |\n', (sum([results.Passed])/length(results))*100);
+            fprintf(fid, '| Total Duration | %.2f seconds |\n', sum([results.Duration]));
 
             % Add failed tests section if any
             failedTests = results(~[results.Passed]);
             if ~isempty(failedTests)
                 fprintf(fid, '\n## Failed Tests\n\n');
                 for i = 1:length(failedTests)
-                    fprintf(fid, '- **%s**\n', failedTests(i).Name);
+                    fprintf(fid, '- **%s** (%.4f seconds)\n', failedTests(i).Name, failedTests(i).Duration);
                     if ~isempty(failedTests(i).Details)
                         fprintf(fid, '  ```\n  %s\n  ```\n', failedTests(i).Details.DiagnosticRecord.Report);
                     end
+                end
+            end
+
+            % Add performance information
+            if length(results) > 0
+                [~, slowestIdx] = maxk([results.Duration], min(3, length(results)));
+                fprintf(fid, '\n## Performance\n\n');
+                fprintf(fid, '| Test | Duration |\n');
+                fprintf(fid, '|------|----------|\n');
+                for i = 1:length(slowestIdx)
+                    idx = slowestIdx(i);
+                    fprintf(fid, '| %s | %.4f seconds |\n', results(idx).Name, results(idx).Duration);
                 end
             end
 

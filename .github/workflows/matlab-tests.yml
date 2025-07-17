@@ -7,6 +7,12 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: read
+  checks: write
+  pull-requests: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -23,7 +29,6 @@ jobs:
         products: |
           MATLAB
           Signal_Processing_Toolbox
-          Statistics_and_Machine_Learning_Toolbox
     
     - name: Verify MATLAB installation
       uses: matlab-actions/run-command@v2

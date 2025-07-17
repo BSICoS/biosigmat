@@ -30,7 +30,7 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
             tkWithGaps([10,20,30,40]) = [];
             dtkWithGaps = diff(tkWithGaps);
 
-            threshold = medfiltThreshold(dtkWithGaps);
+            threshold = medfiltThreshold(dtkWithGaps, 50, 1.5, 1.5);
 
             % Verify threshold detects artificial gaps
             gapIndices = dtkWithGaps > threshold;
@@ -39,20 +39,30 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
         end
 
         function testInputValidation(tc)
+            % Test insufficient input arguments
+            tc.verifyError(@() medfiltThreshold([0.8, 0.82]), 'MATLAB:narginchk:notEnoughInputs', ...
+                'Insufficient input arguments should raise error');
+
+            tc.verifyError(@() medfiltThreshold([0.8, 0.82], 50), 'MATLAB:narginchk:notEnoughInputs', ...
+                'Insufficient input arguments should raise error');
+
+            tc.verifyError(@() medfiltThreshold([0.8, 0.82], 50, 1.5), 'MATLAB:narginchk:notEnoughInputs', ...
+                'Insufficient input arguments should raise error');
+
             % Test empty input
-            tc.verifyError(@() medfiltThreshold([]), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            tc.verifyError(@() medfiltThreshold([], 50, 1.5, 1.5), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Empty input should raise validation error');
 
             % Test non-vector input
-            tc.verifyError(@() medfiltThreshold([1,2;3,4]), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            tc.verifyError(@() medfiltThreshold([1,2;3,4], 50, 1.5, 1.5), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Non-vector input should raise validation error');
 
             % Test invalid window parameter
-            tc.verifyError(@() medfiltThreshold([0.8, 0.82], 0), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            tc.verifyError(@() medfiltThreshold([0.8, 0.82], 0, 1.5, 1.5), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Zero window should raise validation error');
 
             % Test invalid factor parameter
-            tc.verifyError(@() medfiltThreshold([0.8, 0.82], 10, -1), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            tc.verifyError(@() medfiltThreshold([0.8, 0.82], 10, -1, 1.5), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Negative factor should raise validation error');
 
             % Test invalid maxthreshold parameter
@@ -62,11 +72,11 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
 
         function testParameters(tc)
             % Test window parameter
-            threshold1 = medfiltThreshold(tc.dtk, 3);
+            threshold1 = medfiltThreshold(tc.dtk, 3, 1.5, 1.5);
             tc.verifyEqual(length(threshold1), length(tc.dtk), 'Window parameter should work correctly');
 
             % Test factor parameter
-            threshold2 = medfiltThreshold(tc.dtk, 3, 2);
+            threshold2 = medfiltThreshold(tc.dtk, 3, 2, 1.5);
             tc.verifyTrue(all(threshold2 > threshold1), 'Higher factor should produce higher thresholds');
 
             % Test maxthreshold parameter

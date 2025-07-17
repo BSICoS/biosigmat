@@ -1,4 +1,4 @@
-function threshold = medfiltThreshold(dtk, varargin)
+function threshold = medfiltThreshold(dtk, window, factor, maxthreshold)
 % MEDFILTTHRESHOLD Compute adaptive threshold for outlier detection in tk intervals
 %
 %   Computes an adaptive threshold for identifying outliers in interval series
@@ -6,28 +6,38 @@ function threshold = medfiltThreshold(dtk, varargin)
 %   of the interval series, with padding at the boundaries to handle edge effects.
 %
 % Inputs:
-%   dtk    - Interval series (in seconds) as a numeric vector
-%   window - Optional. Window size for median filtering (default: 50)
-%   factor - Optional. Multiplicative factor for threshold computation (default: 1.5)
-%   maxthreshold - Optional. Maximum threshold value (default: 1.5)
+%   dtk          - Interval series (in seconds) as a numeric vector
+%   window       - Window size for median filtering
+%   factor       - Multiplicative factor for threshold computation
+%   maxthreshold - Maximum threshold value
 %
 % Outputs:
 %   threshold - Adaptive threshold values for outlier detection
+%
+% Example:
+%   % Create sample interval series
+%   dtk = [0.8, 0.82, 0.81, 1.2, 0.79, 0.83, 0.80]';
+%
+%   % Compute adaptive threshold
+%   threshold = medfiltThreshold(dtk, 5, 1.5, 1.5);
+%
+%   % Identify outliers
+%   outliers = dtk > threshold;
 
 
 % Check number of input and output arguments
-narginchk(1, 4);
+narginchk(4, 4);
 nargoutchk(0, 1);
 
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'medfiltThreshold';
 addRequired(parser, 'dtk', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addOptional(parser, 'window', 50, @(x) isnumeric(x) && isscalar(x) && x > 0 && x == round(x));
-addOptional(parser, 'factor', 1.5, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addOptional(parser, 'maxthreshold', 1.5, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'window', @(x) isnumeric(x) && isscalar(x) && x > 0 && x == round(x));
+addRequired(parser, 'factor', @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'maxthreshold', @(x) isnumeric(x) && isscalar(x) && x > 0);
 
-parse(parser, dtk, varargin{:});
+parse(parser, dtk, window, factor, maxthreshold);
 
 dtk = parser.Results.dtk(:);
 window = parser.Results.window;

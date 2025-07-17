@@ -1,5 +1,5 @@
 function threshold = medfiltThreshold(dtk, varargin)
-% MEDFILTTHRESHOLD Compute adaptive threshold for outlier detection in RR intervals
+% MEDFILTTHRESHOLD Compute adaptive threshold for outlier detection in tk intervals
 %
 %   Computes an adaptive threshold for identifying outliers in interval series
 %   using median filtering. The threshold is based on a median-filtered version
@@ -43,7 +43,7 @@ halfWindow = floor(window / 2);
 
 % Apply median filtering with boundary padding
 mf = medfilt1([flipud(dtk(1:halfWindow)); dtk; flipud(dtk(end-halfWindow+1:end))], window-1);
-mf(mf > maxthreshold) = maxthreshold;
 threshold = factor * (mf(halfWindow+1:end-halfWindow));
+threshold(threshold > maxthreshold) = maxthreshold;
 
 end

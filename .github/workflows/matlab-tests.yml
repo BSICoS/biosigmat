@@ -20,12 +20,16 @@ jobs:
       with:
         release: R2024b
         cache: true
+        products: |
+          MATLAB
+          Signal_Processing_Toolbox
+          Statistics_and_Machine_Learning_Toolbox
     
     - name: Verify MATLAB installation
       uses: matlab-actions/run-command@v2
       with:
         command: |
-          fprintf('=== MATLAB Online Diagnostic ===\n');
+          fprintf('=== MATLAB License Verification ===\n');
           fprintf('MATLAB Version: %s\n', version);
           fprintf('License: %s\n', license);
           fprintf('Platform: %s\n', computer);

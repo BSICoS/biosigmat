@@ -1,5 +1,20 @@
 # GitHub Copilot Instructions for biosigmat
 
+## General Development Guidelines
+
+### Work Scope
+- **ALWAYS ask before creating additional functions, tests, examples, or workflows** that are not explicitly requested
+- Only create what is specifically asked for in the user's request
+- Do not assume additional components are needed unless explicitly stated
+- When in doubt, ask the user for clarification about scope
+
+### Test Creation Guidelines
+- **Only create tests when explicitly requested** by the user
+- When creating tests, **always start with basic functionality tests first**
+- If the user doesn't specify whether to use fixtures or synthetic signals, **ask which approach they prefer**
+- Create tests incrementally - only implement the specific tests requested, not comprehensive test suites
+- Do not create all possible tests at once unless specifically asked to do so
+
 ## Code Style Guidelines
 
 ### Language
@@ -33,6 +48,12 @@
 %   - Basic functionality
 %   - Edge-case handling
 %   - Special values (NaN, Inf)
+
+**Test Creation Process:**
+- Always start with basic functionality tests when creating new test files
+- Ask the user whether to use fixture data or synthetic signals if not specified
+- Create tests incrementally based on user requests, not comprehensive test suites
+- Only implement the specific test scenarios requested by the user
 
 Test files should define a test class using MATLAB's unittest framework:
 

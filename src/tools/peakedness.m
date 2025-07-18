@@ -14,8 +14,8 @@ function [pkl, akl] = peakedness(pxx, f, referenceFreq, varargin)
 %                   - 'adaptive': Use spectrum maximum as center
 %
 % Outputs:
-%   pkl - Power concentration peakedness values (% of power in narrow vs wide window)
-%   akl - Absolute maximum peakedness values (% of max in window vs global max)
+%   pkl - Power concentration peakedness values (% of power in narrow vs wide window) (1 per spectrum in pxx)
+%   akl - Absolute maximum peakedness values (% of max in window vs global max) (1 per spectrum in pxx)
 %
 % Example:
 %   % Generate a test spectrum with a peak at 0.3 Hz

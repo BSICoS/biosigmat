@@ -1,4 +1,4 @@
-function [pkl, akl] = peakedness(pxx, f, referenceFreq, varargin)
+function [pkl, akl] = peakedness(pxx, f, varargin)
 % Computes the peakedness of power spectral density estimates.
 %
 % Inputs:
@@ -6,12 +6,9 @@ function [pkl, akl] = peakedness(pxx, f, referenceFreq, varargin)
 %                   - Column vector for single spectrum
 %                   - Matrix with spectra as columns
 %   f             - Frequency vector (Hz) corresponding to pxx
-%   referenceFreq - Reference frequency (Hz) for peakedness calculation
-%   Name-Value Arguments:
-%       'window'  - Search window bandwith centered around referenceFreq (Hz) [default: 0.125]
-%       'method'  - Method for window definition ['fixed'|'adaptive'] [default: 'fixed']
-%                   - 'fixed': Use referenceFreq as center
-%                   - 'adaptive': Use spectrum maximum as center
+%   referenceFreq - (Optional) Reference frequency (Hz) for peakedness calculation.
+%                   If not provided, uses adaptive method (spectrum maximum as center)
+%   window        - (Optional) Search window bandwith centered around referenceFreq (Hz) [default: 0.125]
 %
 % Outputs:
 %   pkl - Power concentration peakedness values (% of power in narrow vs wide window) (1 per spectrum in pxx)
@@ -25,11 +22,17 @@ function [pkl, akl] = peakedness(pxx, f, referenceFreq, varargin)
 %   fprintf('Power concentration peakedness: %.1f%%\n', pkl);
 %   fprintf('Absolute maximum peakedness: %.1f%%\n', akl);
 %
-%   % Use custom parameters
-%   [pkl, akl] = peakedness(pxx, f, 0.3, 'window', 0.2);
+%   % Use adaptive method (no reference frequency)
+%   [pkl, akl] = peakedness(pxx, f);
+%
+%   % Use custom window with fixed method
+%   [pkl, akl] = peakedness(pxx, f, 0.3, 0.2);
+%
+%   % Use custom window with adaptive method
+%   [pkl, akl] = peakedness(pxx, f, [], 0.2);
 
 % Check number of input and output arguments
-narginchk(3, inf);
+narginchk(2, inf);
 nargoutchk(0, 2);
 
 % Parse and validate inputs
@@ -37,16 +40,17 @@ parser = inputParser;
 parser.FunctionName = 'peakedness';
 addRequired(parser, 'pxx', @(x) isnumeric(x) && ~isempty(x));
 addRequired(parser, 'f', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addRequired(parser, 'referenceFreq', @(x) isnumeric(x) && isscalar(x) && isfinite(x));
-addParameter(parser, 'window', 0.125, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'method', 'fixed', @(x) ischar(x) || isstring(x));
-parse(parser, pxx, f, referenceFreq, varargin{:});
+addOptional(parser, 'referenceFreq', [], @(x) isnumeric(x) && isscalar(x) && isfinite(x));
+addOptional(parser, 'window', 0.125, @(x) isnumeric(x) && isscalar(x) && x > 0);
+parse(parser, pxx, f, varargin{:});
 
 pxx = parser.Results.pxx;
 f = parser.Results.f;
 referenceFreq = parser.Results.referenceFreq;
 window = parser.Results.window;
-method = parser.Results.method;
+
+% Determine method automatically based on referenceFreq
+useAdaptiveMethod = isempty(referenceFreq);
 
 % Ensure f is a column vector
 f = f(:);
@@ -69,9 +73,6 @@ if size(pxx, 1) ~= length(f)
         'First dimension of pxx must match length of frequency vector f');
 end
 
-% Validate method
-method = validatestring(method, {'fixed', 'adaptive'}, 'peakedness', 'method');
-
 % Get number of spectra
 numSpectra = size(pxx, 2);
 
@@ -92,7 +93,7 @@ for i = 1:numSpectra
     end
 
     % Determine center frequency for window definition
-    if strcmp(method, 'adaptive')
+    if useAdaptiveMethod
         % Use spectrum maximum as reference
         [~, currentPxxMax] = max(currentPxx);
         centerFreq = f(currentPxxMax);
@@ -108,7 +109,7 @@ for i = 1:numSpectra
     searchWindowNarrow = f >= centerFreq - windowNarrow/2 & f <= centerFreq + windowNarrow/2;
 
     % For adaptive method with initialization constraints (as in original code)
-    if strcmp(method, 'adaptive')
+    if useAdaptiveMethod
         searchWindowNarrow = f >= max(centerFreq - windowNarrow/2, 0.15) & f <= min(centerFreq + windowNarrow/2, 0.8);
     end
 

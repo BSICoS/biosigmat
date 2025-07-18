@@ -28,7 +28,7 @@ classdef peakednessTest < matlab.unittest.TestCase
     methods (Test)
         function testVectorInput(tc)
             [pxx, f] = periodogram(tc.resp, [], [], tc.fs);
-            [pkl, akl] = peakedness(pxx, f, 0.3);
+            [pkl, akl] = peakedness(pxx, f);
 
             % Verify outputs are valid
             tc.verifyTrue(isnumeric(pkl), 'pkl should be numeric');
@@ -46,7 +46,7 @@ classdef peakednessTest < matlab.unittest.TestCase
         function testMatrixInput(tc)
             sliced = slicesignal(tc.resp, tc.fs*30, tc.fs*15, tc.fs);
             [pxx, f] = periodogram(sliced, [], [], tc.fs);
-            [pkl, akl] = peakedness(pxx, f, 0.3);
+            [pkl, akl] = peakedness(pxx, f);
 
             % Verify outputs are valid
             tc.verifyTrue(isnumeric(pkl), 'pkl should be numeric');
@@ -81,8 +81,11 @@ classdef peakednessTest < matlab.unittest.TestCase
             % Test with invalid referenceFreq (Inf)
             tc.verifyError(@() peakedness(pxx, f, Inf), 'MATLAB:InputParser:ArgumentFailedValidation');
 
-            % Test with invalid method
-            tc.verifyError(@() peakedness(pxx, f, 0.3, 'method', 'invalid'), 'MATLAB:peakedness:unrecognizedStringChoice');
+            % Test with invalid referenceFreq (empty array)
+            tc.verifyError(@() peakedness(pxx, f, []), 'MATLAB:InputParser:ArgumentFailedValidation');
+
+            % Test with invalid window size (negative)
+            tc.verifyError(@() peakedness(pxx, f, 0.3, -0.1), 'MATLAB:InputParser:ArgumentFailedValidation');
 
             % Test with NaN values in pxx
             pxx = NaN(100, 1);
@@ -96,20 +99,16 @@ classdef peakednessTest < matlab.unittest.TestCase
             % Test with valid parameters
             [pxx, f] = periodogram(tc.resp, [], [], tc.fs);
 
+            % Test with custom reference frequency
+            referenceFreq = 0.3;  % Example reference frequency
+            [pkl, akl] = peakedness(pxx, f, referenceFreq);
+            tc.verifyTrue(isnumeric(pkl), 'pkl should be numeric with custom reference frequency');
+            tc.verifyTrue(isnumeric(akl), 'akl should be numeric with custom reference frequency');
+
             % Test with custom window size
-            [pkl, akl] = peakedness(pxx, f, 0.3, 'window', 0.2);
+            [pkl, akl] = peakedness(pxx, f, 0.3, 0.2);
             tc.verifyTrue(isnumeric(pkl), 'pkl should be numeric with custom window');
             tc.verifyTrue(isnumeric(akl), 'akl should be numeric with custom window');
-
-            % Test with adaptive method
-            [pkl, akl] = peakedness(pxx, f, 0.3, 'method', 'adaptive');
-            tc.verifyTrue(isnumeric(pkl), 'pkl should be numeric with adaptive method');
-            tc.verifyTrue(isnumeric(akl), 'akl should be numeric with adaptive method');
-
-            % Test with both parameters
-            [pkl, akl] = peakedness(pxx, f, 0.3, 'window', 0.15, 'method', 'fixed');
-            tc.verifyTrue(isnumeric(pkl), 'pkl should be numeric with both parameters');
-            tc.verifyTrue(isnumeric(akl), 'akl should be numeric with both parameters');
         end
     end
 

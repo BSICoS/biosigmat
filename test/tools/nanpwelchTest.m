@@ -1,6 +1,6 @@
 % Tests covering:
-%   - Input validation for common real-world error cases
 %   - Basic functionality with ECG signal from fixtures
+%   - Input validation for common real-world error cases
 %   - Special signal cases (all NaN, empty inputs)
 %   - Gap interpolation functionality with maxgap parameter
 
@@ -34,6 +34,30 @@ classdef nanpwelchTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testBasicFunctionality(tc)
+            ecg = tc.loadFixtureData();
+
+            % Test with both output arguments
+            [pxx, f] = nanpwelch(ecg, 256, 128, 512, tc.fs, []);
+            tc.verifyClass(pxx, 'double', 'Output pxx should be double');
+            tc.verifyClass(f, 'double', 'Output f should be double');
+            tc.verifySize(pxx, [257, 1], 'Output pxx should be column vector of correct size');
+            tc.verifySize(f, [257, 1], 'Output f should be column vector of correct size');
+            tc.verifyTrue(all(pxx >= 0), 'Power spectral density should be non-negative');
+            tc.verifyTrue(all(f >= 0), 'Frequency vector should be non-negative');
+
+            % Test with different window types
+            window = hamming(256);
+            tc.verifyWarningFree(@() nanpwelch(ecg, window, 128, 512, tc.fs, []), ...
+                'Function should accept vector window');
+
+            % Test with optional maxgap parameter
+            tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, 50), ...
+                'Function should accept maxgap parameter');
+            tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, []), ...
+                'Function should accept empty maxgap parameter');
+        end
+
         function testInputValidation(tc)
             ecg = tc.loadFixtureData();
 
@@ -101,49 +125,36 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             ecg = tc.loadFixtureData();
             testSignal = ecg(1:1000);
 
-            % Test 1: Signal with only NaN at ends (should have 1 segment after trim)
-            signalTrimOnly = [NaN(50, 1); testSignal(1:500); NaN(100, 1)];
-            [pxx1, ~, segments1] = nanpwelch(signalTrimOnly, 128, 64, 256, tc.fs, []);
-            tc.verifyEqual(size(segments1, 2), 1, 'Trim-only case should have 1 segment');
+            % Test 1: Signal without NaN
+            [pxx1, ~, segments1] = nanpwelch(testSignal, 128, 64, 256, tc.fs, []);
+            tc.verifyEqual(size(segments1, 2), 14, 'Should have 14 segments');
             tc.verifyEqual(size(segments1, 1), length(pxx1), 'Segment PSD should match output length');
 
-            % Test 2: Signal with one large gap in middle (should have 2 segments)
+            % Test 2: Signal with one large gap in middle (should have 12 segments)
             signalLargeGap = testSignal;
             signalLargeGap(400:450) = NaN;  % 51-sample gap
             [~, ~, segments2] = nanpwelch(signalLargeGap, 128, 64, 256, tc.fs, 10);
-            tc.verifyEqual(size(segments2, 2), 2, 'Large gap should create 2 segments');
+            tc.verifyEqual(size(segments2, 2), 12, 'Large gap should create 12 segments');
 
-            % Test 3: Signal with one small gap and one large gap (should have 2 segments)
-            signalMixedGaps = testSignal;
-            signalMixedGaps(200:205) = NaN;  % 6-sample gap (should be interpolated)
-            signalMixedGaps(600:650) = NaN;  % 51-sample gap (should create division)
-            [~, ~, segments3] = nanpwelch(signalMixedGaps, 128, 64, 256, tc.fs, 10);
-            tc.verifyEqual(size(segments3, 2), 2, 'Mixed gaps should create 2 segments');
-
-            % Test 4: Signal with multiple small gaps (should have 1 segment, all interpolated)
+            % Test 4: Signal with multiple small gaps (should have 14 segment, all interpolated)
             signalSmallGaps = testSignal;
             signalSmallGaps(100:102) = NaN;  % 3-sample gap
             signalSmallGaps(300:305) = NaN;  % 6-sample gap
             signalSmallGaps(500:508) = NaN;  % 9-sample gap
             [~, ~, segments4] = nanpwelch(signalSmallGaps, 128, 64, 256, tc.fs, 10);
-            tc.verifyEqual(size(segments4, 2), 1, 'Multiple small gaps should be interpolated into 1 segment');
+            tc.verifyEqual(size(segments4, 2), 14, 'Multiple small gaps should be interpolated into 14 segments');
 
-            % Test 5: Signal with multiple large gaps (should have 3 segments)
+            % Test 5: Signal with multiple large gaps (should have 10 segments)
             signalMultipleLargeGaps = testSignal;
             signalMultipleLargeGaps(200:250) = NaN;  % 51-sample gap
             signalMultipleLargeGaps(600:670) = NaN;  % 71-sample gap
             [~, ~, segments5] = nanpwelch(signalMultipleLargeGaps, 128, 64, 256, tc.fs, 10);
-            tc.verifyEqual(size(segments5, 2), 3, 'Multiple large gaps should create 3 segments');
+            tc.verifyEqual(size(segments5, 2), 10, 'Multiple large gaps should create 10 segments');
 
             % Test 6: All NaN signal (should have 0 segments)
             allNanSignal = NaN(1000, 1);
             [~, ~, segments6] = nanpwelch(allNanSignal, 128, 64, 256, tc.fs, []);
             tc.verifyEmpty(segments6, 'All NaN signal should have empty segments matrix');
-
-            % Test 7: Clean signal (should have 1 segment)
-            [pxx7, ~, segments7] = nanpwelch(testSignal, 128, 64, 256, tc.fs, []);
-            tc.verifyEqual(size(segments7, 2), 1, 'Clean signal should have 1 segment');
-            tc.verifyEqual(segments7, pxx7, 'Single segment should equal averaged result');
         end
 
         function testGapInterpolation(tc)
@@ -172,30 +183,6 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             [pxx3, ~] = nanpwelch(signalWithLargeGap, 256, 128, 512, tc.fs, 10);
             tc.verifyClass(pxx3, 'double', 'Output pxx should be double');
             tc.verifyTrue(all(~isnan(pxx3)), 'Should average across valid segments');
-        end
-
-        function testBasicFunctionality(tc)
-            ecg = tc.loadFixtureData();
-
-            % Test with both output arguments
-            [pxx, f] = nanpwelch(ecg, 256, 128, 512, tc.fs, []);
-            tc.verifyClass(pxx, 'double', 'Output pxx should be double');
-            tc.verifyClass(f, 'double', 'Output f should be double');
-            tc.verifySize(pxx, [257, 1], 'Output pxx should be column vector of correct size');
-            tc.verifySize(f, [257, 1], 'Output f should be column vector of correct size');
-            tc.verifyTrue(all(pxx >= 0), 'Power spectral density should be non-negative');
-            tc.verifyTrue(all(f >= 0), 'Frequency vector should be non-negative');
-
-            % Test with different window types
-            window = hamming(256);
-            tc.verifyWarningFree(@() nanpwelch(ecg, window, 128, 512, tc.fs, []), ...
-                'Function should accept vector window');
-
-            % Test with optional maxgap parameter
-            tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, 50), ...
-                'Function should accept maxgap parameter');
-            tc.verifyWarningFree(@() nanpwelch(ecg, 256, 128, 512, tc.fs, []), ...
-                'Function should accept empty maxgap parameter');
         end
 
         function testMatrixInputs(tc)

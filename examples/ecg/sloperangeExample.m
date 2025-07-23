@@ -61,8 +61,10 @@ plot(t, decg);
 hold on;
 plot(t, upslopes, 'linewidth', 3);
 plot(t, downslopes, '--', 'linewidth', 3);
-plot(t(upslopeMaxPosition), upslopes(upslopeMaxPosition), 'v');
-plot(t(downslopeMinPosition), downslopes(downslopeMinPosition), '^');
+plot(t(upslopeMaxPosition(~isnan(upslopeMaxPosition))), ...
+    upslopes(upslopeMaxPosition(~isnan(upslopeMaxPosition))), 'v');
+plot(t(downslopeMinPosition(~isnan(downslopeMinPosition))), ...
+    downslopes(downslopeMinPosition(~isnan(downslopeMinPosition))), '^');
 axis tight;
 ylabel('1st der ECG');
 title('Intervals for upslope (black) and downslope (magenta)');

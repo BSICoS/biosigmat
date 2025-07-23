@@ -29,7 +29,7 @@ nargoutchk(0, 1);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'interpgap';
-validMethods = {'linear', 'nearest', 'cubic', 'spline', 'pchip'};
+validMethods = {'linear', 'nearest', 'spline', 'pchip'};
 addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'maxgap', @(x) isnumeric(x) && isscalar(x) && x >= 0);
 addOptional(parser, 'method', 'linear', @(x) any(validatestring(x, validMethods)));

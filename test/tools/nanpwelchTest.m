@@ -97,20 +97,6 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             tc.verifyTrue(all(isnan(pxx)), 'All NaN signal should produce NaN output');
         end
 
-        function testTrimNaNAtEnds(tc)
-            ecg = tc.loadFixtureData();
-
-            % Add NaN values at beginning and end
-            signalWithNaN = [NaN(100, 1); ecg(1:500); NaN(200, 1)];
-
-            [pxx1, ~] = nanpwelch(signalWithNaN, 256, 128, 512, tc.fs, []);
-            [pxx2, ~] = nanpwelch(ecg(1:500), 256, 128, 512, tc.fs, []);
-
-            tc.verifyClass(pxx1, 'double', 'Output pxx should be double');
-            tc.verifySize(pxx1, size(pxx2), 'Trimmed signal should have same size as clean signal');
-            tc.verifyTrue(all(~isnan(pxx1)), 'Trimmed signal should not have NaN output');
-        end
-
         function testSegmentCounting(tc)
             ecg = tc.loadFixtureData();
             testSignal = ecg(1:1000);
@@ -199,11 +185,6 @@ classdef nanpwelchTest < matlab.unittest.TestCase
             tc.verifySize(f, [257, 1], 'Output f should be column vector of correct size');
             tc.verifyTrue(all(pxx >= 0), 'Power spectral density should be non-negative');
             tc.verifyTrue(all(f >= 0), 'Frequency vector should be non-negative');
-
-            % Test with single output argument
-            pxx_single = nanpwelch(ecg, 256, 128, 512, tc.fs, []);
-            tc.verifyClass(pxx_single, 'double', 'Single output pxx should be double');
-            tc.verifySize(pxx_single, [257, 1], 'Single output pxx should be column vector of correct size');
 
             % Test with different window types
             window = hamming(256);

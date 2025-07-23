@@ -74,103 +74,121 @@ for signalIdx = 1:numSignals
     % Trim NaN values at the beginning and end of the signal
     trimmedSignal = trimnans(currentSignal);
 
+    % Early return if all values are NaN
     if isempty(trimmedSignal)
-        % All values are NaN - set empty results
         pxxSingle = [];
         fSingle = [];
         pxxSegmentsSingle = [];
-    else
-        % Validate trimmed signal length against window
-        if length(trimmedSignal) < windowLength
-            warning('nanpwelch:signalTooShort', ...
-                'Signal after trimming NaN values (%d samples) is shorter than window length (%d samples). Cannot compute PSD.', ...
-                length(trimmedSignal), windowLength);
-            pxxSingle = [];
-            fSingle = [];
-            pxxSegmentsSingle = [];
-        else
-            % Find NaN gaps in the trimmed signal
-            nanIndices = isnan(trimmedSignal);
-            if ~any(nanIndices)
-                [pxxSingle, fSingle] = pwelch(trimmedSignal, window, noverlap, nfft, fs);
-                pxxSegmentsSingle = pxxSingle;  % Single segment case
-            else
-                % Process signal with NaN gaps
-                processedSignal = trimmedSignal;
+        % Update frequency vector and accumulate results
+        f = updateFrequencyVector(f, fSingle);
+        pxxAll = [pxxAll, pxxSingle];
+        pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+        continue;
+    end
 
-                % If maxgap is specified, interpolate small gaps
-                if ~isempty(maxgap)
-                    % Find NaN sequences
-                    nanSeqStarts = find(diff([0; nanIndices]) > 0);
-                    nanSeqEnds = find(diff([nanIndices; 0]) < 0);
+    % Early return if signal is too short after trimming
+    if length(trimmedSignal) < windowLength
+        warning('nanpwelch:signalTooShort', ...
+            'Signal after trimming NaN values (%d samples) is shorter than window length (%d samples). Cannot compute PSD.', ...
+            length(trimmedSignal), windowLength);
+        pxxSingle = [];
+        fSingle = [];
+        pxxSegmentsSingle = [];
+        % Update frequency vector and accumulate results
+        f = updateFrequencyVector(f, fSingle);
+        pxxAll = [pxxAll, pxxSingle];
+        pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+        continue;
+    end
 
-                    % Interpolate gaps that are ≤ maxgap
-                    for i = 1:length(nanSeqStarts)
-                        gapLength = nanSeqEnds(i) - nanSeqStarts(i) + 1;
-                        if gapLength <= maxgap
-                            % Get indices for interpolation (including boundary points)
-                            startIdx = max(1, nanSeqStarts(i) - 1);
-                            endIdx = min(length(processedSignal), nanSeqEnds(i) + 1);
+    % Find NaN gaps in the trimmed signal
+    nanIndices = isnan(trimmedSignal);
 
-                            % Find valid data points around the gap
-                            validIndices = ~isnan(processedSignal(startIdx:endIdx));
-                            if sum(validIndices) >= 2
-                                % Interpolate using spline method
-                                validData = processedSignal(startIdx:endIdx);
-                                sampleIndices = 1:length(validData);
-                                interpolatedData = interp1(sampleIndices(validIndices), ...
-                                    validData(validIndices), sampleIndices, 'spline');
-                                processedSignal(startIdx:endIdx) = interpolatedData;
-                            end
-                        end
-                    end
-                end
+    % Handle signal without NaN gaps
+    if ~any(nanIndices)
+        [pxxSingle, fSingle] = pwelch(trimmedSignal, window, noverlap, nfft, fs);
+        pxxSegmentsSingle = pxxSingle;  % Single segment case
+        % Update frequency vector and accumulate results
+        f = updateFrequencyVector(f, fSingle);
+        pxxAll = [pxxAll, pxxSingle];
+        pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+        continue;
+    end
 
-                % Find continuous segments of valid data after interpolation
-                validIndices = ~isnan(processedSignal);
-                segmentChanges = diff([0; validIndices; 0]);
-                segmentStarts = find(segmentChanges > 0);
-                segmentEnds = find(segmentChanges < 0) - 1;
+    % Process signal with NaN gaps
+    processedSignal = trimmedSignal;
 
-                % Compute Welch periodogram for each valid segment
-                pxxSegmentsSingle = [];
-                numValidSegments = 0;
+    % If maxgap is specified, interpolate small gaps
+    if ~isempty(maxgap)
+        % Find NaN sequences
+        nanSeqStarts = find(diff([0; nanIndices]) > 0);
+        nanSeqEnds = find(diff([nanIndices; 0]) < 0);
 
-                for i = 1:length(segmentStarts)
-                    segment = processedSignal(segmentStarts(i):segmentEnds(i));
-                    segmentLength = length(segment);
+        % Interpolate gaps that are ≤ maxgap
+        for i = 1:length(nanSeqStarts)
+            gapLength = nanSeqEnds(i) - nanSeqStarts(i) + 1;
+            if gapLength <= maxgap
+                % Get indices for interpolation (including boundary points)
+                startIdx = max(1, nanSeqStarts(i) - 1);
+                endIdx = min(length(processedSignal), nanSeqEnds(i) + 1);
 
-                    % Check if segment is long enough for analysis
-                    if segmentLength >= windowLength
-                        % Compute Welch periodogram
-                        numValidSegments = numValidSegments + 1;
-                        [pxxSegmentsSingle(:, numValidSegments), fSingle] = pwelch(segment, window, ...
-                            noverlap, nfft, fs); %#ok<*AGROW>
-                    end
-                end
-
-                % Average power across all valid segments
-                if numValidSegments > 0
-                    pxxSingle = mean(pxxSegmentsSingle, 2);
-                else
-                    % No valid segments - return empty result and warn
-                    warning('nanpwelch:noValidSegments', ...
-                        'All signal segments are shorter than window length (%d samples). Cannot compute PSD.', windowLength);
-                    pxxSingle = [];
-                    fSingle = [];
-                    pxxSegmentsSingle = [];
+                % Find valid data points around the gap
+                validIndices = ~isnan(processedSignal(startIdx:endIdx));
+                if sum(validIndices) >= 2
+                    % Interpolate using spline method
+                    validData = processedSignal(startIdx:endIdx);
+                    sampleIndices = 1:length(validData);
+                    interpolatedData = interp1(sampleIndices(validIndices), ...
+                        validData(validIndices), sampleIndices, 'spline');
+                    processedSignal(startIdx:endIdx) = interpolatedData;
                 end
             end
         end
     end
 
-    % Accumulate PSD results
-    if signalIdx == 1
-        pxxAll = pxxSingle;
-        f = fSingle;
-    else
-        pxxAll = [pxxAll, pxxSingle];
+    % Find continuous segments of valid data after interpolation
+    validIndices = ~isnan(processedSignal);
+    segmentChanges = diff([0; validIndices; 0]);
+    segmentStarts = find(segmentChanges > 0);
+    segmentEnds = find(segmentChanges < 0) - 1;
+
+    % Compute Welch periodogram for each valid segment
+    pxxSegmentsSingle = [];
+    numValidSegments = 0;
+
+    for i = 1:length(segmentStarts)
+        segment = processedSignal(segmentStarts(i):segmentEnds(i));
+        segmentLength = length(segment);
+
+        % Check if segment is long enough for analysis
+        if segmentLength >= windowLength
+            % Compute Welch periodogram
+            numValidSegments = numValidSegments + 1;
+            [pxxSegmentsSingle(:, numValidSegments), fSingle] = pwelch(segment, window, ...
+                noverlap, nfft, fs); %#ok<*AGROW>
+        end
     end
+
+    % Early return if no valid segments found
+    if numValidSegments == 0
+        warning('nanpwelch:noValidSegments', ...
+            'All signal segments are shorter than window length (%d samples). Cannot compute PSD.', windowLength);
+        pxxSingle = [];
+        fSingle = [];
+        pxxSegmentsSingle = [];
+        % Update frequency vector and accumulate results
+        f = updateFrequencyVector(f, fSingle);
+        pxxAll = [pxxAll, pxxSingle];
+        pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+        continue;
+    end
+
+    % Average power across all valid segments
+    pxxSingle = mean(pxxSegmentsSingle, 2);
+
+    % Update frequency vector and accumulate PSD results
+    f = updateFrequencyVector(f, fSingle);
+    pxxAll = [pxxAll, pxxSingle];
 
     % Store segment results in cell array
     pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
@@ -190,6 +208,12 @@ end
 
 varargout = {pxxAll, f, pxxSegmentsAll};
 
+end
+
+function f = updateFrequencyVector(f, fSingle)
+if isempty(f) && ~isempty(fSingle)
+    f = fSingle;
+end
 end
 
 function windowLength = getWindowLength(window)

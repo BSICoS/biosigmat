@@ -61,13 +61,6 @@ end
 % Run the test suite and display the results
 results = run(suite);
 
-% Display detailed results with timing information
-fprintf('\n=== Test Results Summary ===\n');
-fprintf('Total tests: %d\n', length(results));
-fprintf('Passed: %d\n', sum([results.Passed]));
-fprintf('Failed: %d\n', sum([results.Failed]));
-fprintf('Incomplete: %d\n', sum([results.Incomplete]));
-
 % Display timing information grouped by test file
 fprintf('\n=== Individual Test Timings ===\n');
 
@@ -137,6 +130,13 @@ for j = 1:length(testClasses)
         fprintf('\n');
     end
 end
+
+% Display detailed results with timing information
+fprintf('\n=== Test Results Summary ===\n');
+fprintf('Total tests: %d\n', length(results));
+fprintf('Passed: %d\n', sum([results.Passed]));
+fprintf('Failed: %d\n', sum([results.Failed]));
+fprintf('Incomplete: %d\n', sum([results.Incomplete]));
 
 % Display total execution time
 totalTime = sum([results.Duration]);

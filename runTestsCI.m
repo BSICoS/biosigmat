@@ -60,7 +60,7 @@ try
     fprintf('\nTotal execution time: %.2f seconds\n', totalTime);
 
     % Display slowest tests for performance monitoring
-    if length(results) > 0
+    if ~isempty(results)
         [~, slowestIdx] = maxk([results.Duration], min(5, length(results)));
         fprintf('\n=== Slowest Tests ===\n');
         for i = 1:length(slowestIdx)
@@ -135,7 +135,7 @@ try
             end
 
             % Add performance information
-            if length(results) > 0
+            if ~isempty(results)
                 [~, slowestIdx] = maxk([results.Duration], min(3, length(results)));
                 fprintf(fid, '\n## Performance\n\n');
                 fprintf(fid, '| Test | Duration |\n');

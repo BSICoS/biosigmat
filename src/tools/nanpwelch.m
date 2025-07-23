@@ -71,20 +71,15 @@ pxxSegmentsCells = cell(numSignals, 1);
 for signalIdx = 1:numSignals
     currentSignal = x(:, signalIdx);
 
-    % Process single signal with NaN handling
     % Trim NaN values at the beginning and end of the signal
-    firstValidIndex = find(~isnan(currentSignal), 1, 'first');
-    lastValidIndex = find(~isnan(currentSignal), 1, 'last');
+    trimmedSignal = trimnans(currentSignal);
 
-    if isempty(firstValidIndex)
+    if isempty(trimmedSignal)
         % All values are NaN - set empty results
         pxxSingle = [];
         fSingle = [];
         pxxSegmentsSingle = [];
     else
-        % Trim the signal
-        trimmedSignal = currentSignal(firstValidIndex:lastValidIndex);
-
         % Validate trimmed signal length against window
         if length(trimmedSignal) < windowLength
             warning('nanpwelch:signalTooShort', ...

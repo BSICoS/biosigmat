@@ -82,7 +82,7 @@ for signalIdx = 1:numSignals
 
         % Update frequency vector and accumulate results
         fAll = updateFrequencyVector(fAll, f);
-        pxxAll = [pxxAll, pxx];
+        pxxAll = [pxxAll, pxx]; %#ok<*AGROW>
         pxxSegmentsAllCells{signalIdx} = pxxSegments;
         continue;
     end
@@ -108,12 +108,20 @@ for signalIdx = 1:numSignals
 
     % Handle signal without NaN gaps
     if ~any(nanIndices)
-        [pxx, f] = pwelch(trimmedSignal, window, noverlap, nfft, fs);
+        slicedSignal = slicesignal(trimmedSignal, windowLength, noverlap, fs);
+        if isscalar(window)
+            [pxxSegments, f] = periodogram(slicedSignal, [], nfft, fs);
+        else
+            [pxxSegments, f] = periodogram(slicedSignal, window, nfft, fs);
+        end
+
+        % Average power across all segments
+        pxx = mean(pxxSegments, 2);
 
         % Update frequency vector and accumulate results
         fAll = updateFrequencyVector(fAll, f);
         pxxAll = [pxxAll, pxx];
-        pxxSegmentsAllCells{signalIdx} = pxx;
+        pxxSegmentsAllCells{signalIdx} = pxxSegments;
         continue;
     end
 
@@ -139,9 +147,15 @@ for signalIdx = 1:numSignals
         % Check if segment is long enough for analysis
         if segmentLength >= windowLength
             % Compute Welch periodogram
-            numValidSegments = numValidSegments + 1;
-            [pxxSegments(:, numValidSegments), f] = pwelch(segment, window, ...
-                noverlap, nfft, fs); %#ok<*AGROW>
+            slicedSegment = slicesignal(segment, windowLength, noverlap, fs);
+            if isscalar(window)
+                [pxxSegments(:, numValidSegments+1:numValidSegments+size(slicedSegment, 2)), f] = ...
+                    periodogram(slicedSegment, [], nfft, fs);
+            else
+                [pxxSegments(:, numValidSegments+1:numValidSegments+size(slicedSegment, 2)), f] = ...
+                    periodogram(slicedSegment, window, nfft, fs);
+            end
+            numValidSegments = numValidSegments + size(slicedSegment, 2);
         end
     end
 
@@ -152,6 +166,7 @@ for signalIdx = 1:numSignals
         pxx = [];
         f = [];
         pxxSegments = [];
+
         % Update frequency vector and accumulate results
         fAll = updateFrequencyVector(fAll, f);
         pxxAll = [pxxAll, pxx];

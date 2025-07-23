@@ -11,7 +11,7 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function addCodeToPath(~)
-            addpath('../../src/hrv');
+            addpath('../../src/tools');
         end
     end
 

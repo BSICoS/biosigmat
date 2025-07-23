@@ -3,6 +3,9 @@
 % This example demonstrates how to use the tdmetrics function to compute
 % time domain heart rate variability metrics from ECG R-peak timings.
 
+% Add required paths
+addpath('../../src/tools');
+addpath('../../src/hrv');
 
 % Load ECG timing data from CSV file
 data = readtable('../../fixtures/ecg/ecg_tk.csv');
@@ -11,8 +14,15 @@ tk = data.tk;
 % Compute interval series (dtk = diff(tk))
 dtk = diff(tk);
 
+% Apply medfiltThreshold to detect outliers
+threshold = medfiltThreshold(dtk, 50, 1.5, 1.5);
+outliers = dtk > threshold;
+
+% Remove outliers
+dtkWithoutOutliers = dtk(~outliers);
+
 % Calculate time domain metrics
-metrics = tdmetrics(dtk);
+metrics = tdmetrics(dtkWithoutOutliers);
 
 % Display results
 fprintf('Time Domain HRV Metrics:\n');

@@ -64,8 +64,8 @@ numSignals = size(x, 2);
 
 % Pre-allocate results for efficiency
 pxxAll = [];
-f = [];
-pxxSegmentsCells = cell(numSignals, 1);
+fAll = [];
+pxxSegmentsAllCells = cell(numSignals, 1);
 
 % Process each signal and accumulate results
 for signalIdx = 1:numSignals
@@ -76,13 +76,14 @@ for signalIdx = 1:numSignals
 
     % Early return if all values are NaN
     if isempty(trimmedSignal)
-        pxxSingle = [];
-        fSingle = [];
-        pxxSegmentsSingle = [];
+        pxx = [];
+        f = [];
+        pxxSegments = [];
+
         % Update frequency vector and accumulate results
-        f = updateFrequencyVector(f, fSingle);
-        pxxAll = [pxxAll, pxxSingle];
-        pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+        fAll = updateFrequencyVector(fAll, f);
+        pxxAll = [pxxAll, pxx];
+        pxxSegmentsAllCells{signalIdx} = pxxSegments;
         continue;
     end
 
@@ -91,13 +92,14 @@ for signalIdx = 1:numSignals
         warning('nanpwelch:signalTooShort', ...
             'Signal after trimming NaN values (%d samples) is shorter than window length (%d samples). Cannot compute PSD.', ...
             length(trimmedSignal), windowLength);
-        pxxSingle = [];
-        fSingle = [];
-        pxxSegmentsSingle = [];
+        pxx = [];
+        f = [];
+        pxxSegments = [];
+
         % Update frequency vector and accumulate results
-        f = updateFrequencyVector(f, fSingle);
-        pxxAll = [pxxAll, pxxSingle];
-        pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+        fAll = updateFrequencyVector(fAll, f);
+        pxxAll = [pxxAll, pxx];
+        pxxSegmentsAllCells{signalIdx} = pxxSegments;
         continue;
     end
 
@@ -106,65 +108,39 @@ for signalIdx = 1:numSignals
 
     % Handle signal without NaN gaps
     if ~any(nanIndices)
-        [pxxSingle, fSingle] = pwelch(trimmedSignal, window, noverlap, nfft, fs);
-        pxxSegmentsSingle = pxxSingle;  % Single segment case
+        [pxx, f] = pwelch(trimmedSignal, window, noverlap, nfft, fs);
+
         % Update frequency vector and accumulate results
-        f = updateFrequencyVector(f, fSingle);
-        pxxAll = [pxxAll, pxxSingle];
-        pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+        fAll = updateFrequencyVector(fAll, f);
+        pxxAll = [pxxAll, pxx];
+        pxxSegmentsAllCells{signalIdx} = pxx;
         continue;
     end
 
-    % Process signal with NaN gaps
-    processedSignal = trimmedSignal;
-
     % If maxgap is specified, interpolate small gaps
     if ~isempty(maxgap)
-        % Find NaN sequences
-        nanSeqStarts = find(diff([0; nanIndices]) > 0);
-        nanSeqEnds = find(diff([nanIndices; 0]) < 0);
-
-        % Interpolate gaps that are ≤ maxgap
-        for i = 1:length(nanSeqStarts)
-            gapLength = nanSeqEnds(i) - nanSeqStarts(i) + 1;
-            if gapLength <= maxgap
-                % Get indices for interpolation (including boundary points)
-                startIdx = max(1, nanSeqStarts(i) - 1);
-                endIdx = min(length(processedSignal), nanSeqEnds(i) + 1);
-
-                % Find valid data points around the gap
-                validIndices = ~isnan(processedSignal(startIdx:endIdx));
-                if sum(validIndices) >= 2
-                    % Interpolate using spline method
-                    validData = processedSignal(startIdx:endIdx);
-                    sampleIndices = 1:length(validData);
-                    interpolatedData = interp1(sampleIndices(validIndices), ...
-                        validData(validIndices), sampleIndices, 'spline');
-                    processedSignal(startIdx:endIdx) = interpolatedData;
-                end
-            end
-        end
+        interpolatedSignal = interpgap(trimmedSignal, maxgap);
     end
 
     % Find continuous segments of valid data after interpolation
-    validIndices = ~isnan(processedSignal);
+    validIndices = ~isnan(interpolatedSignal);
     segmentChanges = diff([0; validIndices; 0]);
     segmentStarts = find(segmentChanges > 0);
     segmentEnds = find(segmentChanges < 0) - 1;
 
     % Compute Welch periodogram for each valid segment
-    pxxSegmentsSingle = [];
+    pxxSegments = [];
     numValidSegments = 0;
 
     for i = 1:length(segmentStarts)
-        segment = processedSignal(segmentStarts(i):segmentEnds(i));
+        segment = interpolatedSignal(segmentStarts(i):segmentEnds(i));
         segmentLength = length(segment);
 
         % Check if segment is long enough for analysis
         if segmentLength >= windowLength
             % Compute Welch periodogram
             numValidSegments = numValidSegments + 1;
-            [pxxSegmentsSingle(:, numValidSegments), fSingle] = pwelch(segment, window, ...
+            [pxxSegments(:, numValidSegments), f] = pwelch(segment, window, ...
                 noverlap, nfft, fs); %#ok<*AGROW>
         end
     end
@@ -173,40 +149,40 @@ for signalIdx = 1:numSignals
     if numValidSegments == 0
         warning('nanpwelch:noValidSegments', ...
             'All signal segments are shorter than window length (%d samples). Cannot compute PSD.', windowLength);
-        pxxSingle = [];
-        fSingle = [];
-        pxxSegmentsSingle = [];
+        pxx = [];
+        f = [];
+        pxxSegments = [];
         % Update frequency vector and accumulate results
-        f = updateFrequencyVector(f, fSingle);
-        pxxAll = [pxxAll, pxxSingle];
-        pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+        fAll = updateFrequencyVector(fAll, f);
+        pxxAll = [pxxAll, pxx];
+        pxxSegmentsAllCells{signalIdx} = pxxSegments;
         continue;
     end
 
     % Average power across all valid segments
-    pxxSingle = mean(pxxSegmentsSingle, 2);
+    pxx = mean(pxxSegments, 2);
 
     % Update frequency vector and accumulate PSD results
-    f = updateFrequencyVector(f, fSingle);
-    pxxAll = [pxxAll, pxxSingle];
+    fAll = updateFrequencyVector(fAll, f);
+    pxxAll = [pxxAll, pxx];
 
     % Store segment results in cell array
-    pxxSegmentsCells{signalIdx} = pxxSegmentsSingle;
+    pxxSegmentsAllCells{signalIdx} = pxxSegments;
 end
 
 if nargout > 2
     if numSignals == 1
         % For single signal, return matrix
-        pxxSegmentsAll = pxxSegmentsCells{1};
+        pxxSegmentsAll = pxxSegmentsAllCells{1};
     else
         % For multiple signals, return cell
-        pxxSegmentsAll = pxxSegmentsCells;
+        pxxSegmentsAll = pxxSegmentsAllCells;
     end
 else
     pxxSegmentsAll = [];
 end
 
-varargout = {pxxAll, f, pxxSegmentsAll};
+varargout = {pxxAll, fAll, pxxSegmentsAll};
 
 end
 

@@ -1,5 +1,5 @@
 function b = lpdfilter(fs, stopFreq, varargin)
-% LPDFILTER Low-pass derivative filter for biomedical signals.
+% LPDFILTER Low-pass derivative filter.
 %   Designs a low-pass derivative (LPD) linear-phase FIR filter using
 %   least-squares estimation. The estimator filter minimizes the weighted
 %   integrated squared error between an ideal piecewise linear function
@@ -46,7 +46,7 @@ function b = lpdfilter(fs, stopFreq, varargin)
 %   grid on;
 
 % Argument validation
-narginchk(2, 4);
+narginchk(2, 6);
 nargoutchk(0, 1);
 
 % Input validation

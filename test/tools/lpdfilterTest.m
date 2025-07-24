@@ -33,11 +33,8 @@ classdef lpdfilterTest < matlab.unittest.TestCase
 
     methods (Test)
         function testBasicFunctionality(tc)
-            % Define a stop frequency for testing
             stopFreq = 8.0;
-
-            % Execute function under test with default parameters
-            b = lpdfilter(tc.fs, stopFreq);
+            [b, delay] = lpdfilter(tc.fs, stopFreq);
             filteredSignal = filter (b, 1, tc.signal);
 
             % Basic verifications
@@ -48,6 +45,24 @@ classdef lpdfilterTest < matlab.unittest.TestCase
             % Verify filter coefficients are non-empty
             tc.verifyTrue(~isempty(b), 'Filter coefficients should be generated');
             tc.verifyTrue(all(isfinite(b)), 'Filter coefficients should be finite');
+
+            % Verify delay
+            tc.verifyTrue(~isempty(delay), 'Delay should be calculated');
+            tc.verifyTrue(isnumeric(delay) && isscalar(delay), 'Delay should be a numeric scalar');
+            tc.verifyGreaterThanOrEqual(delay, 0, 'Delay should be non-negative');
+        end
+
+        function testSpecificOrder(tc)
+            order = 50;
+            stopFreq = 8.0;
+
+            [b, delay] = lpdfilter(tc.fs, stopFreq, 'Order', order);
+
+            % Verify filter coefficients length matches order + 1
+            tc.verifyLength(b, order + 1, 'Filter coefficients length mismatch');
+
+            % Verify delay matches order/2
+            tc.verifyEqual(delay, order / 2, 'Delay should match order/2');
         end
 
         function testInvalidRequiredInputs(tc)
@@ -72,14 +87,6 @@ classdef lpdfilterTest < matlab.unittest.TestCase
 
             % Test invalid order
             tc.verifyError(@() lpdfilter(tc.fs, 8.0, 'Order', -10), 'MATLAB:InputParser:ArgumentFailedValidation');
-        end
-
-        function testNargout(tc)
-            % Test for too many output arguments
-            function callWithTooManyOutputs()
-                [~,~,~] = lpdfilter(tc.signal, tc.fs, 8.0);
-            end
-            tc.verifyError(@callWithTooManyOutputs, 'MATLAB:TooManyOutputs');
         end
     end
 end

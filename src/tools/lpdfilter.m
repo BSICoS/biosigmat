@@ -1,4 +1,4 @@
-function b = lpdfilter(fs, stopFreq, varargin)
+function [b, delay] = lpdfilter(fs, stopFreq, varargin)
 % LPDFILTER Low-pass derivative filter.
 %   Designs a low-pass derivative (LPD) linear-phase FIR filter using
 %   least-squares estimation. The estimator filter minimizes the weighted
@@ -31,23 +31,28 @@ function b = lpdfilter(fs, stopFreq, varargin)
 %          Ready for use with filter() or conv(). Coefficients are scaled by
 %          fs/(2*pi) to approximate continuous-time derivative (from per-sample
 %          to per-second)
+%   delay - Delay introduced by the filter (scalar).
 %
 % Example:
 %   % Design filter and visualize the frequency response
 %   fs = 100;
-%   filterCoeff = lpdfilter(fs, 10);
+%   [b, delay] = lpdfilter(fs, 10);
 %
-%   [h, w] = freqz(filterCoeff, 1, 2^16);
+%   [h, w] = freqz(b, 1, 2^16);
 %   figure;
 %   plot(w*fs/(2*pi), abs(h)/max(abs(h)));
 %   title('Normalized Frequency Response');
 %   xlabel('Frequency (Hz)');
 %   ylabel('Magnitude');
 %   grid on;
+%
+%   % Apply filter to a signal and compensate delay
+%   signalFiltered = filter(b, 1, signal);
+%   signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
 % Argument validation
 narginchk(2, 6);
-nargoutchk(0, 1);
+nargoutchk(0, 2);
 
 % Input validation
 parser = inputParser;
@@ -93,4 +98,6 @@ order = order + mod(order, 2);
 filterSpecs = fdesign.differentiator('n,fp,fst', order, wPass, wStop);
 filterObj = design(filterSpecs, 'firls');
 b = filterObj.Numerator * fs/(2*pi);
+delay = order / 2;
+
 end

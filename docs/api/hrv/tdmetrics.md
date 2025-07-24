@@ -11,6 +11,10 @@ Output = tdmetrics(dtk) computes time domain indices from interval series (dtk).
 
 Compute classical time domain indices for heart rate variability analysis
 
+## Source Code
+
+[View source code](../../../src/hrv/tdmetrics.m)
+
 ## Input Arguments
 
 *To be documented*

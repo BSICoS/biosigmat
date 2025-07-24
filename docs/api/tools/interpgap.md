@@ -12,6 +12,10 @@ interpolatedCubic = interpgap(signal, 2, 'cubic');
 
 Interpolate small NaN gaps in a signal
 
+## Source Code
+
+[View source code](../../../src/tools/interpgap.m)
+
 ## Input Arguments
 
 *To be documented*

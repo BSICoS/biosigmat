@@ -13,6 +13,10 @@ OUT = findsequences(A)
 
 Find sequences of repeated (adjacent/consecutive) numeric values
 
+## Source Code
+
+[View source code](../../../src/tools/findsequences.m)
+
 ## Input Arguments
 
 *To be documented*

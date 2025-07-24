@@ -13,6 +13,10 @@ pantompkins(..., 'Name', Value) specifies optional parameters using
 
 algorithm for R-wave detection in ECG signals
 
+## Source Code
+
+[View source code](../../../src/ecg/pantompkins.m)
+
 ## Input Arguments
 
 *To be documented*

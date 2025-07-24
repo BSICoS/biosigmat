@@ -11,6 +11,10 @@ trimmed = trimnans(signal);
 
 Trim NaN values from the beginning and end of a signal
 
+## Source Code
+
+[View source code](../../../src/tools/trimnans.m)
+
 ## Input Arguments
 
 *To be documented*

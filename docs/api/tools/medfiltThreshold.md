@@ -11,6 +11,10 @@ threshold = medfiltThreshold(x, 5, 1.5, 1.5);
 
 Compute median-filtered adaptive threshold
 
+## Source Code
+
+[View source code](../../../src/tools/medfiltThreshold.m)
+
 ## Input Arguments
 
 *To be documented*

@@ -212,6 +212,10 @@ content = [content sprintf('```\n\n')];
 content = [content sprintf('## Description\n\n')];
 content = [content sprintf('%s\n\n', docInfo.description)];
 
+% Add source code link
+content = [content sprintf('## Source Code\n\n')];
+content = [content sprintf('[View source code](../../../src/%s/%s.m)\n\n', module, functionName)];
+
 % Add placeholders for manual editing
 content = [content sprintf('## Input Arguments\n\n')];
 content = [content sprintf('*To be documented*\n\n')];

@@ -10,6 +10,10 @@ function varargout = nanpwelch(x, window, noverlap, nfft, fs, varargin)
 
 Compute Welch periodogram when signal has NaN segments
 
+## Source Code
+
+[View source code](../../../src/tools/nanpwelch.m)
+
 ## Input Arguments
 
 *To be documented*

@@ -13,6 +13,10 @@ slider(figHandler, timeVector) - Adds a slider to specified figure with specifie
 
 Creates and adds a scroll slider to a figure with time-based plots
 
+## Source Code
+
+[View source code](../../../src/tools/slider.m)
+
 ## Input Arguments
 
 *To be documented*

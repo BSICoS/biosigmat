@@ -10,6 +10,10 @@ function y = nanfiltfilt(b, a, x, maxgap)
 
 Implements filtfilt function with support for NaN values
 
+## Source Code
+
+[View source code](../../../src/tools/nanfiltfilt.m)
+
 ## Input Arguments
 
 *To be documented*

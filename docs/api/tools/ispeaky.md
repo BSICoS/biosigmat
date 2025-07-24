@@ -11,6 +11,10 @@ isPeaky = ispeaky(pkl, akl, 45, 85);
 
 Determines if spectra are considered peaky based on peakedness thresholds.
 
+## Source Code
+
+[View source code](../../../src/tools/ispeaky.m)
+
 ## Input Arguments
 
 *To be documented*

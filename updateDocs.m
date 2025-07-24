@@ -38,6 +38,16 @@ try
         updateModuleDocs(srcDir, docsDir, module);
     end
 
+    % Update examples documentation
+    examplesDir = fullfile(toolboxRoot, 'examples');
+    fprintf('📋 Processing examples...\n');
+    updateExamplesDocs(examplesDir, docsDir);
+
+    % Update workflows documentation
+    workflowsDir = fullfile(examplesDir, 'workflows');
+    fprintf('⚙️ Processing workflows...\n');
+    updateWorkflowsDocs(workflowsDir, docsDir);
+
     % Update main API index
     updateApiIndex(docsDir, modules);
 
@@ -354,6 +364,483 @@ for i = 1:length(mdFiles)
     catch ME
         fprintf('⚠️  Warning: Could not update timestamps in %s: %s\n', ...
             mdFiles(i).name, ME.message);
+    end
+end
+
+end
+
+function updateExamplesDocs(examplesDir, docsDir)
+% Update documentation for examples
+
+if ~exist(examplesDir, 'dir')
+    fprintf('⚠️  Examples directory not found: %s\n', examplesDir);
+    return;
+end
+
+% Create examples docs directory
+examplesDocsDir = fullfile(docsDir, 'examples');
+if ~exist(examplesDocsDir, 'dir')
+    mkdir(examplesDocsDir);
+end
+
+% Get module directories in examples
+modulesList = dir(examplesDir);
+modulesList = modulesList([modulesList.isdir] & ~startsWith({modulesList.name}, '.'));
+
+examplesByModule = struct();
+
+for i = 1:length(modulesList)
+    module = modulesList(i).name;
+    
+    % Skip workflows directory (handled separately)
+    if strcmp(module, 'workflows')
+        continue;
+    end
+    
+    moduleExamplesDir = fullfile(examplesDir, module);
+    
+    % Get all .m files in module examples
+    mFiles = dir(fullfile(moduleExamplesDir, '*.m'));
+    
+    examplesList = {};
+    
+    for j = 1:length(mFiles)
+        [~, exampleName, ~] = fileparts(mFiles(j).name);
+        
+        fprintf('  📄 Processing example %s...\n', exampleName);
+        
+        % Extract example documentation
+        examplePath = fullfile(mFiles(j).folder, mFiles(j).name);
+        docInfo = extractExampleDoc(examplePath, exampleName);
+        
+        % Generate markdown documentation
+        generateExampleDoc(examplesDocsDir, exampleName, docInfo, module);
+        
+        examplesList{end+1} = exampleName; %#ok<*AGROW>
+    end
+    
+    examplesByModule.(module) = examplesList;
+end
+
+% Update examples README
+updateExamplesReadme(examplesDocsDir, examplesByModule);
+
+end
+
+function updateWorkflowsDocs(workflowsDir, docsDir)
+% Update documentation for workflows
+
+if ~exist(workflowsDir, 'dir')
+    fprintf('⚠️  Workflows directory not found: %s\n', workflowsDir);
+    return;
+end
+
+% Create workflows docs directory
+workflowsDocsDir = fullfile(docsDir, 'examples');
+if ~exist(workflowsDocsDir, 'dir')
+    mkdir(workflowsDocsDir);
+end
+
+% Get all .m files in workflows
+mFiles = dir(fullfile(workflowsDir, '*.m'));
+
+workflowsList = {};
+
+for i = 1:length(mFiles)
+    [~, workflowName, ~] = fileparts(mFiles(i).name);
+    
+    fprintf('  📄 Processing workflow %s...\n', workflowName);
+    
+    % Extract workflow documentation
+    workflowPath = fullfile(mFiles(i).folder, mFiles(i).name);
+    docInfo = extractWorkflowDoc(workflowPath, workflowName);
+    
+    % Generate markdown documentation
+    generateWorkflowDoc(workflowsDocsDir, workflowName, docInfo);
+    
+    workflowsList{end+1} = workflowName;
+end
+
+% Update workflows section in examples README
+updateWorkflowsReadme(workflowsDocsDir, workflowsList);
+
+end
+
+function docInfo = extractExampleDoc(filePath, exampleName)
+% Extract documentation from example file header comments
+
+% Initialize structure
+docInfo = struct();
+docInfo.name = exampleName;
+docInfo.title = '';
+docInfo.description = '';
+docInfo.steps = {};
+docInfo.requirements = {};
+
+try
+    % Read file content with UTF-8 encoding
+    fileContent = fileread(filePath, 'Encoding', 'UTF-8');
+    lines = splitlines(fileContent);
+    
+    % Extract header comments
+    inHeader = false;
+    headerLines = {};
+    
+    for i = 1:min(50, length(lines)) % Check first 50 lines
+        line = strtrim(lines{i});
+        
+        if startsWith(line, '%') && ~inHeader
+            inHeader = true;
+            % First comment line is usually the title
+            if isempty(docInfo.title) && length(line) > 1
+                title = strrep(line, '%', '');
+                title = strtrim(title);
+                docInfo.title = title;
+            end
+            headerLines{end+1} = line;
+        elseif inHeader && startsWith(line, '%')
+            headerLines{end+1} = line;
+            
+            % Look for description
+            cleanLine = strtrim(strrep(line, '%', ''));
+            if ~isempty(cleanLine) && isempty(docInfo.description) && ...
+                    ~contains(upper(cleanLine), upper(exampleName)) && ...
+                    ~startsWith(cleanLine, 'This example')
+                docInfo.description = cleanLine;
+            elseif startsWith(cleanLine, 'This example')
+                docInfo.description = cleanLine;
+            end
+        elseif inHeader && ~startsWith(line, '%')
+            break; % End of header comments
+        end
+    end
+    
+    % Extract steps from comments (look for numbered lists or workflow descriptions)
+    currentStep = '';
+    for i = 1:length(headerLines)
+        line = headerLines{i};
+        cleanLine = strtrim(strrep(line, '%', ''));
+        
+        % Look for numbered steps or workflow descriptions
+        if ~isempty(regexp(cleanLine, '^\d+\.', 'once')) || ...
+           contains(cleanLine, ':') && length(cleanLine) > 10
+            if ~isempty(currentStep)
+                docInfo.steps{end+1} = currentStep;
+            end
+            currentStep = cleanLine;
+        elseif ~isempty(currentStep) && ~isempty(cleanLine)
+            currentStep = [currentStep ' ' cleanLine];
+        end
+    end
+    if ~isempty(currentStep)
+        docInfo.steps{end+1} = currentStep;
+    end
+    
+catch ME
+    fprintf('⚠️  Warning: Could not extract docs from example %s: %s\n', exampleName, ME.message);
+end
+
+end
+
+function docInfo = extractWorkflowDoc(filePath, workflowName)
+% Extract documentation from workflow file header comments
+
+% Initialize structure
+docInfo = struct();
+docInfo.name = workflowName;
+docInfo.title = '';
+docInfo.description = '';
+docInfo.workflow = {};
+docInfo.requirements = {};
+
+try
+    % Read file content with UTF-8 encoding
+    fileContent = fileread(filePath, 'Encoding', 'UTF-8');
+    lines = splitlines(fileContent);
+    
+    % Extract header comments
+    inHeader = false;
+    headerLines = {};
+    
+    for i = 1:min(100, length(lines)) % Check first 100 lines for workflows
+        line = strtrim(lines{i});
+        
+        if startsWith(line, '%') && ~inHeader
+            inHeader = true;
+            % First comment line is usually the title
+            if isempty(docInfo.title) && length(line) > 1
+                title = strrep(line, '%', '');
+                title = strtrim(title);
+                docInfo.title = title;
+            end
+            headerLines{end+1} = line;
+        elseif inHeader && startsWith(line, '%')
+            headerLines{end+1} = line;
+        elseif inHeader && ~startsWith(line, '%')
+            break; % End of header comments
+        end
+    end
+    
+    % Parse workflow description and steps
+    inWorkflowSection = false;
+    for i = 1:length(headerLines)
+        line = headerLines{i};
+        cleanLine = strtrim(strrep(line, '%', ''));
+        
+        if contains(cleanLine, 'workflow:') || contains(cleanLine, 'The workflow')
+            inWorkflowSection = true;
+            if ~isempty(cleanLine) && isempty(docInfo.description)
+                docInfo.description = cleanLine;
+            end
+        elseif inWorkflowSection && ~isempty(regexp(cleanLine, '^\d+\.', 'once'))
+            docInfo.workflow{end+1} = cleanLine;
+        elseif ~inWorkflowSection && ~isempty(cleanLine) && ...
+                isempty(docInfo.description) && ~contains(upper(cleanLine), upper(workflowName))
+            docInfo.description = cleanLine;
+        end
+    end
+    
+catch ME
+    fprintf('⚠️  Warning: Could not extract docs from workflow %s: %s\n', workflowName, ME.message);
+end
+
+end
+
+function generateExampleDoc(examplesDocsDir, exampleName, docInfo, module)
+% Generate markdown documentation for an example
+
+outputPath = fullfile(examplesDocsDir, [exampleName '.md']);
+
+% Create markdown content
+if ~isempty(docInfo.title)
+    content = sprintf('# %s\n\n', docInfo.title);
+else
+    content = sprintf('# %s Example\n\n', exampleName);
+end
+
+% Add description
+if ~isempty(docInfo.description)
+    content = [content sprintf('## Description\n\n')];
+    content = [content sprintf('%s\n\n', docInfo.description)];
+end
+
+% Add module reference
+content = [content sprintf('**Module**: %s\n\n', upper(module))];
+
+% Add steps if available
+if ~isempty(docInfo.steps)
+    content = [content sprintf('## Steps\n\n')];
+    for i = 1:length(docInfo.steps)
+        content = [content sprintf('%d. %s\n', i, docInfo.steps{i})];
+    end
+    content = [content sprintf('\n')];
+end
+
+% Add usage section
+content = [content sprintf('## Usage\n\n')];
+content = [content sprintf('Run the example from the MATLAB command window:\n\n')];
+content = [content sprintf('```matlab\n')];
+content = [content sprintf('run(''examples/%s/%s.m'');\n', module, exampleName)];
+content = [content sprintf('```\n\n')];
+
+% Add file location
+content = [content sprintf('## File Location\n\n')];
+content = [content sprintf('`examples/%s/%s.m`\n\n', module, exampleName)];
+
+% Add see also section
+content = [content sprintf('## See Also\n\n')];
+content = [content sprintf('- [%s Module](../api/%s/README.md)\n', upper(module), module)];
+content = [content sprintf('- [Examples Overview](README.md)\n\n')];
+
+content = [content sprintf('---\n\n')];
+content = [content sprintf('**Type**: Example | **Module**: %s | **Last Updated**: %s\n', ...
+    upper(module), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+
+% Write file
+try
+    fid = fopen(outputPath, 'w', 'n', 'UTF-8');
+    if fid == -1
+        error('Could not open file for writing: %s', outputPath);
+    end
+    fprintf(fid, '%s', content);
+    fclose(fid);
+catch ME
+    if fid ~= -1
+        fclose(fid);
+    end
+    rethrow(ME);
+end
+
+end
+
+function generateWorkflowDoc(workflowsDocsDir, workflowName, docInfo)
+% Generate markdown documentation for a workflow
+
+outputPath = fullfile(workflowsDocsDir, [workflowName '.md']);
+
+% Create markdown content
+if ~isempty(docInfo.title)
+    content = sprintf('# %s\n\n', docInfo.title);
+else
+    content = sprintf('# %s Workflow\n\n', workflowName);
+end
+
+% Add description
+if ~isempty(docInfo.description)
+    content = [content sprintf('## Description\n\n')];
+    content = [content sprintf('%s\n\n', docInfo.description)];
+end
+
+% Add workflow type
+content = [content sprintf('**Type**: Workflow\n\n')];
+
+% Add workflow steps if available
+if ~isempty(docInfo.workflow)
+    content = [content sprintf('## Workflow Steps\n\n')];
+    for i = 1:length(docInfo.workflow)
+        content = [content sprintf('%s\n', docInfo.workflow{i})];
+    end
+    content = [content sprintf('\n')];
+end
+
+% Add usage section
+content = [content sprintf('## Usage\n\n')];
+content = [content sprintf('Run the workflow from the MATLAB command window:\n\n')];
+content = [content sprintf('```matlab\n')];
+content = [content sprintf('run(''examples/workflows/%s.m'');\n', workflowName)];
+content = [content sprintf('```\n\n')];
+
+% Add file location
+content = [content sprintf('## File Location\n\n')];
+content = [content sprintf('`examples/workflows/%s.m`\n\n', workflowName)];
+
+% Add see also section
+content = [content sprintf('## See Also\n\n')];
+content = [content sprintf('- [Workflows Overview](README.md#workflows)\n')];
+content = [content sprintf('- [Examples Overview](README.md)\n\n')];
+
+content = [content sprintf('---\n\n')];
+content = [content sprintf('**Type**: Workflow | **Last Updated**: %s\n', ...
+    string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+
+% Write file
+try
+    fid = fopen(outputPath, 'w', 'n', 'UTF-8');
+    if fid == -1
+        error('Could not open file for writing: %s', outputPath);
+    end
+    fprintf(fid, '%s', content);
+    fclose(fid);
+catch ME
+    if fid ~= -1
+        fclose(fid);
+    end
+    rethrow(ME);
+end
+
+end
+
+function updateExamplesReadme(examplesDocsDir, examplesByModule)
+% Update the README file for examples
+
+readmePath = fullfile(examplesDocsDir, 'README.md');
+
+% Create examples README content
+content = sprintf('# Examples and Workflows\n\n');
+content = [content sprintf('This section contains practical examples and workflows demonstrating the usage of biosigmat functions.\n\n')];
+
+% Add examples by module
+content = [content sprintf('## Examples by Module\n\n')];
+
+moduleNames = fieldnames(examplesByModule);
+totalExamples = 0;
+
+for i = 1:length(moduleNames)
+    module = moduleNames{i};
+    examples = examplesByModule.(module);
+    
+    if ~isempty(examples)
+        content = [content sprintf('### %s Module\n\n', upper(module))];
+        
+        for j = 1:length(examples)
+            exampleName = examples{j};
+            content = [content sprintf('- [`%s`](%s.md)\n', exampleName, exampleName)];
+            totalExamples = totalExamples + 1;
+        end
+        content = [content sprintf('\n')];
+    end
+end
+
+% Add workflows section placeholder
+content = [content sprintf('## Workflows\n\n')];
+content = [content sprintf('*Workflows will be listed here after processing*\n\n')];
+
+% Add getting started section
+content = [content sprintf('## Getting Started\n\n')];
+content = [content sprintf('1. Make sure biosigmat is properly installed\n')];
+content = [content sprintf('2. Add the required paths to MATLAB\n')];
+content = [content sprintf('3. Load any necessary fixture data\n')];
+content = [content sprintf('4. Run the example scripts\n\n')];
+
+content = [content sprintf('## See Also\n\n')];
+content = [content sprintf('- [API Reference](../api/README.md)\n')];
+content = [content sprintf('- [Getting Started](../getting-started.md)\n\n')];
+
+content = [content sprintf('---\n\n')];
+content = [content sprintf('**Examples**: %d | **Last Updated**: %s\n', ...
+    totalExamples, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+
+% Write file
+fid = fopen(readmePath, 'w', 'n', 'UTF-8');
+if fid == -1
+    error('Could not open file for writing: %s', readmePath);
+end
+fprintf(fid, '%s', content);
+fclose(fid);
+
+end
+
+function updateWorkflowsReadme(examplesDocsDir, workflowsList)
+% Update the workflows section in examples README
+
+readmePath = fullfile(examplesDocsDir, 'README.md');
+
+if exist(readmePath, 'file')
+    % Read existing content
+    content = fileread(readmePath, 'Encoding', 'UTF-8');
+    
+    % Replace workflows placeholder
+    workflowsSection = sprintf('## Workflows\n\n');
+    
+    if ~isempty(workflowsList)
+        for i = 1:length(workflowsList)
+            workflowName = workflowsList{i};
+            workflowsSection = [workflowsSection sprintf('- [`%s`](%s.md)\n', workflowName, workflowName)];
+        end
+    else
+        workflowsSection = [workflowsSection sprintf('*No workflows found*\n')];
+    end
+    workflowsSection = [workflowsSection sprintf('\n')];
+    
+    % Replace the placeholder
+    content = regexprep(content, '## Workflows\n\n\*Workflows will be listed here after processing\*\n\n', workflowsSection);
+    
+    % Update workflow count in footer
+    pattern = '\*\*Examples\*\*: (\d+)';
+    if ~isempty(regexp(content, pattern, 'once'))
+        matches = regexp(content, pattern, 'tokens');
+        if ~isempty(matches)
+            exampleCount = str2double(matches{1}{1});
+            replacement = sprintf('**Examples**: %d | **Workflows**: %d', exampleCount, length(workflowsList));
+            content = regexprep(content, '\*\*Examples\*\*: \d+', replacement);
+        end
+    end
+    
+    % Write back
+    fid = fopen(readmePath, 'w', 'n', 'UTF-8');
+    if fid ~= -1
+        fprintf(fid, '%s', content);
+        fclose(fid);
     end
 end
 

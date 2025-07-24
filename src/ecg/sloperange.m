@@ -1,16 +1,16 @@
 function varargout = sloperange(decg, tk, fs)
-% SLOPERANGE Compute ECG-derived respiration (EDR) using slope range method
+% SLOPERANGE Compute ECG-derived respiration (EDR) using slope range method.
 %
-%   sloperange(DECG, TK, FS) Computes ECG-derived respiration signal using
+%   SLOPERANGE(DECG, TK, FS) Computes ECG-derived respiration signal using
 %              the slope range method. This method analyzes the derivative
 %              of the ECG signal around R-wave peaks to extract respiratory
 %              information.
 %
-%   EDR = sloperange(DECG, TK, FS)
+%   EDR = SLOPERANGE(DECG, TK, FS)
 %       EDR is a column vector containing the respiratory signal derived
 %       from the ECG slope range analysis.
 %
-%   [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = sloperange(...)
+%   [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = SLOPERANGE(...)
 %       Returns additional outputs:
 %       - UPSLOPES: Matrix containing upslope values around R-waves
 %       - DOWNSLOPES: Matrix containing downslope values around R-waves
@@ -21,6 +21,11 @@ function varargout = sloperange(decg, tk, fs)
 %   DECG - Single-lead ECG signal derivative (numeric vector)
 %   TK   - Beat occurrence time series for R-waves in seconds (numeric vector)
 %   FS   - Sampling frequency in Hz (numeric scalar)
+%
+% EXAMPLE:
+%   % Derive respiratory signal from ECG using slope range method
+%   edr = sloperange(decg, tk, fs);
+%   plot(tk, edr); title('ECG-derived Respiration');
 
 % Argument validation
 narginchk(3, 3);

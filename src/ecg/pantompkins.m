@@ -1,20 +1,20 @@
 function varargout = pantompkins(ecg, fs, varargin)
-% PANTOMPKINS algorithm for R-wave detection in ECG signals
+% PANTOMPKINS algorithm for R-wave detection in ECG signals.
 %
-%   pantompkins(ECG, FS) Detects R-waves in ECG signal using the Pan-Tompkins
+%   PANTOMPKINS(ECG, FS) Detects R-waves in ECG signal using the Pan-Tompkins
 %              algorithm. This method applies bandpass filtering, derivative
 %              calculation, squaring, and integration to enhance R-wave peaks.
 %
-%   TK = pantompkins(ECG, FS)
+%   TK = PANTOMPKINS(ECG, FS)
 %       TK is a column vector containing the R-wave occurrence times in seconds.
 %
-%   [TK, ECGFILTERED, DECG, DECGENVELOPE] = pantompkins(...)
+%   [TK, ECGFILTERED, DECG, DECGENVELOPE] = PANTOMPKINS(...)
 %       Returns additional outputs:
 %       - ECGFILTERED: Bandpass filtered ECG signal
 %       - DECG: Squared derivative of the filtered ECG signal
 %       - DECGENVELOPE: Integrated envelope signal used for peak detection
 %
-%   pantompkins(..., 'Name', Value) specifies optional parameters using
+%   PANTOMPKINS(..., 'Name', Value) specifies optional parameters using
 %       name-value pair arguments:
 %       - 'BandpassFreq': Two-element vector [low, high] for bandpass filter
 %                        cutoff frequencies in Hz. Default: [5, 12]
@@ -28,6 +28,10 @@ function varargout = pantompkins(ecg, fs, varargin)
 % Inputs:
 %   ECG - Single-lead ECG signal (numeric vector)
 %   FS  - Sampling frequency in Hz (numeric scalar)
+%
+% EXAMPLE:
+%   rpeaks = pantompkins(ecg, fs);
+%   plot(t, ecg); hold on; plot(rpeaks, ecg(round(rpeaks*fs)), 'ro');
 
 % Argument validation
 narginchk(2, inf);

@@ -1,6 +1,6 @@
-function [ nD , nA , nB , nM , threshold ] = pulseDelineation ( signal , fs , Setup )
+function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
 % Plethysmography signals delineation using adaptive thresholding.
-% [ nD , nA , nB , nM , threshold ] = pulseDelineation ( signal , fs , Setup )
+% [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
 %
 % This function performs pulse delineation in PPG signals, detecting pulse
 % features (nA, nB, nM) based on pulse detection points (nD). If nD points

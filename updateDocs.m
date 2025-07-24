@@ -113,8 +113,8 @@ docInfo.examples = {};
 docInfo.references = {};
 
 try
-    % Read file content
-    fileContent = fileread(filePath);
+    % Read file content with UTF-8 encoding
+    fileContent = fileread(filePath, 'Encoding', 'UTF-8');
     lines = splitlines(fileContent);
 
     % Find function declaration
@@ -225,7 +225,7 @@ content = [content sprintf('**Module**: %s | **Status**: 🔄 Auto-generated | *
 
 % Write file
 try
-    fid = fopen(outputPath, 'w');
+    fid = fopen(outputPath, 'w', 'n', 'UTF-8');
     if fid == -1
         error('Could not open file for writing: %s', outputPath);
     end
@@ -263,7 +263,7 @@ content = [content sprintf('**Functions**: %d | **Last Updated**: %s\n', ...
     length(functionList), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 
 % Write file
-fid = fopen(readmePath, 'w');
+fid = fopen(readmePath, 'w', 'n', 'UTF-8');
 if fid == -1
     error('Could not open file for writing: %s', readmePath);
 end
@@ -300,7 +300,7 @@ try
     % Update the count in the main API README if it exists
     apiReadmePath = fullfile(docsDir, 'api', 'README.md');
     if exist(apiReadmePath, 'file')
-        content = fileread(apiReadmePath);
+        content = fileread(apiReadmePath, 'Encoding', 'UTF-8');
 
         % Update the total function count at the bottom
         pattern = 'Total functions: \d+';
@@ -308,7 +308,7 @@ try
         content = regexprep(content, pattern, replacement);
 
         % Write back
-        fid = fopen(apiReadmePath, 'w');
+        fid = fopen(apiReadmePath, 'w', 'n', 'UTF-8');
         if fid ~= -1
             fprintf(fid, '%s', content);
             fclose(fid);
@@ -336,15 +336,18 @@ for i = 1:length(mdFiles)
     filePath = fullfile(mdFiles(i).folder, mdFiles(i).name);
 
     try
-        % Read file
-        content = fileread(filePath);
+        % Read file with UTF-8 encoding
+        content = fileread(filePath, 'Encoding', 'UTF-8');
 
         % Replace timestamp placeholder
         if contains(content, '{{DATE}}')
             content = strrep(content, '{{DATE}}', currentDate);
 
-            % Write back
-            fid = fopen(filePath, 'w');
+            % Write back with UTF-8 encoding
+            fid = fopen(filePath, 'w', 'n', 'UTF-8');
+            if fid == -1
+                error('Could not open file for writing: %s', filePath);
+            end
             fprintf(fid, '%s', content);
             fclose(fid);
         end

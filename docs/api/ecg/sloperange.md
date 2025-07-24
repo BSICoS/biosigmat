@@ -18,11 +18,13 @@ Compute ECG-derived respiration (EDR) using slope range method
 
 ## Input Arguments
 
-*To be documented*
+- **DECG**: Single-lead ECG signal derivative (numeric vector)
+- **TK**: Beat occurrence time series for R-waves in seconds (numeric vector)
+- **FS**: Sampling frequency in Hz (numeric scalar)
 
 ## Output Arguments
 
-*To be documented*
+- **varargout**: Variable number of output arguments
 
 ## Examples
 

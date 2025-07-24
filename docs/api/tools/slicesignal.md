@@ -16,17 +16,30 @@ Divide signal into overlapping segments
 
 ## Input Arguments
 
-*To be documented*
+- **x**: Input signal (numeric column vector)
+- **window**: Length of each slice in samples (scalar)
+- **overlap**: Number of overlapping samples between slices (scalar)
+- **fs**: Sample rate in Hz (scalar)
 
 ## Output Arguments
 
-*To be documented*
+- **sliced**: Matrix where each column is a signal segment
+- **tcenter**: Time axis in seconds corresponding to center of each slice (column vector)
 
 ## Examples
 
 ```matlab
-% Basic usage example
-result = slicesignal(input);
+Slice a signal and compute time-frequency map with pwelch
+fs = 1000;
+tSignal = (0:1/fs:2)';
+x = chirp(tSignal, 10, 2, 50);
+[sliced, tcenter] = slicesignal(x, 256, 128, fs);
+[pxx, f] = pwelch(sliced, [], [], [], fs);
+imagesc(tcenter, f, 10*log10(pxx));
+axis xy;
+xlabel('Time (s)');
+ylabel('Frequency (Hz)');
+title('Time-Frequency Map');
 ```
 
 ## See Also

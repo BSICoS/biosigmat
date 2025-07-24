@@ -17,17 +17,19 @@ Trim NaN values from the beginning and end of a signal
 
 ## Input Arguments
 
-*To be documented*
+- **signal**: Input signal (numeric vector)
 
 ## Output Arguments
 
-*To be documented*
+- **trimmedSignal**: Signal with NaN values trimmed from beginning and end
 
 ## Examples
 
 ```matlab
-% Basic usage example
-result = trimnans(input);
+Trim NaN values from a signal
+signal = [NaN; NaN; 1; 2; NaN; 3; NaN; NaN];
+trimmed = trimnans(signal);
+Result: trimmed = [1; 2; NaN; 3]
 ```
 
 ## See Also

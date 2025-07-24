@@ -16,11 +16,15 @@ Removes baseline wander from biosignals using cubic spline interpolation
 
 ## Input Arguments
 
-*To be documented*
+- **ecg**: Input signal to be filtered (column vector)
+- **tk**: Vector containing indices of R-peaks (or other fiducial events)
+- **offset**: Number of samples to subtract from each tk to obtain fiducial points
+- **window**: (Optional) Number of samples to use for estimation at each fiducial point (default: 5)
 
 ## Output Arguments
 
-*To be documented*
+- **ecgDetrended**: ecg with baseline wander removed
+- **baseline**: The estimated baseline that was removed from the ecg
 
 ## Examples
 

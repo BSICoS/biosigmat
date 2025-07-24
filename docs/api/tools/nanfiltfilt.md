@@ -16,11 +16,14 @@ Implements filtfilt function with support for NaN values
 
 ## Input Arguments
 
-*To be documented*
+- **b**: Numerator coefficients of the filter
+- **a**: Denominator coefficients of the filter
+- **x**: Input matrix with signals in columns that can include NaN values
+- **maxgap**: Optional. Maximum gap size to interpolate. If not specified,
 
 ## Output Arguments
 
-*To be documented*
+- **y**: Matrix of filtered signals in columns with NaN values preserved where appropriate
 
 ## Examples
 

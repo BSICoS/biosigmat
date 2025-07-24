@@ -16,11 +16,18 @@ Compute Welch periodogram when signal has NaN segments
 
 ## Input Arguments
 
-*To be documented*
+- **x**: Input signal (numeric vector or matrix)
+- **window**: Window for segmentation (scalar window length or window vector)
+- **noverlap**: Number of overlapped samples (scalar)
+- **nfft**: Number of DFT points (scalar)
+- **fs**: Sample rate in Hz (scalar)
+- **maxgap**: Maximum gap length in samples to interpolate (scalar, optional)
 
 ## Output Arguments
 
-*To be documented*
+- **pxx**: Power spectral density estimate
+- **f**: Frequency axis in Hz (column vector, optional)
+- **pxxSegments**: Power spectral density for each segment (optional)
 
 ## Examples
 

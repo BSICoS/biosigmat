@@ -19,11 +19,13 @@ Refine QRS detections by snapping to local maxima
 
 ## Input Arguments
 
-*To be documented*
+- **ECG**: Single-lead ECG signal (numeric vector)
+- **DETECTIONS**: Initial detection positions in samples (numeric vector)
+- **REFINEDDETECTIONS**: Refined detection positions in samples (column vector)
 
 ## Output Arguments
 
-*To be documented*
+- **refinedDetections**: refinedDetections output
 
 ## Examples
 

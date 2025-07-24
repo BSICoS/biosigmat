@@ -17,11 +17,18 @@ Compute classical time domain indices for heart rate variability analysis
 
 ## Input Arguments
 
-*To be documented*
+- **dtk**: Interval series (in seconds) as a numeric vector
+- **TK**: tk - Required input parameter
+- **removeOutliers**: Optional parameter
 
 ## Output Arguments
 
-*To be documented*
+- **Output**: Structure containing the following time domain metrics:
+- **mhr**: Mean heart rate (beats/min)
+- **sdnn**: Standard deviation of normal-to-normal (NN) intervals (ms)
+- **sdsd**: Standard deviation of differences between adjacent NN intervals (ms)
+- **rmssd**: Root mean square of successive differences of NN intervals (ms)
+- **pNN50**: Proportion of interval differences > 50ms with respect to all NN intervals ()
 
 ## Examples
 

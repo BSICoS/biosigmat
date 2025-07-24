@@ -19,17 +19,22 @@ Creates and adds a scroll slider to a figure with time-based plots
 
 ## Input Arguments
 
-*To be documented*
+- **arg1**: Optional parameter
+- **arg2**: Optional parameter
 
 ## Output Arguments
 
-*To be documented*
+- **hSlider**: Handle to the created slider object
 
 ## Examples
 
 ```matlab
-% Basic usage example
-result = slider(input);
+t = 0:0.01:100;
+y = sin(t);
+figure;
+plot(t, y);
+hSlider = slider;   Automatically uses current figure and time vector
+See also: zoom, pan, uicontrol
 ```
 
 ## See Also

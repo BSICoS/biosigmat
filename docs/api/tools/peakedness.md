@@ -18,17 +18,31 @@ Computes the peakedness of power spectral density estimates.
 
 ## Input Arguments
 
-*To be documented*
+- **PXX**: pxx - Required input parameter
+- **F**: f - Required input parameter
+- **referenceFreq**: Optional parameter
+- **window**: Optional parameter
 
 ## Output Arguments
 
-*To be documented*
+- **pkl**: Power concentration peakedness values ( of power in narrow vs wide window) (1 per spectrum in pxx)
+- **akl**: Absolute maximum peakedness values ( of max in window vs global max) (1 per spectrum in pxx)
 
 ## Examples
 
 ```matlab
-% Basic usage example
-result = peakedness(input);
+Generate a test spectrum with a peak at 0.3 Hz
+f = 0:0.01:1;
+pxx = exp(-((f-0.3)/0.05).^2) + 0.1*randn(size(f));
+[pkl, akl] = peakedness(pxx, f, 0.3);
+fprintf('Power concentration peakedness: .1f\n', pkl);
+fprintf('Absolute maximum peakedness: .1f\n', akl);
+Use adaptive method (no reference frequency)
+[pkl, akl] = peakedness(pxx, f);
+Use custom window with fixed method
+[pkl, akl] = peakedness(pxx, f, 0.3, 0.2);
+Use custom window with adaptive method
+[pkl, akl] = peakedness(pxx, f, [], 0.2);
 ```
 
 ## See Also

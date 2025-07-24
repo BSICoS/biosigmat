@@ -129,9 +129,11 @@ try
 
     % Find function declaration
     funcLine = '';
+    funcLineIdx = 0;
     for i = 1:length(lines)
         if contains(lines{i}, 'function') && contains(lines{i}, functionName)
             funcLine = strtrim(lines{i});
+            funcLineIdx = i;
             break;
         end
     end
@@ -145,6 +147,10 @@ try
     % Extract header comments (improved version)
     inHeader = false;
     headerLines = {};
+    inInputsSection = false;
+    inOutputsSection = false;
+    currentInputs = {};
+    currentOutputs = {};
 
     for i = 1:min(100, length(lines)) % Check first 100 lines
         line = strtrim(lines{i});
@@ -172,22 +178,241 @@ try
         end
     end
 
-    % Try to extract additional syntax variations from comments
+    % Parse header comments for inputs and outputs
+    inExampleSection = false;
+    currentExample = '';
+
     for i = 1:length(headerLines)
         line = headerLines{i};
         cleanLine = strtrim(strrep(line, '%', ''));
 
-        % Look for additional syntax examples
+        % Check for Inputs section
+        if strcmpi(strtrim(cleanLine), 'Inputs:') || strcmpi(strtrim(cleanLine), 'Input Arguments:')
+            inInputsSection = true;
+            inOutputsSection = false;
+            inExampleSection = false;
+            continue;
+        end
+
+        % Check for Outputs section
+        if strcmpi(strtrim(cleanLine), 'Outputs:') || strcmpi(strtrim(cleanLine), 'Output Arguments:')
+            inOutputsSection = true;
+            inInputsSection = false;
+            inExampleSection = false;
+            continue;
+        end
+
+        % Check for Example section
+        if strcmpi(strtrim(cleanLine), 'Example:') || strcmpi(strtrim(cleanLine), 'Examples:')
+            inExampleSection = true;
+            inInputsSection = false;
+            inOutputsSection = false;
+            if ~isempty(currentExample)
+                docInfo.examples{end+1} = currentExample;
+            end
+            currentExample = '';
+            continue;
+        end
+
+        % Reset sections when we hit other section headers
+        if ~isempty(cleanLine) && endsWith(cleanLine, ':') && ...
+                ~contains(lower(cleanLine), 'input') && ~contains(lower(cleanLine), 'output') && ...
+                ~contains(lower(cleanLine), 'example')
+            inInputsSection = false;
+            inOutputsSection = false;
+            inExampleSection = false;
+        end
+
+        % Parse input arguments
+        if inInputsSection && ~isempty(cleanLine)
+            % Look for parameter descriptions (e.g., "ECG - Single-lead ECG signal")
+            if contains(cleanLine, ' - ') && ~startsWith(cleanLine, '-')
+                parts = split(cleanLine, ' - ', 2);
+                if length(parts) >= 2
+                    paramName = strtrim(parts{1});
+                    paramDesc = strtrim(parts{2});
+                    currentInputs{end+1} = struct('name', paramName, 'description', paramDesc);
+                end
+            elseif startsWith(cleanLine, '''') && contains(cleanLine, ':')
+                % Handle name-value pairs (e.g., "'BandpassFreq': Two-element vector...")
+                parts = split(cleanLine, ':', 2);
+                if length(parts) >= 2
+                    paramName = strtrim(strrep(parts{1}, '''', ''));
+                    paramDesc = strtrim(parts{2});
+                    currentInputs{end+1} = struct('name', paramName, 'description', paramDesc);
+                end
+            end
+        end
+
+        % Parse output arguments
+        if inOutputsSection && ~isempty(cleanLine)
+            % Look for output descriptions (e.g., "TK - Column vector containing...")
+            if contains(cleanLine, ' - ') && ~startsWith(cleanLine, '-')
+                parts = split(cleanLine, ' - ', 2);
+                if length(parts) >= 2
+                    paramName = strtrim(parts{1});
+                    paramDesc = strtrim(parts{2});
+                    currentOutputs{end+1} = struct('name', paramName, 'description', paramDesc);
+                end
+            end
+        end
+
+        % Parse examples
+        if inExampleSection && ~isempty(cleanLine)
+            if isempty(currentExample)
+                currentExample = cleanLine;
+            else
+                currentExample = [currentExample newline cleanLine];
+            end
+        end
+
+        % Try to extract additional syntax variations from comments
         if contains(cleanLine, functionName) && contains(cleanLine, '(') && ...
-                ~isempty(regexp(cleanLine, '^\w+\s*=?\s*\w+\(', 'once'))
+                ~isempty(regexp(cleanLine, '^\w*\s*=?\s*\w+\(', 'once'))
             if ~any(strcmp(docInfo.syntax, cleanLine))
                 docInfo.syntax{end+1} = cleanLine;
             end
         end
     end
 
+    % Add the last example if it exists
+    if ~isempty(currentExample)
+        docInfo.examples{end+1} = currentExample;
+    end
+
+    % Store parsed inputs and outputs
+    docInfo.inputs = currentInputs;
+    docInfo.outputs = currentOutputs;
+
+    % If few inputs found in comments, supplement with inputParser calls
+    if length(docInfo.inputs) <= 2 && funcLineIdx > 0
+        parserInputs = extractInputsFromParser(lines, funcLineIdx);
+        % Merge with existing inputs, avoiding duplicates
+        for i = 1:length(parserInputs)
+            parserInput = parserInputs{i};
+            % Check if this input already exists
+            exists = false;
+            for j = 1:length(docInfo.inputs)
+                if strcmpi(docInfo.inputs{j}.name, parserInput.name)
+                    exists = true;
+                    break;
+                end
+            end
+            if ~exists
+                docInfo.inputs{end+1} = parserInput;
+            end
+        end
+    end
+
+    % If no outputs found in comments, try to extract from function signature
+    if isempty(docInfo.outputs) && ~isempty(funcLine)
+        docInfo.outputs = extractOutputsFromSignature(funcLine);
+    end
+
 catch ME
     fprintf('⚠️  Warning: Could not extract docs from %s: %s\n', functionName, ME.message);
+end
+
+end
+
+function inputs = extractInputsFromParser(lines, startIdx)
+% Extract input arguments from inputParser calls
+
+inputs = {};
+
+try
+    % Look for inputParser usage in the lines following the function declaration
+    for i = startIdx:min(startIdx+50, length(lines))
+        line = strtrim(lines{i});
+
+        % Look for addRequired calls
+        if contains(line, 'addRequired') && contains(line, 'parser')
+            % Extract parameter name from addRequired call
+            tokens = regexp(line, 'addRequired\s*\(\s*parser\s*,\s*[''"]([^''"]+)[''"]', 'tokens');
+            if ~isempty(tokens)
+                paramName = tokens{1}{1};
+                inputs{end+1} = struct('name', upper(paramName), 'description', sprintf('%s - Required input parameter', paramName));
+            end
+        end
+
+        % Look for addParameter calls
+        if contains(line, 'addParameter') && contains(line, 'parser')
+            % Extract parameter name from addParameter call
+            tokens = regexp(line, 'addParameter\s*\(\s*parser\s*,\s*[''"]([^''"]+)[''"]', 'tokens');
+            if ~isempty(tokens)
+                paramName = tokens{1}{1};
+                % Try to extract default value
+                defaultTokens = regexp(line, ',\s*([^,@]+)\s*,\s*@', 'tokens');
+                defaultValue = '';
+                if ~isempty(defaultTokens)
+                    defVal = strtrim(defaultTokens{1}{1});
+                    % Clean up common default values
+                    if isnumeric(str2double(defVal)) && ~isnan(str2double(defVal))
+                        defaultValue = sprintf(' (default: %s)', defVal);
+                    elseif startsWith(defVal, '[') || startsWith(defVal, '''') || strcmpi(defVal, 'true') || strcmpi(defVal, 'false')
+                        defaultValue = sprintf(' (default: %s)', defVal);
+                    end
+                end
+                inputs{end+1} = struct('name', paramName, 'description', sprintf('Optional parameter%s', defaultValue));
+            end
+        end
+
+        % Look for addOptional calls
+        if contains(line, 'addOptional') && contains(line, 'parser')
+            % Extract parameter name from addOptional call
+            tokens = regexp(line, 'addOptional\s*\(\s*parser\s*,\s*[''"]([^''"]+)[''"]', 'tokens');
+            if ~isempty(tokens)
+                paramName = tokens{1}{1};
+                inputs{end+1} = struct('name', paramName, 'description', sprintf('Optional parameter'));
+            end
+        end
+    end
+catch ME
+    % If parsing fails, return empty
+    inputs = {};
+end
+
+end
+
+function outputs = extractOutputsFromSignature(funcLine)
+% Extract output arguments from function signature
+
+outputs = {};
+
+try
+    % Parse function signature to extract output variables
+    if contains(funcLine, '=')
+        % Extract the left side of the assignment
+        parts = split(funcLine, '=');
+        leftSide = strtrim(parts{1});
+
+        % Remove 'function' keyword if present
+        leftSide = regexprep(leftSide, '^function\s+', '');
+
+        if startsWith(leftSide, '[') && endsWith(leftSide, ']')
+            % Multiple outputs: [out1, out2, out3]
+            outputStr = leftSide(2:end-1); % Remove brackets
+            outputNames = split(outputStr, ',');
+            for i = 1:length(outputNames)
+                outputName = strtrim(outputNames{i});
+                if ~isempty(outputName)
+                    outputs{end+1} = struct('name', outputName, 'description', sprintf('%s output', outputName));
+                end
+            end
+        elseif contains(leftSide, 'varargout')
+            % Variable number of outputs
+            outputs{end+1} = struct('name', 'varargout', 'description', 'Variable number of output arguments');
+        else
+            % Single output
+            outputName = strtrim(leftSide);
+            if ~isempty(outputName)
+                outputs{end+1} = struct('name', outputName, 'description', sprintf('%s output', outputName));
+            end
+        end
+    end
+catch ME
+    % If parsing fails, return empty
+    outputs = {};
 end
 
 end
@@ -218,16 +443,43 @@ content = [content sprintf('[View source code](../../../src/%s/%s.m)\n\n', modul
 
 % Add placeholders for manual editing
 content = [content sprintf('## Input Arguments\n\n')];
-content = [content sprintf('*To be documented*\n\n')];
+if ~isempty(docInfo.inputs)
+    for i = 1:length(docInfo.inputs)
+        input = docInfo.inputs{i};
+        content = [content sprintf('- **%s**: %s\n', input.name, input.description)];
+    end
+    content = [content sprintf('\n')];
+else
+    content = [content sprintf('*To be documented*\n\n')];
+end
 
 content = [content sprintf('## Output Arguments\n\n')];
-content = [content sprintf('*To be documented*\n\n')];
+if ~isempty(docInfo.outputs)
+    for i = 1:length(docInfo.outputs)
+        output = docInfo.outputs{i};
+        content = [content sprintf('- **%s**: %s\n', output.name, output.description)];
+    end
+    content = [content sprintf('\n')];
+else
+    content = [content sprintf('*To be documented*\n\n')];
+end
 
 content = [content sprintf('## Examples\n\n')];
-content = [content sprintf('```matlab\n')];
-content = [content sprintf('%% Basic usage example\n')];
-content = [content sprintf('result = %s(input);\n', functionName)];
-content = [content sprintf('```\n\n')];
+if ~isempty(docInfo.examples)
+    content = [content sprintf('```matlab\n')];
+    for i = 1:length(docInfo.examples)
+        content = [content sprintf('%s\n', docInfo.examples{i})];
+        if i < length(docInfo.examples)
+            content = [content sprintf('\n')];
+        end
+    end
+    content = [content sprintf('```\n\n')];
+else
+    content = [content sprintf('```matlab\n')];
+    content = [content sprintf('%% Basic usage example\n')];
+    content = [content sprintf('result = %s(input);\n', functionName)];
+    content = [content sprintf('```\n\n')];
+end
 
 content = [content sprintf('## See Also\n\n')];
 content = [content sprintf('- [%s Module](README.md)\n', upper(module))];

@@ -19,11 +19,17 @@ algorithm for R-wave detection in ECG signals
 
 ## Input Arguments
 
-*To be documented*
+- **ECG**: Single-lead ECG signal (numeric vector)
+- **FS**: Sampling frequency in Hz (numeric scalar)
+- **BandpassFreq**: Optional parameter
+- **WindowSize**: Optional parameter (default: 0.15)
+- **MinPeakDistance**: Optional parameter (default: 0.5)
+- **UseSnapToPeak**: Optional parameter (default: true)
+- **SnapTopeakWindowSize**: Optional parameter (default: 20)
 
 ## Output Arguments
 
-*To be documented*
+- **varargout**: Variable number of output arguments
 
 ## Examples
 

@@ -17,17 +17,24 @@ Compute median-filtered adaptive threshold
 
 ## Input Arguments
 
-*To be documented*
+- **x**: Series (in seconds) as a numeric vector
+- **window**: Window size for median filtering
+- **factor**: Multiplicative factor for threshold computation
+- **maxthreshold**: Maximum threshold value
 
 ## Output Arguments
 
-*To be documented*
+- **threshold**: Adaptive threshold values
 
 ## Examples
 
 ```matlab
-% Basic usage example
-result = medfiltThreshold(input);
+Create sample series
+x = [0.8, 0.82, 0.81, 1.2, 0.79, 0.83, 0.80]';
+Compute adaptive threshold
+threshold = medfiltThreshold(x, 5, 1.5, 1.5);
+Identify outliers
+outliers = x > threshold;
 ```
 
 ## See Also

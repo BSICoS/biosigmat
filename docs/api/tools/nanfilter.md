@@ -17,17 +17,25 @@ Implements filter function with support for NaN values
 
 ## Input Arguments
 
-*To be documented*
+- **b**: Numerator coefficients of the filter
+- **a**: Denominator coefficients of the filter
+- **x**: Input matrix with signals in columns that can include NaN values
+- **maxgap**: Optional. Maximum gap size to interpolate. If not specified,
 
 ## Output Arguments
 
-*To be documented*
+- **y**: Matrix of filtered signals in columns with NaN values preserved where appropriate
 
 ## Examples
 
 ```matlab
-% Basic usage example
-result = nanfilter(input);
+Filter a noisy signal with NaN gaps
+fs = 1000;
+t = 0:1/fs:1;
+signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
+signal(100:150) = NaN;   Add NaN gap
+[b, a] = butter(4, 0.1);
+filtered = nanfilter(b, a, signal, 10);
 ```
 
 ## See Also

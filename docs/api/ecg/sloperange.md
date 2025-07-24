@@ -12,6 +12,10 @@ EDR = sloperange(DECG, TK, FS)
 
 Compute ECG-derived respiration (EDR) using slope range method
 
+## Source Code
+
+[View source code](../../../src/ecg/sloperange.m)
+
 ## Input Arguments
 
 *To be documented*

@@ -10,6 +10,10 @@ function [nD, threshold] = pulsedetection(signal, fs, varargin)
 
 Pulse detection in plethysmography signals using adaptive thresholding.
 
+## Source Code
+
+[View source code](../../../src/ppg/pulsedetection.m)
+
 ## Input Arguments
 
 *To be documented*

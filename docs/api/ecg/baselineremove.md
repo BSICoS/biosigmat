@@ -10,6 +10,10 @@ function [ecgDetrended, baseline] = baselineremove(ecg, tk, offset, varargin)
 
 Removes baseline wander from biosignals using cubic spline interpolation
 
+## Source Code
+
+[View source code](../../../src/ecg/baselineremove.m)
+
 ## Input Arguments
 
 *To be documented*

@@ -10,6 +10,10 @@ function [sliced, tcenter] = slicesignal(x, window, overlap, fs)
 
 Divide signal into overlapping segments
 
+## Source Code
+
+[View source code](../../../src/tools/slicesignal.m)
+
 ## Input Arguments
 
 *To be documented*

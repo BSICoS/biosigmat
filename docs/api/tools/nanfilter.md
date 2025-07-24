@@ -11,6 +11,10 @@ filtered = nanfilter(b, a, signal, 10);
 
 Implements filter function with support for NaN values
 
+## Source Code
+
+[View source code](../../../src/tools/nanfilter.m)
+
 ## Input Arguments
 
 *To be documented*

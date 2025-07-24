@@ -12,6 +12,10 @@ fprintf('Absolute maximum peakedness: .1f\n', akl);
 
 Computes the peakedness of power spectral density estimates.
 
+## Source Code
+
+[View source code](../../../src/tools/peakedness.m)
+
 ## Input Arguments
 
 *To be documented*

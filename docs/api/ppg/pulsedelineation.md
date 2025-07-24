@@ -9,6 +9,10 @@
 
 Plethysmography signals delineation using adaptive thresholding.
 
+## Source Code
+
+[View source code](../../../src/ppg/pulsedelineation.m)
+
 ## Input Arguments
 
 *To be documented*

@@ -13,6 +13,10 @@ snaptopeak(..., 'Name', Value) specifies optional parameters using
 
 Refine QRS detections by snapping to local maxima
 
+## Source Code
+
+[View source code](../../../src/tools/snaptopeak.m)
+
 ## Input Arguments
 
 *To be documented*

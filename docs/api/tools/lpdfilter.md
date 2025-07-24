@@ -12,6 +12,10 @@ filterCoeff = lpdfilter(fs, stopFreq, Name, Value) allows specifying
 
 Low-pass derivative filter.
 
+## Source Code
+
+[View source code](../../../src/tools/lpdfilter.m)
+
 ## Input Arguments
 
 *To be documented*

@@ -391,34 +391,34 @@ examplesByModule = struct();
 
 for i = 1:length(modulesList)
     module = modulesList(i).name;
-    
+
     % Skip workflows directory (handled separately)
     if strcmp(module, 'workflows')
         continue;
     end
-    
+
     moduleExamplesDir = fullfile(examplesDir, module);
-    
+
     % Get all .m files in module examples
     mFiles = dir(fullfile(moduleExamplesDir, '*.m'));
-    
+
     examplesList = {};
-    
+
     for j = 1:length(mFiles)
         [~, exampleName, ~] = fileparts(mFiles(j).name);
-        
+
         fprintf('  📄 Processing example %s...\n', exampleName);
-        
+
         % Extract example documentation
         examplePath = fullfile(mFiles(j).folder, mFiles(j).name);
         docInfo = extractExampleDoc(examplePath, exampleName);
-        
+
         % Generate markdown documentation
         generateExampleDoc(examplesDocsDir, exampleName, docInfo, module);
-        
+
         examplesList{end+1} = exampleName; %#ok<*AGROW>
     end
-    
+
     examplesByModule.(module) = examplesList;
 end
 
@@ -448,16 +448,16 @@ workflowsList = {};
 
 for i = 1:length(mFiles)
     [~, workflowName, ~] = fileparts(mFiles(i).name);
-    
+
     fprintf('  📄 Processing workflow %s...\n', workflowName);
-    
+
     % Extract workflow documentation
     workflowPath = fullfile(mFiles(i).folder, mFiles(i).name);
     docInfo = extractWorkflowDoc(workflowPath, workflowName);
-    
+
     % Generate markdown documentation
     generateWorkflowDoc(workflowsDocsDir, workflowName, docInfo);
-    
+
     workflowsList{end+1} = workflowName;
 end
 
@@ -481,14 +481,14 @@ try
     % Read file content with UTF-8 encoding
     fileContent = fileread(filePath, 'Encoding', 'UTF-8');
     lines = splitlines(fileContent);
-    
+
     % Extract header comments
     inHeader = false;
     headerLines = {};
-    
+
     for i = 1:min(50, length(lines)) % Check first 50 lines
         line = strtrim(lines{i});
-        
+
         if startsWith(line, '%') && ~inHeader
             inHeader = true;
             % First comment line is usually the title
@@ -500,7 +500,7 @@ try
             headerLines{end+1} = line;
         elseif inHeader && startsWith(line, '%')
             headerLines{end+1} = line;
-            
+
             % Look for description
             cleanLine = strtrim(strrep(line, '%', ''));
             if ~isempty(cleanLine) && isempty(docInfo.description) && ...
@@ -514,16 +514,16 @@ try
             break; % End of header comments
         end
     end
-    
+
     % Extract steps from comments (look for numbered lists or workflow descriptions)
     currentStep = '';
     for i = 1:length(headerLines)
         line = headerLines{i};
         cleanLine = strtrim(strrep(line, '%', ''));
-        
+
         % Look for numbered steps or workflow descriptions
         if ~isempty(regexp(cleanLine, '^\d+\.', 'once')) || ...
-           contains(cleanLine, ':') && length(cleanLine) > 10
+                contains(cleanLine, ':') && length(cleanLine) > 10
             if ~isempty(currentStep)
                 docInfo.steps{end+1} = currentStep;
             end
@@ -535,7 +535,7 @@ try
     if ~isempty(currentStep)
         docInfo.steps{end+1} = currentStep;
     end
-    
+
 catch ME
     fprintf('⚠️  Warning: Could not extract docs from example %s: %s\n', exampleName, ME.message);
 end
@@ -557,14 +557,14 @@ try
     % Read file content with UTF-8 encoding
     fileContent = fileread(filePath, 'Encoding', 'UTF-8');
     lines = splitlines(fileContent);
-    
+
     % Extract header comments
     inHeader = false;
     headerLines = {};
-    
+
     for i = 1:min(100, length(lines)) % Check first 100 lines for workflows
         line = strtrim(lines{i});
-        
+
         if startsWith(line, '%') && ~inHeader
             inHeader = true;
             % First comment line is usually the title
@@ -580,13 +580,13 @@ try
             break; % End of header comments
         end
     end
-    
+
     % Parse workflow description and steps
     inWorkflowSection = false;
     for i = 1:length(headerLines)
         line = headerLines{i};
         cleanLine = strtrim(strrep(line, '%', ''));
-        
+
         if contains(cleanLine, 'workflow:') || contains(cleanLine, 'The workflow')
             inWorkflowSection = true;
             if ~isempty(cleanLine) && isempty(docInfo.description)
@@ -599,7 +599,7 @@ try
             docInfo.description = cleanLine;
         end
     end
-    
+
 catch ME
     fprintf('⚠️  Warning: Could not extract docs from workflow %s: %s\n', workflowName, ME.message);
 end
@@ -758,10 +758,10 @@ totalExamples = 0;
 for i = 1:length(moduleNames)
     module = moduleNames{i};
     examples = examplesByModule.(module);
-    
+
     if ~isempty(examples)
         content = [content sprintf('### %s Module\n\n', upper(module))];
-        
+
         for j = 1:length(examples)
             exampleName = examples{j};
             content = [content sprintf('- [`%s`](%s.md)\n', exampleName, exampleName)];
@@ -808,10 +808,10 @@ readmePath = fullfile(examplesDocsDir, 'README.md');
 if exist(readmePath, 'file')
     % Read existing content
     content = fileread(readmePath, 'Encoding', 'UTF-8');
-    
+
     % Replace workflows placeholder
     workflowsSection = sprintf('## Workflows\n\n');
-    
+
     if ~isempty(workflowsList)
         for i = 1:length(workflowsList)
             workflowName = workflowsList{i};
@@ -821,10 +821,10 @@ if exist(readmePath, 'file')
         workflowsSection = [workflowsSection sprintf('*No workflows found*\n')];
     end
     workflowsSection = [workflowsSection sprintf('\n')];
-    
+
     % Replace the placeholder
     content = regexprep(content, '## Workflows\n\n\*Workflows will be listed here after processing\*\n\n', workflowsSection);
-    
+
     % Update workflow count in footer
     pattern = '\*\*Examples\*\*: (\d+)';
     if ~isempty(regexp(content, pattern, 'once'))
@@ -835,7 +835,7 @@ if exist(readmePath, 'file')
             content = regexprep(content, '\*\*Examples\*\*: \d+', replacement);
         end
     end
-    
+
     % Write back
     fid = fopen(readmePath, 'w', 'n', 'UTF-8');
     if fid ~= -1

@@ -448,7 +448,7 @@ if ~isempty(docInfo.inputs)
         input = docInfo.inputs{i};
         content = [content sprintf('- **%s**: %s\n', input.name, input.description)];
     end
-    content = [content sprintf('\n')];
+    content = [content newline];
 else
     content = [content sprintf('*To be documented*\n\n')];
 end
@@ -459,7 +459,7 @@ if ~isempty(docInfo.outputs)
         output = docInfo.outputs{i};
         content = [content sprintf('- **%s**: %s\n', output.name, output.description)];
     end
-    content = [content sprintf('\n')];
+    content = [content newline];
 else
     content = [content sprintf('*To be documented*\n\n')];
 end
@@ -470,7 +470,7 @@ if ~isempty(docInfo.examples)
     for i = 1:length(docInfo.examples)
         content = [content sprintf('%s\n', docInfo.examples{i})];
         if i < length(docInfo.examples)
-            content = [content sprintf('\n')];
+            content = [content newline];
         end
     end
     content = [content sprintf('```\n\n')];
@@ -889,7 +889,7 @@ if ~isempty(docInfo.steps)
     for i = 1:length(docInfo.steps)
         content = [content sprintf('%d. %s\n', i, docInfo.steps{i})];
     end
-    content = [content sprintf('\n')];
+    content = [content newline];
 end
 
 % Add usage section
@@ -956,7 +956,7 @@ if ~isempty(docInfo.workflow)
     for i = 1:length(docInfo.workflow)
         content = [content sprintf('%s\n', docInfo.workflow{i})];
     end
-    content = [content sprintf('\n')];
+    content = [content newline];
 end
 
 % Add usage section
@@ -1023,7 +1023,7 @@ for i = 1:length(moduleNames)
             content = [content sprintf('- [`%s`](%s.md)\n', exampleName, exampleName)];
             totalExamples = totalExamples + 1;
         end
-        content = [content sprintf('\n')];
+        content = [content newline];
     end
 end
 
@@ -1076,7 +1076,7 @@ if exist(readmePath, 'file')
     else
         workflowsSection = [workflowsSection sprintf('*No workflows found*\n')];
     end
-    workflowsSection = [workflowsSection sprintf('\n')];
+    workflowsSection = [workflowsSection newline];
 
     % Replace the placeholder
     content = regexprep(content, '## Workflows\n\n\*Workflows will be listed here after processing\*\n\n', workflowsSection);

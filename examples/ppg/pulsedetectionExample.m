@@ -32,12 +32,13 @@ fprintf('  Cut-off frequency: %.1f Hz\n', fcLPD);
 fprintf('  Filter order: %d samples\n', orderLPD);
 
 % Generate LPD filter and apply it
-b = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
+[b, delay] = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
 signalFiltered = filter(b, 1, signal);
+signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
 % Run pulse detection on filtered signal
 fprintf('\nRunning pulse detection...\n');
-[nD, threshold] = pulsedetection(signalFiltered, fs, Setup);
+[nD, threshold] = pulsedetection(signalFiltered, fs);
 
 %% Plot results
 fprintf('\nPlotting results...\n');

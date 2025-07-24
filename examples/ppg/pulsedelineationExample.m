@@ -32,8 +32,9 @@ fprintf('  Cut-off frequency: %.1f Hz\n', fcLPD);
 fprintf('  Filter order: %d samples\n', orderLPD);
 
 % Generate LPD filter and apply it
-b = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
+[b, delay] = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
 signalFiltered = filter(b, 1, signal);
+signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
 %% Set up pulse delineation parameters
 Setup = struct();

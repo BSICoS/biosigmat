@@ -1,36 +1,31 @@
-function [nD, threshold] = pulsedetection(signal, fs, Setup)
+function [nD, threshold] = pulsedetection(signal, fs, varargin)
 % Pulse detection in plethysmography signals using adaptive thresholding.
-% [nD, threshold] = pulsedetection(signal, fs, Setup)
+% [nD, threshold] = pulsedetection(signal, fs, ...)
 %
 % This function detects pulse peaks (nD) in PPG signals using an adaptive
 % threshold algorithm. The detected nD points are robust and suitable for
 % heart rate variability (HRV) analysis.
 %
 % Inputs:
-%   signal - Filtered LPD-filtered PPG signal (column vector)
+%   signal - LPD-filtered PPG signal (column vector)
 %   fs - Sampling rate (Hz)
-%   Setup - Structure with optional parameters:
-%     .alfa - Multiplies previous amplitude of detected maximum in
-%             filtered signal for updating the threshold [Default: 0.2]
-%     .refractPeriod - Refractory period for threshold (s) [Default: 150e-3]
-%     .tauRR - Fraction of estimated RR where threshold reaches its
-%              minimum value (alfa*amplitude of previous SSF peak)
-%              [Default: 1]. If tauRR increases, steeper slope
-%     .thrIncidences - Threshold for incidences [Default: 1.5]
+%
+% Optional Parameters (Name-Value pairs):
+%   'alfa' - Multiplies previous amplitude of detected maximum in
+%            filtered signal for updating the threshold [Default: 0.2]
+%   'refractPeriod' - Refractory period for threshold (s) [Default: 150e-3]
+%   'tauRR' - Fraction of estimated RR where threshold reaches its
+%             minimum value (alfa*amplitude of previous SSF peak)
+%             [Default: 1]. If tauRR increases, steeper slope
+%   'thrIncidences' - Threshold for incidences [Default: 1.5]
 %
 % Outputs:
 %   nD - Location of peaks detected in filtered signal (seconds)
 %   threshold - Computed time varying threshold
-%
-% Example:
-%   % Detect pulses in a PPG signal
-%   [nD, threshold] = pulsedetection(signal, fs);
-%   plot(t, signal, 'b', t, threshold, 'r');
-%   hold on; plot(nD, signal(round(nD*fs)+1), 'ro');
-%   legend('Signal', 'Threshold', 'Detected Peaks');
+
 
 % Check number of input and output arguments
-narginchk(2, 3);
+narginchk(2, 10);
 nargoutchk(0, 2);
 
 % Parse and validate inputs
@@ -38,68 +33,25 @@ parser = inputParser;
 parser.FunctionName = 'pulsedetection';
 addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addOptional(parser, 'Setup', struct(), @(x) isstruct(x));
-parse(parser, signal, fs, Setup);
+addParameter(parser, 'alfa', 0.2, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'refractPeriod', 150e-03, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'tauRR', 1, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'thrIncidences', 1.5, @(x) isnumeric(x) && isscalar(x) && x > 0);
+
+parse(parser, signal, fs, varargin{:});
+
 signal = parser.Results.signal;
 fs = parser.Results.fs;
-Setup = parser.Results.Setup;
+alfa = parser.Results.alfa;
+refractPeriod = parser.Results.refractPeriod;
+tauRR = parser.Results.tauRR;
+thrIncidences = parser.Results.thrIncidences;
 
-% Default Values
-if ~isfield(Setup, 'alfa'), Setup.alfa = 0.2; end
-if ~isfield(Setup, 'tauRR'), Setup.tauRR = 1; end
-if ~isfield(Setup, 'refractPeriod'), Setup.refractPeriod = 150e-03; end
-if ~isfield(Setup, 'thrIncidences'), Setup.thrIncidences = 1.5; end
-
-% Ensure signal is a column vector
 signal = signal(:);
-
-% Compute threshold and nD detection
-delineatorSetup.alfa = Setup.alfa;
-delineatorSetup.tauRR = Setup.tauRR;
-delineatorSetup.refractPeriod = Setup.refractPeriod;
-delineatorSetup.thrIncidences = Setup.thrIncidences;
-
-[nD, threshold] = adaptiveThreshold(signal, fs, delineatorSetup);
-
-end
-
-
-function [nD, threshold] = adaptiveThreshold(signal, fs, Setup)
-% adaptiveThreshold
-%   find local maxima using adaptive thresholding
-%
-%   Syntax: [nD, threshold] = adaptiveThreshold(signal, fs, Setup)
-%   In:   signal = input signal
-%         fs = sampling rate [Hz]
-%         alfa = multiplies previous amplitude of detected maximum in
-%                filtered signal for updating the threshold (Default 0.2)
-%         refractPeriod = refractory period for threshold [seconds] (Default: 150e-03)
-%         tauRR = fraction of estimated RR where threshold reaches its minimum value
-%                 (alfa*amplitude of previous SSF peak) (Default: 1)
-%         thrIncidences = threshold for incidences
-%
-%   Out:  nD = location of peaks detected in filtered signal [seconds]
-%         threshold = computed time varying threshold
-
-% Check Inputs
-if nargin <= 2, Setup = struct(); end
-if nargin < 2, error('Not enough input arguments.'); end
-
-% Default Values
-if ~isfield(Setup, 'alfa'), Setup.alfa = 0.2; end
-if ~isfield(Setup, 'tauRR'), Setup.tauRR = 1; end
-if ~isfield(Setup, 'refractPeriod'), Setup.refractPeriod = 150e-03; end
-if ~isfield(Setup, 'thrIncidences'), Setup.thrIncidences = 1.5; end
-
-% Extract variables from Setup
-alfa = Setup.alfa;
-tauRR = Setup.tauRR;
-refractPeriod = Setup.refractPeriod;
-thrIncidences = Setup.thrIncidences;
 
 refractPeriod = round(refractPeriod*fs);
 
-%% Segmentize the signals (this is JUST for FASTER COMPUTATION)
+% Segmentize the signals (this is JUST for FASTER COMPUTATION)
 
 signal_length = length(signal);
 

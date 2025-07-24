@@ -94,8 +94,8 @@ All functions sorted alphabetically:
 
 ## Development Status Legend
 - ✅ **Stable**: Well-tested, production ready
-- 🧪 **Beta**: Feature complete, undergoing testing
-- 🚧 **Alpha**: Under development, API may change
+- β **Beta**: Feature complete, undergoing testing
+- α **Alpha**: Under development, API may change
 - ❌ **Deprecated**: No longer recommended for use
 
 ---

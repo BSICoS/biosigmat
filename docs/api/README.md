@@ -9,9 +9,9 @@ Functions for electrocardiography signal analysis and QRS detection.
 
 | Function | Description | Status |
 | -------- | ----------- | ------ |
-| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | ✅ Stable |
+| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | β Beta |
 | [`pantompkins`](ecg/pantompkins.md) | Algorithm for R-wave detection in ECG signals. | ✅ Stable |
-| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | ✅ Stable |
+| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | β Beta |
 
 **[ECG Module Documentation](ecg/README.md)**
 
@@ -29,8 +29,8 @@ Functions for photoplethysmography signal analysis and pulse detection.
 
 | Function | Description | Status |
 | -------- | ----------- | ------ |
-| [`pulsedelineation`](ppg/pulsedelineation.md) | Plethysmography signals delineation using adaptive thresholding. | ✅ Stable |
-| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using adaptive thresholding. | ✅ Stable |
+| [`pulsedelineation`](ppg/pulsedelineation.md) | Plethysmography signals delineation using adaptive thresholding. | α Alpha |
+| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using adaptive thresholding. | α Alpha |
 
 **[PPG Module Documentation](ppg/README.md)**
 

@@ -5,8 +5,8 @@ function [b, delay] = lpdfilter(fs, stopFreq, varargin)
 %   linear-phase FIR filter with a specified sampling frequency FS
 %   and stop-band frequency STOPFREQ. using least-squares estimation.
 %
-%   B = LPDFILTER(..., Name, Value) allows specifying
-%   additional options using name-value pairs.
+%   B = LPDFILTER(..., Name, Value) allows specifying additional options
+%   using name-value pairs.
 %     'PassFreq' - Pass-band frequency in Hz (positive scalar).
 %                  Must be less than STOPFREQ. If not specified, defaults
 %                  to (STOPFREQ - 0.2) Hz.
@@ -33,8 +33,7 @@ function [b, delay] = lpdfilter(fs, stopFreq, varargin)
 %     signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 %
 %   See also: FIRPMORD, FIRLS, FDESIGN.DIFFERENTIATOR
-%
-%   Status: Beta
+
 
 % Argument validation
 narginchk(2, 6);

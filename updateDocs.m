@@ -119,13 +119,11 @@ function docInfo = extractFunctionDoc(filePath, functionName)
 % Initialize structure
 docInfo = struct();
 docInfo.name = functionName;
-docInfo.description = '';
-docInfo.status = '✅ Stable'; % Default status
+docInfo.briefDescription = '';
+docInfo.longDescription = '';
 docInfo.syntax = {};
-docInfo.inputs = {};
-docInfo.outputs = {};
-docInfo.examples = {};
-docInfo.references = {};
+docInfo.examples = '';
+docInfo.seeAlso = {};
 
 try
     % Read file content with UTF-8 encoding
@@ -143,294 +141,111 @@ try
         end
     end
 
-    % Extract basic syntax from function declaration
+    % Extract function syntax from declaration
     if ~isempty(funcLine)
         % Clean up function declaration for display
         docInfo.syntax{1} = funcLine;
     end
 
-    % Extract header comments (improved version)
-    inHeader = false;
+    % Extract header comments following new format
     headerLines = {};
-    inInputsSection = false;
-    inOutputsSection = false;
-    currentInputs = {};
-    currentOutputs = {};
+    inHeader = false;
 
-    for i = 1:min(100, length(lines)) % Check first 100 lines
-        line = strtrim(lines{i});
+    for i = funcLineIdx+1:min(funcLineIdx+100, length(lines)) % Check lines after function declaration
+        line = lines{i};
 
-        if startsWith(line, '%') && ~inHeader
+        if startsWith(strtrim(line), '%')
             inHeader = true;
-            % First comment line is usually the short description
-            if isempty(docInfo.description) && length(line) > 1
-                desc = strrep(line, '%', '');
-                desc = strtrim(desc);
-                % Remove function name if it's at the start
-                if startsWith(upper(desc), upper(functionName))
-                    desc = strtrim(desc(length(functionName)+1:end));
-                    if startsWith(desc, '-')
-                        desc = strtrim(desc(2:end));
+            headerLines{end+1} = line;
+        elseif inHeader && ~startsWith(strtrim(line), '%')
+            break; % End of header comments
+        end
+    end
+
+    % Parse the new header format
+    if ~isempty(headerLines)
+        % First line should be function name and brief description
+        firstLine = strtrim(strrep(headerLines{1}, '%', ''));
+        if startsWith(upper(firstLine), upper(functionName))
+            % Extract brief description (everything after function name)
+            spaceIdx = strfind(firstLine, ' ');
+            if ~isempty(spaceIdx) && length(spaceIdx) >= 1
+                % Find the first space after the function name and take everything after it
+                docInfo.briefDescription = strtrim(firstLine(spaceIdx(1)+1:end));
+            end
+        end
+
+        % Parse sections
+        currentSection = '';
+        longDesc = {};
+        currentExample = {};
+        seeAlsoList = {};
+
+        i = 2; % Start from second line
+        while i <= length(headerLines)
+            line = headerLines{i};
+            cleanLine = strtrim(strrep(line, '%', ''));
+
+            % Check for section headers
+            if strcmpi(cleanLine, 'Example:') || strcmpi(cleanLine, 'Examples:')
+                currentSection = 'example';
+                i = i + 1;
+                continue;
+            elseif startsWith(cleanLine, 'See also', 'IgnoreCase', true)
+                currentSection = 'seealso';
+                % Extract see also items from the same line (no colon expected)
+                spaceIdx = strfind(lower(cleanLine), 'see also');
+                if ~isempty(spaceIdx) && length(cleanLine) > spaceIdx(1) + 8
+                    seeAlsoText = strtrim(cleanLine(spaceIdx(1) + 8:end));
+                    if ~isempty(seeAlsoText)
+                        seeAlsoList = [seeAlsoList, split(seeAlsoText, ',')];
                     end
                 end
-                docInfo.description = desc;
+                i = i + 1;
+                continue;
+            elseif isempty(cleanLine)
+                % Empty line - continue
+                i = i + 1;
+                continue;
             end
-            headerLines{end+1} = line;
-        elseif inHeader && ~startsWith(line, '%')
-            break; % End of header comments
-        elseif inHeader && startsWith(line, '%')
-            headerLines{end+1} = line;
-        end
-    end
 
-    % Extract status from header comments
-    for i = 1:length(headerLines)
-        line = headerLines{i};
-        cleanLine = strtrim(strrep(line, '%', ''));
-
-        % Look for status line
-        if startsWith(cleanLine, 'Status:', 'IgnoreCase', true)
-            statusText = strtrim(cleanLine(8:end)); % Remove "Status:"
-            docInfo.status = mapStatusToSymbol(statusText);
-            break;
-        end
-    end
-
-    % Parse header comments for inputs and outputs
-    inExampleSection = false;
-    currentExample = '';
-
-    for i = 1:length(headerLines)
-        line = headerLines{i};
-        cleanLine = strtrim(strrep(line, '%', ''));
-
-        % Check for Inputs section
-        if strcmpi(strtrim(cleanLine), 'Inputs:') || strcmpi(strtrim(cleanLine), 'Input Arguments:')
-            inInputsSection = true;
-            inOutputsSection = false;
-            inExampleSection = false;
-            continue;
-        end
-
-        % Check for Outputs section
-        if strcmpi(strtrim(cleanLine), 'Outputs:') || strcmpi(strtrim(cleanLine), 'Output Arguments:')
-            inOutputsSection = true;
-            inInputsSection = false;
-            inExampleSection = false;
-            continue;
-        end
-
-        % Check for Example section
-        if strcmpi(strtrim(cleanLine), 'Example:') || strcmpi(strtrim(cleanLine), 'Examples:')
-            inExampleSection = true;
-            inInputsSection = false;
-            inOutputsSection = false;
-            if ~isempty(currentExample)
-                docInfo.examples{end+1} = currentExample;
+            % Process content based on current section
+            switch currentSection
+                case 'example'
+                    if ~isempty(cleanLine)
+                        currentExample{end+1} = cleanLine;
+                    end
+                case 'seealso'
+                    if ~isempty(cleanLine)
+                        seeAlsoList = [seeAlsoList, split(cleanLine, ',')];
+                    end
+                otherwise
+                    % Long description section (before Example)
+                    if ~isempty(cleanLine)
+                        longDesc{end+1} = cleanLine;
+                    end
             end
-            currentExample = '';
-            continue;
+
+            i = i + 1;
         end
 
-        % Reset sections when we hit other section headers
-        if ~isempty(cleanLine) && endsWith(cleanLine, ':') && ...
-                ~contains(lower(cleanLine), 'input') && ~contains(lower(cleanLine), 'output') && ...
-                ~contains(lower(cleanLine), 'example')
-            inInputsSection = false;
-            inOutputsSection = false;
-            inExampleSection = false;
-        end
+        % Store extracted information
+        docInfo.longDescription = strjoin(longDesc, ' ');
+        docInfo.examples = strjoin(currentExample, newline);
 
-        % Parse input arguments
-        if inInputsSection && ~isempty(cleanLine)
-            % Look for parameter descriptions (e.g., "ECG - Single-lead ECG signal")
-            if contains(cleanLine, ' - ') && ~startsWith(cleanLine, '-')
-                parts = split(cleanLine, ' - ', 2);
-                if length(parts) >= 2
-                    paramName = strtrim(parts{1});
-                    paramDesc = strtrim(parts{2});
-                    currentInputs{end+1} = struct('name', paramName, 'description', paramDesc);
-                end
-            elseif startsWith(cleanLine, '''') && contains(cleanLine, ':')
-                % Handle name-value pairs (e.g., "'BandpassFreq': Two-element vector...")
-                parts = split(cleanLine, ':', 2);
-                if length(parts) >= 2
-                    paramName = strtrim(strrep(parts{1}, '''', ''));
-                    paramDesc = strtrim(parts{2});
-                    currentInputs{end+1} = struct('name', paramName, 'description', paramDesc);
-                end
+        % Clean up see also list
+        cleanSeeAlso = {};
+        for j = 1:length(seeAlsoList)
+            item = strtrim(seeAlsoList{j});
+            if ~isempty(item)
+                cleanSeeAlso{end+1} = item;
             end
         end
-
-        % Parse output arguments
-        if inOutputsSection && ~isempty(cleanLine)
-            % Look for output descriptions (e.g., "TK - Column vector containing...")
-            if contains(cleanLine, ' - ') && ~startsWith(cleanLine, '-')
-                parts = split(cleanLine, ' - ', 2);
-                if length(parts) >= 2
-                    paramName = strtrim(parts{1});
-                    paramDesc = strtrim(parts{2});
-                    currentOutputs{end+1} = struct('name', paramName, 'description', paramDesc);
-                end
-            end
-        end
-
-        % Parse examples
-        if inExampleSection && ~isempty(cleanLine)
-            if isempty(currentExample)
-                currentExample = cleanLine;
-            else
-                currentExample = [currentExample newline cleanLine];
-            end
-        end
-
-        % Try to extract additional syntax variations from comments
-        if contains(cleanLine, functionName) && contains(cleanLine, '(') && ...
-                ~isempty(regexp(cleanLine, '^\w*\s*=?\s*\w+\(', 'once'))
-            if ~any(strcmp(docInfo.syntax, cleanLine))
-                docInfo.syntax{end+1} = cleanLine;
-            end
-        end
-    end
-
-    % Add the last example if it exists
-    if ~isempty(currentExample)
-        docInfo.examples{end+1} = currentExample;
-    end
-
-    % Store parsed inputs and outputs
-    docInfo.inputs = currentInputs;
-    docInfo.outputs = currentOutputs;
-
-    % If few inputs found in comments, supplement with inputParser calls
-    if length(docInfo.inputs) <= 2 && funcLineIdx > 0
-        parserInputs = extractInputsFromParser(lines, funcLineIdx);
-        % Merge with existing inputs, avoiding duplicates
-        for i = 1:length(parserInputs)
-            parserInput = parserInputs{i};
-            % Check if this input already exists
-            exists = false;
-            for j = 1:length(docInfo.inputs)
-                if strcmpi(docInfo.inputs{j}.name, parserInput.name)
-                    exists = true;
-                    break;
-                end
-            end
-            if ~exists
-                docInfo.inputs{end+1} = parserInput;
-            end
-        end
-    end
-
-    % If no outputs found in comments, try to extract from function signature
-    if isempty(docInfo.outputs) && ~isempty(funcLine)
-        docInfo.outputs = extractOutputsFromSignature(funcLine);
+        docInfo.seeAlso = cleanSeeAlso;
     end
 
 catch ME
     fprintf('⚠️  Warning: Could not extract docs from %s: %s\n', functionName, ME.message);
-end
-
-end
-
-function inputs = extractInputsFromParser(lines, startIdx)
-% Extract input arguments from inputParser calls
-
-inputs = {};
-
-try
-    % Look for inputParser usage in the lines following the function declaration
-    for i = startIdx:min(startIdx+50, length(lines))
-        line = strtrim(lines{i});
-
-        % Look for addRequired calls
-        if contains(line, 'addRequired') && contains(line, 'parser')
-            % Extract parameter name from addRequired call
-            tokens = regexp(line, 'addRequired\s*\(\s*parser\s*,\s*[''"]([^''"]+)[''"]', 'tokens');
-            if ~isempty(tokens)
-                paramName = tokens{1}{1};
-                inputs{end+1} = struct('name', upper(paramName), 'description', sprintf('%s - Required input parameter', paramName));
-            end
-        end
-
-        % Look for addParameter calls
-        if contains(line, 'addParameter') && contains(line, 'parser')
-            % Extract parameter name from addParameter call
-            tokens = regexp(line, 'addParameter\s*\(\s*parser\s*,\s*[''"]([^''"]+)[''"]', 'tokens');
-            if ~isempty(tokens)
-                paramName = tokens{1}{1};
-                % Try to extract default value
-                defaultTokens = regexp(line, ',\s*([^,@]+)\s*,\s*@', 'tokens');
-                defaultValue = '';
-                if ~isempty(defaultTokens)
-                    defVal = strtrim(defaultTokens{1}{1});
-                    % Clean up common default values
-                    if isnumeric(str2double(defVal)) && ~isnan(str2double(defVal))
-                        defaultValue = sprintf(' (default: %s)', defVal);
-                    elseif startsWith(defVal, '[') || startsWith(defVal, '''') || strcmpi(defVal, 'true') || strcmpi(defVal, 'false')
-                        defaultValue = sprintf(' (default: %s)', defVal);
-                    end
-                end
-                inputs{end+1} = struct('name', paramName, 'description', sprintf('Optional parameter%s', defaultValue));
-            end
-        end
-
-        % Look for addOptional calls
-        if contains(line, 'addOptional') && contains(line, 'parser')
-            % Extract parameter name from addOptional call
-            tokens = regexp(line, 'addOptional\s*\(\s*parser\s*,\s*[''"]([^''"]+)[''"]', 'tokens');
-            if ~isempty(tokens)
-                paramName = tokens{1}{1};
-                inputs{end+1} = struct('name', paramName, 'description', sprintf('Optional parameter'));
-            end
-        end
-    end
-catch ME
-    % If parsing fails, return empty
-    inputs = {};
-end
-
-end
-
-function outputs = extractOutputsFromSignature(funcLine)
-% Extract output arguments from function signature
-
-outputs = {};
-
-try
-    % Parse function signature to extract output variables
-    if contains(funcLine, '=')
-        % Extract the left side of the assignment
-        parts = split(funcLine, '=');
-        leftSide = strtrim(parts{1});
-
-        % Remove 'function' keyword if present
-        leftSide = regexprep(leftSide, '^function\s+', '');
-
-        if startsWith(leftSide, '[') && endsWith(leftSide, ']')
-            % Multiple outputs: [out1, out2, out3]
-            outputStr = leftSide(2:end-1); % Remove brackets
-            outputNames = split(outputStr, ',');
-            for i = 1:length(outputNames)
-                outputName = strtrim(outputNames{i});
-                if ~isempty(outputName)
-                    outputs{end+1} = struct('name', outputName, 'description', sprintf('%s output', outputName));
-                end
-            end
-        elseif contains(leftSide, 'varargout')
-            % Variable number of outputs
-            outputs{end+1} = struct('name', 'varargout', 'description', 'Variable number of output arguments');
-        else
-            % Single output
-            outputName = strtrim(leftSide);
-            if ~isempty(outputName)
-                outputs{end+1} = struct('name', outputName, 'description', sprintf('%s output', outputName));
-            end
-        end
-    end
-catch ME
-    % If parsing fails, return empty
-    outputs = {};
 end
 
 end
@@ -440,57 +255,39 @@ function generateFunctionDoc(moduleDocsDir, functionName, docInfo, module)
 
 outputPath = fullfile(moduleDocsDir, [functionName '.md']);
 
-% Create markdown content
-content = sprintf('# `%s` - %s\n\n', functionName, docInfo.description);
+% Create markdown content with brief description
+content = sprintf('# `%s` - %s\n\n', functionName, docInfo.briefDescription);
 
 % Add syntax section
 content = [content sprintf('## Syntax\n\n')];
 content = [content sprintf('```matlab\n')];
-for i = 1:length(docInfo.syntax)
-    content = [content sprintf('%s\n', docInfo.syntax{i})];
+if ~isempty(docInfo.syntax)
+    for i = 1:length(docInfo.syntax)
+        content = [content sprintf('%s\n', docInfo.syntax{i})];
+    end
+else
+    % Fallback if no syntax found
+    content = [content sprintf('function result = %s(input)\n', functionName)];
 end
 content = [content sprintf('```\n\n')];
 
-% Add description
+% Add description section (long description)
 content = [content sprintf('## Description\n\n')];
-content = [content sprintf('%s\n\n', docInfo.description)];
+if ~isempty(docInfo.longDescription)
+    content = [content sprintf('%s\n\n', docInfo.longDescription)];
+else
+    content = [content sprintf('%s\n\n', docInfo.briefDescription)];
+end
 
 % Add source code link
 content = [content sprintf('## Source Code\n\n')];
 content = [content sprintf('[View source code](../../../src/%s/%s.m)\n\n', module, functionName)];
 
-% Add placeholders for manual editing
-content = [content sprintf('## Input Arguments\n\n')];
-if ~isempty(docInfo.inputs)
-    for i = 1:length(docInfo.inputs)
-        input = docInfo.inputs{i};
-        content = [content sprintf('- **%s**: %s\n', input.name, input.description)];
-    end
-    content = [content newline];
-else
-    content = [content sprintf('*To be documented*\n\n')];
-end
-
-content = [content sprintf('## Output Arguments\n\n')];
-if ~isempty(docInfo.outputs)
-    for i = 1:length(docInfo.outputs)
-        output = docInfo.outputs{i};
-        content = [content sprintf('- **%s**: %s\n', output.name, output.description)];
-    end
-    content = [content newline];
-else
-    content = [content sprintf('*To be documented*\n\n')];
-end
-
+% Add examples section
 content = [content sprintf('## Examples\n\n')];
 if ~isempty(docInfo.examples)
     content = [content sprintf('```matlab\n')];
-    for i = 1:length(docInfo.examples)
-        content = [content sprintf('%s\n', docInfo.examples{i})];
-        if i < length(docInfo.examples)
-            content = [content newline];
-        end
-    end
+    content = [content sprintf('%s\n', docInfo.examples)];
     content = [content sprintf('```\n\n')];
 else
     content = [content sprintf('```matlab\n')];
@@ -499,7 +296,17 @@ else
     content = [content sprintf('```\n\n')];
 end
 
+% Add see also section
 content = [content sprintf('## See Also\n\n')];
+if ~isempty(docInfo.seeAlso)
+    for i = 1:length(docInfo.seeAlso)
+        seeAlsoItem = strtrim(docInfo.seeAlso{i});
+        if ~isempty(seeAlsoItem)
+            content = [content sprintf('- %s\n', seeAlsoItem)];
+        end
+    end
+    content = [content newline];
+end
 content = [content sprintf('- [%s Module](README.md)\n', upper(module))];
 content = [content sprintf('- [API Reference](../README.md)\n\n')];
 
@@ -589,8 +396,8 @@ try
 
                 funcInfo = struct();
                 funcInfo.name = funcName;
-                funcInfo.description = docInfo.description;
-                funcInfo.status = docInfo.status;
+                funcInfo.description = docInfo.briefDescription;
+                funcInfo.status = '✅ Stable'; % Default status
                 funcInfo.module = module;
 
                 moduleFunctions{end+1} = funcInfo;
@@ -1212,19 +1019,4 @@ end
 
 end
 
-function statusSymbol = mapStatusToSymbol(statusText)
-% Map status text to symbols used in documentation
 
-statusText = lower(strtrim(statusText));
-
-if contains(statusText, 'beta')
-    statusSymbol = 'β Beta';
-elseif contains(statusText, 'alpha')
-    statusSymbol = 'α Alpha';
-elseif contains(statusText, 'deprecated')
-    statusSymbol = '❌ Deprecated';
-else
-    statusSymbol = '✅ Stable'; % Default to stable
-end
-
-end

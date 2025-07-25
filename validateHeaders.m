@@ -2,7 +2,8 @@ function validateHeaders()
 % VALIDATEHEADERS Validate header format for all functions in the source directory
 %
 % This function validates that all functions in the biosigmat toolbox follow
-% the standard header format and code structure requirements.
+% the standard header format and code structure requirements per the
+% biosigmat coding guidelines.
 %
 % Syntax:
 %   validateHeaders()
@@ -18,6 +19,7 @@ function validateHeaders()
 
 % Automatic mode: validate all functions in src/ directory
 fprintf('🔍 Starting automatic header validation for biosigmat toolbox...\n');
+fprintf('📋 Validating against biosigmat coding guidelines...\n');
 
 % Get toolbox root directory
 toolboxRoot = fileparts(mfilename('fullpath'));
@@ -96,7 +98,8 @@ try
     % Find function declaration
     funcLineIdx = 0;
     for i = 1:length(lines)
-        if contains(lines{i}, 'function') && contains(lines{i}, functionName)
+        currentLine = lines{i};
+        if contains(currentLine, 'function') && contains(currentLine, functionName)
             funcLineIdx = i;
             break;
         end
@@ -113,12 +116,13 @@ try
     headerStartIdx = 0;
 
     for i = funcLineIdx+1:min(funcLineIdx+50, length(lines))
-        line = strtrim(lines{i});
+        currentLine = lines{i};
+        line = strtrim(currentLine);
         if startsWith(line, '%')
             if headerStartIdx == 0
                 headerStartIdx = i;
             end
-            headerLines{end+1} = line; %#ok<*AGROW>
+            headerLines{end+1} = currentLine; %#ok<*AGROW>
         elseif ~isempty(line) && headerStartIdx > 0
             break; % End of header
         end
@@ -143,110 +147,147 @@ end
 end
 
 function headerInfo = validateHeaderStructure(headerInfo, headerLines, functionName)
-% Validate the basic structure of the header (MATLAB toolbox style)
+% Validate the basic structure of the header (biosigmat toolbox style)
 
-% Check first line format: %FUNCTIONNAME Brief description.
+% Check first line format: % FUNCTIONNAME Brief description.
 if ~isempty(headerLines)
     firstLine = headerLines{1};
-    cleanFirstLine = strtrim(strrep(firstLine, '%', ''));
 
-    % Should start with FUNCTIONNAME in uppercase (no dash)
-    expectedStart = functionName;
-    words = strsplit(cleanFirstLine, ' ');
+    % Check exact format: "% FUNCTIONNAME Description."
+    expectedStart = sprintf('%% %s ', upper(functionName));
 
-    if isempty(words) || ~strcmpi(words{1}, expectedStart)
+    if ~startsWith(firstLine, expectedStart)
         headerInfo.isCompliant = false;
-        headerInfo.violations{end+1} = 'First line format incorrect';
+        headerInfo.violations{end+1} = sprintf('First line must start exactly with "%s"', expectedStart);
     else
+        % Extract description part after function name
+        descriptionPart = strtrim(firstLine(length(expectedStart)+1:end));
+
         % Check if description ends with period
-        if ~endsWith(cleanFirstLine, '.')
-            headerInfo.violations{end+1} = 'First line should end with period';
+        if ~endsWith(descriptionPart, '.')
+            headerInfo.violations{end+1} = 'First line description must end with period';
         end
 
-        % Check if there's actually a description after function name
-        if length(words) < 2
+        % Check if there's actually a description
+        if isempty(descriptionPart) || strcmp(descriptionPart, '.')
             headerInfo.violations{end+1} = 'Missing description in first line';
         end
     end
 
-    % Check if description is too long
-    if length(cleanFirstLine) > 80
-        headerInfo.violations{end+1} = 'First line description too long (>80 characters)';
+    % Check total length
+    if length(firstLine) > 100
+        headerInfo.violations{end+1} = 'First line too long (>100 characters)';
     end
 else
     headerInfo.isCompliant = false;
     headerInfo.violations{end+1} = 'Missing header comments';
 end
 
-% Check for detailed syntax descriptions (should have multiple usage forms)
+% Check for detailed syntax descriptions with exact indentation
 hasDetailedSyntax = false;
+syntaxCount = 0;
 for i = 1:length(headerLines)
-    cleanLine = strtrim(strrep(headerLines{i}, '%', ''));
-    if contains(upper(cleanLine), upper(functionName)) && contains(cleanLine, '(') && contains(cleanLine, ')')
-        hasDetailedSyntax = true;
-        break;
+    line = headerLines{i};
+
+    % Check for syntax lines: must start with "%   " (3 spaces) and contain function name with parentheses
+    if startsWith(line, '%   ') && ~startsWith(line, '%    ')  % exactly 3 spaces
+        cleanLine = strtrim(strrep(line, '%', ''));
+        if contains(upper(cleanLine), upper(functionName)) && contains(cleanLine, '(') && contains(cleanLine, ')')
+            hasDetailedSyntax = true;
+            syntaxCount = syntaxCount + 1;
+        end
     end
 end
 
 if ~hasDetailedSyntax
-    headerInfo.violations{end+1} = 'Missing detailed syntax descriptions';
+    headerInfo.violations{end+1} = 'Missing detailed syntax descriptions with proper indentation';
 end
+
+% Store syntax count for potential future validation
+headerInfo.syntaxCount = syntaxCount;
 
 end
 
 function headerInfo = validateRequiredSections(headerInfo, headerLines)
-% Validate required sections in header (MATLAB toolbox style)
+% Validate required sections in header (biosigmat toolbox style)
 
-% MATLAB style doesn't require explicit "Inputs:" section
-% Inputs are described within syntax descriptions
 foundSections = {};
 
-% Check for EXAMPLE section
+% Check for Example section with exact format
 hasExample = false;
 for i = 1:length(headerLines)
-    cleanLine = strtrim(strrep(headerLines{i}, '%', ''));
+    line = headerLines{i};
 
-    if strcmpi(strtrim(cleanLine), 'EXAMPLE:') || ...
-            strcmpi(strtrim(cleanLine), 'EXAMPLES:') || ...
-            strcmpi(strtrim(cleanLine), 'Example:') || ...
-            strcmpi(strtrim(cleanLine), 'Examples:') || ...
-            (contains(upper(cleanLine), 'EXAMPLE') && endsWith(strtrim(cleanLine), ':'))
+    % Must be exactly "Example:" with proper indentation
+    if strcmp(line, '%   Example:') || strcmp(line, '%   Examples:')
         hasExample = true;
-        foundSections{end+1} = 'EXAMPLE:';
+        foundSections{end+1} = 'Example';
         break;
     end
 end
 
 if ~hasExample
     headerInfo.isCompliant = false;
-    headerInfo.violations{end+1} = 'Missing required section: EXAMPLE';
+    headerInfo.violations{end+1} = 'Missing required section: "Example:" with proper indentation (%   Example:)';
 end
 
-% Check for See also section
+% Check for See also section with exact format (optional - warning only)
 hasSeeAlso = false;
 for i = 1:length(headerLines)
-    cleanLine = strtrim(strrep(headerLines{i}, '%', ''));
-    if startsWith(upper(cleanLine), 'SEE ALSO')
+    line = headerLines{i};
+
+    % Must start with "%   See also" with proper indentation (case-sensitive)
+    if startsWith(line, '%   See also')
         hasSeeAlso = true;
+        foundSections{end+1} = 'See also';
         break;
     end
 end
 
+% Add warning for missing See also section (optional)
+if ~hasSeeAlso
+    if ~isfield(headerInfo, 'warnings')
+        headerInfo.warnings = {};
+    end
+    headerInfo.warnings{end+1} = 'Missing optional section: "See also" (%   See also)';
+end
+
+% Check for Status section with exact format (optional - warning only)
+hasStatus = false;
+for i = 1:length(headerLines)
+    line = headerLines{i};
+
+    % Must be exactly "%   Status: " with proper indentation
+    if startsWith(line, '%   Status:')
+        hasStatus = true;
+        foundSections{end+1} = 'Status';
+        break;
+    end
+end
+
+% Add warning for missing Status section (optional)
+if ~hasStatus
+    if ~isfield(headerInfo, 'warnings')
+        headerInfo.warnings = {};
+    end
+    headerInfo.warnings{end+1} = 'Missing optional section: "Status:" (%   Status: Beta)';
+end
+
 % Store found sections for reporting
 headerInfo.foundSections = foundSections;
-if hasSeeAlso
-    headerInfo.foundSections{end+1} = 'See also';
-end
+headerInfo.hasSeeAlso = hasSeeAlso;
+headerInfo.hasStatus = hasStatus;
 
 end
 
 function headerInfo = validateCodeStructure(headerInfo, lines, funcLineIdx)
-% Validate the code structure after header comments
+% Validate the code structure after header comments (biosigmat requirements)
 
 % Find where header comments end
 headerEndIdx = funcLineIdx;
 for i = funcLineIdx+1:min(funcLineIdx+100, length(lines))
-    line = strtrim(lines{i});
+    currentLine = lines{i};
+    line = strtrim(currentLine);
     if startsWith(line, '%')
         continue;
     elseif isempty(line)
@@ -257,12 +298,15 @@ for i = funcLineIdx+1:min(funcLineIdx+100, length(lines))
     end
 end
 
-% Check for narginchk and nargoutchk
+% Check for required function structure elements after header
 hasNarginchk = false;
 hasNargoutchk = false;
+hasInputParser = false;
 
-for i = headerEndIdx+1:min(headerEndIdx+20, length(lines))
-    line = strtrim(lines{i});
+% Look for these elements in the first 30 lines after header
+for i = headerEndIdx+1:min(headerEndIdx+30, length(lines))
+    currentLine = lines{i};
+    line = strtrim(currentLine);
 
     if contains(line, 'narginchk')
         hasNarginchk = true;
@@ -270,24 +314,37 @@ for i = headerEndIdx+1:min(headerEndIdx+20, length(lines))
     if contains(line, 'nargoutchk')
         hasNargoutchk = true;
     end
+    if contains(line, 'inputParser') || contains(line, 'parser = inputParser')
+        hasInputParser = true;
+    end
 end
 
-% Validate required structure elements
+% Validate required structure elements per biosigmat guidelines
 if ~hasNarginchk
-    headerInfo.violations{end+1} = 'Missing narginchk() call';
+    headerInfo.violations{end+1} = 'Missing narginchk() call - required per biosigmat guidelines';
 end
 
 if ~hasNargoutchk
-    headerInfo.violations{end+1} = 'Missing nargoutchk() call';
+    headerInfo.violations{end+1} = 'Missing nargoutchk() call - required per biosigmat guidelines';
 end
+
+% inputParser is strongly recommended but not always required
+if ~hasInputParser
+    headerInfo.violations{end+1} = 'Missing inputParser usage - recommended per biosigmat guidelines';
+end
+
+% Store structure validation results
+headerInfo.hasNarginchk = hasNarginchk;
+headerInfo.hasNargoutchk = hasNargoutchk;
+headerInfo.hasInputParser = hasInputParser;
 
 end
 
 function reportHeaderValidationResults(validationResults, totalFunctions, totalViolations)
 % Report header validation results to console
 
-fprintf('\n📊 Header Validation Report\n');
-fprintf('═══════════════════════════\n');
+fprintf('\n📊 Biosigmat Header Validation Report\n');
+fprintf('═══════════════════════════════════════\n');
 
 complianceRate = (totalFunctions - totalViolations) / totalFunctions * 100;
 
@@ -320,20 +377,61 @@ if totalViolations > 0
         end
     end
 
+    % Report summary of violation types
+    if isfield(violationCounts, 'types')
+        fprintf('📊 Violation Summary:\n');
+        [sortedCounts, sortIdx] = sort(violationCounts.counts, 'descend');
+        sortedTypes = violationCounts.types(sortIdx);
+        for i = 1:length(sortedTypes)
+            fprintf('   %d functions: %s\n', sortedCounts(i), sortedTypes{i});
+        end
+        fprintf('\n');
+    end
+
     % Report detailed violations
-    fprintf('\n📋 Functions with Header Violations:\n');
-    fprintf('════════════════════════════════════');
+    fprintf('📋 Detailed Function Report:\n');
+    fprintf('════════════════════════════');
     for i = 1:length(validationResults.violations)
         violation = validationResults.violations{i};
         fprintf('\n📄 %s (%s module):\n', violation.functionName, violation.module);
         for j = 1:length(violation.violations)
             fprintf('  ❌ %s\n', violation.violations{j});
         end
+        % Show warnings for this function if any
+        if isfield(violation, 'warnings') && ~isempty(violation.warnings)
+            for k = 1:length(violation.warnings)
+                fprintf('  ⚠️  %s\n', violation.warnings{k});
+            end
+        end
+    end
+
+    % Also show warnings for compliant functions
+    if ~isempty(validationResults.compliant)
+        fprintf('\n📋 Compliant Functions with Warnings:\n');
+        fprintf('════════════════════════════════════');
+        for i = 1:length(validationResults.compliant)
+            compliant = validationResults.compliant{i};
+            if isfield(compliant, 'warnings') && ~isempty(compliant.warnings)
+                fprintf('\n📄 %s (%s module):\n', compliant.functionName, compliant.module);
+                for k = 1:length(compliant.warnings)
+                    fprintf('  ⚠️  %s\n', compliant.warnings{k});
+                end
+            end
+        end
     end
 else
-    fprintf('🎉 All function headers are compliant!\n');
+    fprintf('🎉 All function headers comply with biosigmat guidelines!\n');
 end
 
+fprintf('\n💡 Biosigmat Header Requirements (strict validation):\n');
+fprintf('   • First line: %% FUNCTIONNAME Description ending with period.\n');
+fprintf('   • Syntax descriptions with "%% " + 3 spaces indentation\n');
+fprintf('   • Required "Example" section (exact format)\n');
+fprintf('   • Optional "See also" section (⚠️  warning if missing)\n');
+fprintf('   • Optional "Status" section (⚠️  warning if missing)\n');
+fprintf('   • Required narginchk() and nargoutchk() calls\n');
+fprintf('   • Recommended inputParser usage\n');
+fprintf('   • All formatting is case-sensitive with exact indentation\n');
 fprintf('\n');
 
 end

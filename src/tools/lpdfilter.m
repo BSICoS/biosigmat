@@ -33,7 +33,7 @@ function [b, delay] = lpdfilter(fs, stopFreq, varargin)
 %          to per-second)
 %   delay - Delay introduced by the filter (scalar).
 %
-% Example:
+% EXAMPLE:
 %   % Design filter and visualize the frequency response
 %   fs = 100;
 %   [b, delay] = lpdfilter(fs, 10);
@@ -49,6 +49,8 @@ function [b, delay] = lpdfilter(fs, stopFreq, varargin)
 %   % Apply filter to a signal and compensate delay
 %   signalFiltered = filter(b, 1, signal);
 %   signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
+%
+% STATUS: Beta
 
 % Argument validation
 narginchk(2, 6);

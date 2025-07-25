@@ -1,5 +1,5 @@
 function varargout = pantompkins(ecg, fs, varargin)
-% PANTOMPKINS algorithm for R-wave detection in ECG signals.
+% PANTOMPKINS Algorithm for R-wave detection in ECG signals.
 %
 %   PANTOMPKINS(ECG, FS) Detects R-waves in ECG signal using the Pan-Tompkins
 %              algorithm. This method applies bandpass filtering, derivative
@@ -32,6 +32,8 @@ function varargout = pantompkins(ecg, fs, varargin)
 % EXAMPLE:
 %   rpeaks = pantompkins(ecg, fs);
 %   plot(t, ecg); hold on; plot(rpeaks, ecg(round(rpeaks*fs)), 'ro');
+%
+% STATUS: Beta
 
 % Argument validation
 narginchk(2, inf);

@@ -1,7 +1,7 @@
 function y = nanfiltfilt(b, a, x, maxgap)
-% NANFILTFILT Implements filtfilt function with support for NaN values
+% NANFILTFILT Implements filtfilt function with support for NaN values.
 %
-% This function applies zero-phase digital filtering to a signal that contains
+% y = NANFILTFILT(B, A, X, MAXGAP) This function applies zero-phase digital filtering to a signal that contains
 % NaN values. It uses segmented processing to avoid border artifacts that can
 % occur when filtering across interpolated gaps. The algorithm divides the
 % signal into segments separated by long NaN gaps (> maxgap) and processes
@@ -29,6 +29,17 @@ function y = nanfiltfilt(b, a, x, maxgap)
 %
 % This approach eliminates border artifacts that can occur when filtering
 % signals with interpolated values across large gaps.
+%
+% EXAMPLE:
+%   % Filter a noisy signal with NaN gaps
+%   fs = 1000;
+%   t = 0:1/fs:1;
+%   signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
+%   signal(100:150) = NaN;  % Add NaN gap
+%   [b, a] = butter(4, 0.1);
+%   filtered = nanfiltfilt(b, a, signal, 10);
+%
+% STATUS: Beta
 
 % Argument validation
 narginchk(3, 4);

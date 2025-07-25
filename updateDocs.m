@@ -120,6 +120,7 @@ function docInfo = extractFunctionDoc(filePath, functionName)
 docInfo = struct();
 docInfo.name = functionName;
 docInfo.description = '';
+docInfo.status = '⚪ Undefined'; % Default status
 docInfo.syntax = {};
 docInfo.inputs = {};
 docInfo.outputs = {};
@@ -179,6 +180,19 @@ try
             break; % End of header comments
         elseif inHeader && startsWith(line, '%')
             headerLines{end+1} = line;
+        end
+    end
+
+    % Extract status from header comments
+    for i = 1:length(headerLines)
+        line = headerLines{i};
+        cleanLine = strtrim(strrep(line, '%', ''));
+
+        % Look for status line
+        if startsWith(cleanLine, 'Status:', 'IgnoreCase', true)
+            statusText = strtrim(cleanLine(8:end)); % Remove "Status:"
+            docInfo.status = mapStatusToSymbol(statusText);
+            break;
         end
     end
 
@@ -547,46 +561,148 @@ function updateApiIndex(docsDir, modules)
 fprintf('📋 Updating API index...\n');
 
 try
-    % Count functions in each module
-    functionCounts = struct();
+    % Collect all functions with their information
+    allFunctions = {};
+    functionsByModule = struct();
     totalFunctions = 0;
 
     for i = 1:length(modules)
         module = modules{i};
-        moduleDocsDir = fullfile(docsDir, 'api', module);
+        srcDir = fullfile(fileparts(docsDir), 'src', module);
 
-        if exist(moduleDocsDir, 'dir')
-            % Count .md files (excluding README.md)
-            mdFiles = dir(fullfile(moduleDocsDir, '*.md'));
-            mdFiles = mdFiles(~strcmp({mdFiles.name}, 'README.md'));
-            functionCounts.(module) = length(mdFiles);
-            totalFunctions = totalFunctions + length(mdFiles);
-        else
-            functionCounts.(module) = 0;
+        if exist(srcDir, 'dir')
+            % Get all .m files in the source module
+            mFiles = dir(fullfile(srcDir, '*.m'));
+            moduleFunctions = {};
+
+            for j = 1:length(mFiles)
+                [~, funcName, ~] = fileparts(mFiles(j).name);
+
+                % Skip private directories and test files
+                if startsWith(funcName, 'test') || contains(mFiles(j).folder, 'private')
+                    continue;
+                end
+
+                % Extract function documentation
+                funcPath = fullfile(mFiles(j).folder, mFiles(j).name);
+                docInfo = extractFunctionDoc(funcPath, funcName);
+
+                funcInfo = struct();
+                funcInfo.name = funcName;
+                funcInfo.description = docInfo.description;
+                funcInfo.status = docInfo.status;
+                funcInfo.module = module;
+
+                moduleFunctions{end+1} = funcInfo;
+                allFunctions{end+1} = funcInfo;
+                totalFunctions = totalFunctions + 1;
+            end
+
+            functionsByModule.(module) = moduleFunctions;
         end
     end
 
-    % Update the count in the main API README if it exists
-    apiReadmePath = fullfile(docsDir, 'api', 'README.md');
-    if exist(apiReadmePath, 'file')
-        content = fileread(apiReadmePath, 'Encoding', 'UTF-8');
+    % Generate the complete API README
+    generateApiReadme(docsDir, functionsByModule, allFunctions, totalFunctions);
 
-        % Update the total function count at the bottom
-        pattern = 'Total functions: \d+';
-        replacement = sprintf('Total functions: %d', totalFunctions);
-        content = regexprep(content, pattern, replacement);
-
-        % Write back
-        fid = fopen(apiReadmePath, 'w', 'n', 'UTF-8');
-        if fid ~= -1
-            fprintf(fid, '%s', content);
-            fclose(fid);
-            fprintf('  ✅ Updated function count: %d total functions\n', totalFunctions);
-        end
-    end
+    fprintf('  ✅ Generated API index with %d total functions\n', totalFunctions);
 
 catch ME
     fprintf('⚠️  Warning: Could not update API index: %s\n', ME.message);
+end
+
+end
+
+function generateApiReadme(docsDir, functionsByModule, allFunctions, totalFunctions)
+% Generate the complete API README file
+
+apiReadmePath = fullfile(docsDir, 'api', 'README.md');
+
+% Create the content
+content = sprintf('# biosigmat API Reference\n\n');
+content = [content sprintf('Complete reference documentation for all functions in the biosigmat toolbox.\n\n')];
+content = [content sprintf('## Function Categories\n\n')];
+
+% Define module information
+moduleInfo = struct();
+moduleInfo.ecg = struct('title', 'ECG Processing', 'desc', 'Functions for electrocardiography signal analysis and QRS detection.');
+moduleInfo.ppg = struct('title', 'PPG Processing', 'desc', 'Functions for photoplethysmography signal analysis and pulse detection.');
+moduleInfo.hrv = struct('title', 'HRV Analysis', 'desc', 'Functions for heart rate variability analysis and metrics calculation.');
+moduleInfo.tools = struct('title', 'General Tools', 'desc', 'Utility functions for signal processing and data manipulation.');
+
+% Generate sections for each module
+moduleNames = fieldnames(functionsByModule);
+for i = 1:length(moduleNames)
+    module = moduleNames{i};
+    functions = functionsByModule.(module);
+
+    if isempty(functions)
+        continue;
+    end
+
+    % Add module header
+    if isfield(moduleInfo, module)
+        content = [content sprintf('### %s\n', moduleInfo.(module).title)];
+        content = [content sprintf('%s\n\n', moduleInfo.(module).desc)];
+    else
+        content = [content sprintf('### %s\n', upper(module))];
+        content = [content sprintf('Functions for %s processing.\n\n', module)];
+    end
+
+    % Add function table
+    content = [content sprintf('| Function | Description | Status |\n')];
+    content = [content sprintf('| -------- | ----------- | ------ |\n')];
+
+    for j = 1:length(functions)
+        func = functions{j};
+        content = [content sprintf('| [`%s`](%s/%s.md) | %s | %s |\n', ...
+            func.name, module, func.name, func.description, func.status)];
+    end
+
+    content = [content sprintf('\n**[%s Module Documentation](%s/README.md)**\n\n', ...
+        upper(module), module)];
+end
+
+% Add alphabetical index
+content = [content sprintf('## Function Index\n\n')];
+content = [content sprintf('### Alphabetical Index\n')];
+content = [content sprintf('All functions sorted alphabetically:\n\n')];
+
+% Sort all functions alphabetically
+sortedFunctions = allFunctions;
+[~, sortIdx] = sort(cellfun(@(x) x.name, sortedFunctions, 'UniformOutput', false));
+sortedFunctions = sortedFunctions(sortIdx);
+
+for i = 1:length(sortedFunctions)
+    func = sortedFunctions{i};
+    content = [content sprintf('- [`%s`](%s/%s.md)\n', func.name, func.module, func.name)];
+end
+
+% Add legend and footer
+content = [content sprintf('\n\n## Development Status Legend\n')];
+content = [content sprintf('- ✅ **Stable**: Well-tested, production ready\n')];
+content = [content sprintf('- β **Beta**: Feature complete, undergoing testing\n')];
+content = [content sprintf('- α **Alpha**: Under development, API may change\n')];
+content = [content sprintf('- ❌ **Deprecated**: No longer recommended for use\n')];
+content = [content sprintf('- ⚪ **Undefined**: Status not specified\n\n')];
+
+content = [content sprintf('---\n\n')];
+content = [content sprintf('*Last updated: %s | Total functions: %d*\n', ...
+    string(datetime('now', 'Format', 'yyyy-MM-dd')), totalFunctions)];
+
+% Write the file
+try
+    fid = fopen(apiReadmePath, 'w', 'n', 'UTF-8');
+    if fid == -1
+        error('Could not open file for writing: %s', apiReadmePath);
+    end
+    fprintf(fid, '%s', content);
+    fclose(fid);
+catch ME
+    if fid ~= -1
+        fclose(fid);
+    end
+    rethrow(ME);
 end
 
 end
@@ -1093,6 +1209,25 @@ if exist(readmePath, 'file')
         fprintf(fid, '%s', content);
         fclose(fid);
     end
+end
+
+end
+
+function statusSymbol = mapStatusToSymbol(statusText)
+% Map status text to symbols used in documentation
+
+statusText = lower(strtrim(statusText));
+
+if contains(statusText, 'stable')
+    statusSymbol = '✅ Stable';
+elseif contains(statusText, 'beta')
+    statusSymbol = 'β Beta';
+elseif contains(statusText, 'alpha')
+    statusSymbol = 'α Alpha';
+elseif contains(statusText, 'deprecated')
+    statusSymbol = '❌ Deprecated';
+else
+    statusSymbol = '⚪ Undefined'; % Default for unrecognized status
 end
 
 end

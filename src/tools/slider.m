@@ -1,7 +1,7 @@
 function hSlider = slider(varargin)
 % Creates and adds a scroll slider to a figure with time-based plots
 %
-% This function adds a horizontal slider at the bottom of a figure to allow
+% HSLIDER = SLIDER() This function adds a horizontal slider at the bottom of a figure to allow
 % scrolling through time-based plots. It works with both numeric and datetime
 % time vectors and integrates with zoom and pan functionality.
 %
@@ -18,7 +18,7 @@ function hSlider = slider(varargin)
 % Outputs:
 %   hSlider - Handle to the created slider object
 %
-% Example:
+% EXAMPLE:
 %   t = 0:0.01:100;
 %   y = sin(t);
 %   figure;
@@ -26,6 +26,8 @@ function hSlider = slider(varargin)
 %   hSlider = slider;  % Automatically uses current figure and time vector
 %
 % See also: zoom, pan, uicontrol
+%
+% STATUS: Beta
 
 % Argument validation
 narginchk(0, 2);

@@ -1,5 +1,5 @@
 function [nD, threshold] = pulsedetection(signal, fs, varargin)
-% Pulse detection in plethysmography signals using adaptive thresholding.
+% PULSEDETECTION Pulse detection in plethysmography signals using adaptive thresholding.
 % [nD, threshold] = pulsedetection(signal, fs, ...)
 %
 % This function detects pulse peaks (nD) in PPG signals using an adaptive
@@ -22,6 +22,17 @@ function [nD, threshold] = pulsedetection(signal, fs, varargin)
 % Outputs:
 %   nD - Location of peaks detected in filtered signal (seconds)
 %   threshold - Computed time varying threshold
+%
+% EXAMPLE:
+%   % LPD-filter PPG signal
+%   [b, delay] = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
+%   signalFiltered = filter(b, 1, signal);
+%   signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
+%
+%   % Run pulse detection on filtered signal
+%   [nD, threshold] = pulsedetection(signalFiltered, fs);
+%
+% STATUS: Beta
 
 
 % Check number of input and output arguments

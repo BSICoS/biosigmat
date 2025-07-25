@@ -1,7 +1,7 @@
 function y = nanfilter(b, a, x, maxgap)
-% NANFILTER Implements filter function with support for NaN values
+% NANFILTER Implements filter function with support for NaN values.
 %
-% This function applies digital filtering to a signal that contains
+% Y = NANFILTER(B, A, X, MAXGAP) This function applies digital filtering to a signal that contains
 % NaN values. It uses segmented processing to avoid border artifacts that can
 % occur when filtering across interpolated gaps. The algorithm divides the
 % signal into segments separated by long NaN gaps (> maxgap) and processes
@@ -30,7 +30,7 @@ function y = nanfilter(b, a, x, maxgap)
 % This approach eliminates border artifacts that can occur when filtering
 % signals with interpolated values across large gaps.
 %
-% Example:
+% EXAMPLE:
 %   % Filter a noisy signal with NaN gaps
 %   fs = 1000;
 %   t = 0:1/fs:1;
@@ -38,6 +38,8 @@ function y = nanfilter(b, a, x, maxgap)
 %   signal(100:150) = NaN;  % Add NaN gap
 %   [b, a] = butter(4, 0.1);
 %   filtered = nanfilter(b, a, signal, 10);
+%
+% STATUS: Beta
 
 % Check number of input and output arguments
 narginchk(3, 4);

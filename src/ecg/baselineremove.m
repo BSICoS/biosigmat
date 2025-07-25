@@ -1,15 +1,15 @@
 function [ecgDetrended, baseline] = baselineremove(ecg, tk, offset, varargin)
 % BASELINEREMOVE Removes baseline wander from biosignals using cubic spline interpolation.
 %
+%   [ECGDETRENDED, BASELINE] = BASELINEREMOVE(ECG, TK, OFFSET) removes baseline wander
+%   using fiducial points computed as (tk - offset), with default window size 5.
+%
 %   Removes baseline wander from ECG signals by interpolating between fiducial points
 %   computed as (tk - offset), where tk are typically R-peak indices and offset is the number of samples
 %   before each tk to use as the fiducial point (e.g., PR interval in ECG).
 %   The interpolation is performed using cubic splines, and the resulting baseline estimate is subtracted.
 %
-%   [ecgDetrended, baseline] = BASELINEREMOVE(ecg, tk, offset) removes baseline wander
-%   using fiducial points computed as (tk - offset), with default window size 5.
-%
-%   [ecgDetrended, baseline] = BASELINEREMOVE(ecg, tk, offset, window) allows specifying
+%   [ECGDETRENDED, BASELINE] = BASELINEREMOVE(ECG, TK, OFFSET, WINDOW) allows specifying
 %   the number of samples to use for estimation at each fiducial point.
 %
 % Inputs:
@@ -27,6 +27,8 @@ function [ecgDetrended, baseline] = baselineremove(ecg, tk, offset, varargin)
 %   [cleanEcg, baseline] = baselineremove(ecg, rpeaks, 50);
 %   plot(1:length(ecg), ecg, 1:length(cleanEcg), cleanEcg);
 %   legend('Original', 'Detrended');
+%
+% STATUS: Beta
 
 
 % Check number of input and output arguments

@@ -1,5 +1,5 @@
 function interpolatedSignal = interpgap(signal, maxgap, varargin)
-% INTERPGAP Interpolate small NaN gaps in a signal
+% INTERPGAP Interpolate small NaN gaps in a signal.
 %
 % This function interpolates NaN gaps in a signal that are smaller than or
 % equal to a specified maximum gap length. Gaps larger than maxgap are left
@@ -14,13 +14,15 @@ function interpolatedSignal = interpgap(signal, maxgap, varargin)
 % Outputs:
 %   interpolatedSignal - Signal with small gaps interpolated
 %
-% Example:
+% EXAMPLE:
 %   % Create a signal with small gaps
 %   signal = [1, 2, NaN, 4, 5, NaN, NaN, 8, 9, 10]';
 %   interpolated = interpgap(signal, 2);
 %   interpolatedCubic = interpgap(signal, 2, 'cubic');
 %   plot(1:length(signal), signal, 'ro', 1:length(interpolated), interpolated, 'b-');
 %   legend('Original', 'Interpolated');
+%
+% STATUS: Beta
 
 % Check number of input and output arguments
 narginchk(2, 3);

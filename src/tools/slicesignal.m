@@ -1,7 +1,7 @@
 function [sliced, tcenter] = slicesignal(x, window, overlap, fs)
-% SLICESIGNAL Divide signal into overlapping segments
+% SLICESIGNAL Divide signal into overlapping segments.
 %
-% This function divides a signal into overlapping segments of specified length.
+% [SLICED, TCENTER] = SLICESIGNAL(X, WINDOW, OVERLAP, FS) divides a signal into overlapping segments of specified length.
 % Each segment becomes a column in the output matrix, making it easy to apply
 % spectral analysis methods like periodogram or pwelch to multiple segments.
 %
@@ -15,7 +15,7 @@ function [sliced, tcenter] = slicesignal(x, window, overlap, fs)
 %   sliced - Matrix where each column is a signal segment
 %   tcenter - Time axis in seconds corresponding to center of each slice (column vector)
 %
-% Example:
+% EXAMPLE:
 %   % Slice a signal and compute time-frequency map with pwelch
 %   fs = 1000;
 %   tSignal = (0:1/fs:2)';
@@ -27,6 +27,8 @@ function [sliced, tcenter] = slicesignal(x, window, overlap, fs)
 %   xlabel('Time (s)');
 %   ylabel('Frequency (Hz)');
 %   title('Time-Frequency Map');
+%
+% STATUS: Beta
 
 % Check number of input and output arguments
 narginchk(4, 4);

@@ -7,53 +7,53 @@ Complete reference documentation for all functions in the biosigmat toolbox.
 ### ECG Processing
 Functions for electrocardiography signal analysis and QRS detection.
 
-| Function                                  | Description                            | Status   |
-| ----------------------------------------- | -------------------------------------- | -------- |
-| [`pantompkins`](ecg/pantompkins.md)       | Pan-Tompkins QRS detection algorithm   | ✅ Stable |
-| [`baselineremove`](ecg/baselineremove.md) | Baseline drift removal using filtering | ✅ Stable |
-| [`sloperange`](ecg/sloperange.md)         | Slope-based QRS detection method       | ✅ Stable |
+| Function | Description | Status |
+| -------- | ----------- | ------ |
+| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | β Beta |
+| [`pantompkins`](ecg/pantompkins.md) | Algorithm for R-wave detection in ECG signals. | β Beta |
+| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | β Beta |
 
 **[ECG Module Documentation](ecg/README.md)**
-
-### PPG Processing  
-Functions for photoplethysmography signal analysis and pulse detection.
-
-| Function                                      | Description                                | Status   |
-| --------------------------------------------- | ------------------------------------------ | -------- |
-| [`pulsedetection`](ppg/pulsedetection.md)     | Pulse detection in PPG signals             | ✅ Stable |
-| [`pulsedelineation`](ppg/pulsedelineation.md) | Pulse wave delineation and fiducial points | ✅ Stable |
-
-**[PPG Module Documentation](ppg/README.md)**
 
 ### HRV Analysis
 Functions for heart rate variability analysis and metrics calculation.
 
-| Function                        | Description                         | Status   |
-| ------------------------------- | ----------------------------------- | -------- |
-| [`tdmetrics`](hrv/tdmetrics.md) | Time-domain HRV metrics calculation | ✅ Stable |
+| Function | Description | Status |
+| -------- | ----------- | ------ |
+| [`tdmetrics`](hrv/tdmetrics.md) | Compute classical time domain indices for heart rate variability analysis. | β Beta |
 
 **[HRV Module Documentation](hrv/README.md)**
+
+### PPG Processing
+Functions for photoplethysmography signal analysis and pulse detection.
+
+| Function | Description | Status |
+| -------- | ----------- | ------ |
+| [`pulsedelineation`](ppg/pulsedelineation.md) | Plethysmography signals delineation using adaptive thresholding. | β Beta |
+| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in plethysmography signals using adaptive thresholding. | β Beta |
+
+**[PPG Module Documentation](ppg/README.md)**
 
 ### General Tools
 Utility functions for signal processing and data manipulation.
 
-| Function                                        | Description                              | Status   |
-| ----------------------------------------------- | ---------------------------------------- | -------- |
-| [`nanfiltfilt`](tools/nanfiltfilt.md)           | Zero-phase filtering with NaN handling   | ✅ Stable |
-| [`nanfilter`](tools/nanfilter.md)               | Forward filtering with NaN handling      | ✅ Stable |
-| [`findsequences`](tools/findsequences.md)       | Find sequences of consecutive values     | ✅ Stable |
-| [`interpgap`](tools/interpgap.md)               | Interpolate gaps in signals              | ✅ Stable |
-| [`ispeaky`](tools/ispeaky.md)                   | Peak detection utility                   | ✅ Stable |
-| [`lpdfilter`](tools/lpdfilter.md)               | Low-pass derivative filter               | ✅ Stable |
-| [`medfiltThreshold`](tools/medfiltThreshold.md) | Median filtering with threshold          | ✅ Stable |
-| [`nanpwelch`](tools/nanpwelch.md)               | Power spectral density with NaN handling | ✅ Stable |
-| [`peakedness`](tools/peakedness.md)             | Signal peakedness measure                | ✅ Stable |
-| [`slicesignal`](tools/slicesignal.md)           | Extract signal segments                  | ✅ Stable |
-| [`slider`](tools/slider.md)                     | Sliding window operations                | ✅ Stable |
-| [`snaptopeak`](tools/snaptopeak.md)             | Snap indices to nearest peaks            | ✅ Stable |
-| [`trimnans`](tools/trimnans.md)                 | Remove NaN values from signal edges      | ✅ Stable |
+| Function | Description | Status |
+| -------- | ----------- | ------ |
+| [`findsequences`](tools/findsequences.md) | Find sequences of repeated (adjacent/consecutive) numeric values | β Beta |
+| [`interpgap`](tools/interpgap.md) | Interpolate small NaN gaps in a signal. | β Beta |
+| [`ispeaky`](tools/ispeaky.md) | Determines if spectra are considered peaky based on peakedness thresholds. | β Beta |
+| [`lpdfilter`](tools/lpdfilter.md) | Low-pass derivative filter. | β Beta |
+| [`medfiltThreshold`](tools/medfiltThreshold.md) | Compute median-filtered adaptive threshold. | β Beta |
+| [`nanfilter`](tools/nanfilter.md) | Implements filter function with support for NaN values. | β Beta |
+| [`nanfiltfilt`](tools/nanfiltfilt.md) | Implements filtfilt function with support for NaN values. | β Beta |
+| [`nanpwelch`](tools/nanpwelch.md) | Compute Welch periodogram when signal has NaN segments. | β Beta |
+| [`peakedness`](tools/peakedness.md) | Computes the peakedness of power spectral density estimates. | β Beta |
+| [`slicesignal`](tools/slicesignal.md) | Divide signal into overlapping segments. | β Beta |
+| [`slider`](tools/slider.md) | Creates and adds a scroll slider to a figure with time-based plots | β Beta |
+| [`snaptopeak`](tools/snaptopeak.md) | Refine QRS detections by snapping to local maxima. | β Beta |
+| [`trimnans`](tools/trimnans.md) | Trim NaN values from the beginning and end of a signal. | β Beta |
 
-**[Tools Module Documentation](tools/README.md)**
+**[TOOLS Module Documentation](tools/README.md)**
 
 ## Function Index
 
@@ -86,7 +86,8 @@ All functions sorted alphabetically:
 - β **Beta**: Feature complete, undergoing testing
 - α **Alpha**: Under development, API may change
 - ❌ **Deprecated**: No longer recommended for use
+- ⚪ **Undefined**: Status not specified
 
 ---
 
-*Last updated: 2025-07-24 | Total functions: 19*
+*Last updated: 2025-07-25 | Total functions: 19*

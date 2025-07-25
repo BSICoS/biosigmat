@@ -47,7 +47,7 @@ function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Se
 %   % Run pulse delineation on filtered signal
 %   [nD, nA, nB, nM, threshold] = pulsedelineation(signalFiltered, fs, Setup);
 %
-% STATUS: Beta
+%   Status: Alpha
 
 
 % Check Inputs

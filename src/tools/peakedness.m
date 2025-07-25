@@ -1,5 +1,14 @@
 function [pkl, akl] = peakedness(pxx, f, varargin)
-% Computes the peakedness of power spectral density estimates.
+% PEAKEDNESSComputes the peakedness of power spectral density estimates.
+%
+% [Pkl, Akl] = PEAKEDNESS(PXX, F, REFERENCEFREQ, WINDOW) calculates the
+% peakedness of power spectral density estimates (PXX) at frequencies (F).
+% It measures how concentrated the power is in a narrow frequency band
+% compared to a wider band. The peakedness is defined as the percentage of
+% power in a narrow window around a reference frequency compared to the
+% power in a wider window. It also computes the absolute maximum peakedness
+% as the percentage of the maximum power in the narrow window compared to
+% the global maximum power in the spectrum.
 %
 % Inputs:
 %   pxx           - Power spectral density estimates. Can be:
@@ -14,7 +23,7 @@ function [pkl, akl] = peakedness(pxx, f, varargin)
 %   pkl - Power concentration peakedness values (% of power in narrow vs wide window) (1 per spectrum in pxx)
 %   akl - Absolute maximum peakedness values (% of max in window vs global max) (1 per spectrum in pxx)
 %
-% Example:
+% EXAMPLE:
 %   % Generate a test spectrum with a peak at 0.3 Hz
 %   f = 0:0.01:1;
 %   pxx = exp(-((f-0.3)/0.05).^2) + 0.1*randn(size(f));
@@ -30,6 +39,8 @@ function [pkl, akl] = peakedness(pxx, f, varargin)
 %
 %   % Use custom window with adaptive method
 %   [pkl, akl] = peakedness(pxx, f, [], 0.2);
+%
+% STATUS: Beta
 
 % Check number of input and output arguments
 narginchk(2, inf);

@@ -1,7 +1,8 @@
 function varargout = nanpwelch(x, window, noverlap, nfft, fs, varargin)
-% NANPWELCH Compute Welch periodogram when signal has NaN segments
+% NANPWELCH Compute Welch periodogram when signal has NaN segments.
 %
-% This function computes the Welch power spectral density estimate for signals
+% [PX, F, PXXSEGMENTS] = NANPWELCH(X, WINDOW, NOOVERLAP, NFFT, FS, MAXGAP)
+% computes the Welch power spectral density estimate for signals
 % containing NaN values. It trims NaN values at the beginning and end of the
 % signal, interpolates small gaps (≤ maxgap), and splits the signal at
 % large gaps (> maxgap). The power spectral density is computed for each
@@ -24,6 +25,16 @@ function varargout = nanpwelch(x, window, noverlap, nfft, fs, varargin)
 %   pxxSegments - Power spectral density for each segment (optional)
 %                 For vector input: matrix where each column contains the PSD of one processed segment
 %                 For matrix input: cell array where pxxSegments{i} contains the PSD segments for signal i
+%
+% EXAMPLE:
+%   % Compute Welch PSD for a signal with NaN gaps
+%   fs = 1000;
+%   t = 0:1/fs:1;
+%   signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
+%   signal(100:150) = NaN;  % Add NaN gap
+%   [pxx, f, pxxSegments] = nanpwelch(signal, 256, 128, 512, fs, 10);
+%
+% STATUS: Beta
 
 % Argument validation
 narginchk(5, 6);

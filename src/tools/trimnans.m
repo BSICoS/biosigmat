@@ -1,7 +1,7 @@
 function trimmedSignal = trimnans(signal)
-% TRIMNANS Trim NaN values from the beginning and end of a signal
+% TRIMNANS Trim NaN values from the beginning and end of a signal.
 %
-% This function removes NaN values from the beginning and end of a signal,
+% TRIMEDSIGNAL = TRIMNANS(SIGNAL) This function removes NaN values from the beginning and end of a signal,
 % returning the trimmed signal.
 %
 % Inputs:
@@ -11,11 +11,13 @@ function trimmedSignal = trimnans(signal)
 %   trimmedSignal - Signal with NaN values trimmed from beginning and end
 %                   Empty if all values are NaN
 %
-% Example:
+% EXAMPLE:
 %   % Trim NaN values from a signal
 %   signal = [NaN; NaN; 1; 2; NaN; 3; NaN; NaN];
 %   trimmed = trimnans(signal);
 %   % Result: trimmed = [1; 2; NaN; 3]
+%
+% STATUS: Beta
 
 % Check number of input and output arguments
 narginchk(1, 1);

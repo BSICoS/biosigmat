@@ -26,6 +26,8 @@ function varargout = sloperange(decg, tk, fs)
 %   % Derive respiratory signal from ECG using slope range method
 %   edr = sloperange(decg, tk, fs);
 %   plot(tk, edr); title('ECG-derived Respiration');
+%
+% STATUS: Beta
 
 % Argument validation
 narginchk(3, 3);

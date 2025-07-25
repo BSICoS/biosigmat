@@ -1,12 +1,11 @@
 function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
-% Plethysmography signals delineation using adaptive thresholding.
+% PULSEDELINEATION Plethysmography signals delineation using adaptive thresholding.
 % [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
 %
 % This function performs pulse delineation in PPG signals, detecting pulse
 % features (nA, nB, nM) based on pulse detection points (nD). If nD points
 % are not provided, they are computed using the pulsedetection function.
 %
-%--------------------------------------------------------
 %   In:
 %         signal        = Filtered LPD-filtered PPG signal
 %         fs            = sampling rate (Hz)
@@ -30,9 +29,28 @@ function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Se
 %         nB            = Location of pulse offsets (seconds)
 %         nM            = Location of pulse midpoints (seconds)
 %         threshold     = Computed time varying threshold
+%
+% EXAMPLE:
+%   % LPD-filter PPG signal
+%   [b, delay] = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
+%   signalFiltered = filter(b, 1, signal);
+%   signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
+%
+%   % Set up pulse delineation parameters
+%   Setup = struct();
+%   Setup.alfa = 0.2;                   % Threshold adaptation factor
+%   Setup.refractPeriod = 150e-3;       % Refractory period (s)
+%   Setup.thrIncidences = 1.5;          % Threshold for incidences
+%   Setup.wdw_nA = 250e-3;              % Window for onset detection (s)
+%   Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
+%
+%   % Run pulse delineation on filtered signal
+%   [nD, nA, nB, nM, threshold] = pulsedelineation(signalFiltered, fs, Setup);
+%
+% STATUS: Beta
 
 
-%% Check Inputs
+% Check Inputs
 if nargin <= 2,   Setup = struct();                       end
 if nargin <  2,   error('Not enough input arguments.');   end
 

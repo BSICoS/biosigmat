@@ -1,14 +1,12 @@
 function refinedDetections = snaptopeak(ecg, detections, varargin)
-% SNAPTOPEAK Refine QRS detections by snapping to local maxima
+% SNAPTOPEAK Refine QRS detections by snapping to local maxima.
 %
-%   snaptopeak(ECG, DETECTIONS) Refines QRS detection positions by moving
-%              each detection to the nearest local maximum within a search
-%              window around the original detection. This improves the
-%              precision of R-wave peak localization.
-%
-%   REFINEDDETECTIONS = snaptopeak(ECG, DETECTIONS)
-%       REFINEDDETECTIONS is a column vector containing the refined detection
-%       positions in samples, snapped to local maxima.
+%   REFINEDDETECTIONS = SNAPTOPEAK(ECG, DETECTIONS) Refines QRS detection
+%              positions by moving each detection to the nearest local
+%              maximum within a search window around the original detection.
+%              This improves the precision of R-wave peak localization.
+%              REFINEDDETECTIONS is a column vector containing the refined detection
+%              positions in samples, snapped to local maxima.
 %
 %   snaptopeak(..., 'Name', Value) specifies optional parameters using
 %       name-value pair arguments:
@@ -21,6 +19,11 @@ function refinedDetections = snaptopeak(ecg, detections, varargin)
 %
 % Output:
 %   REFINEDDETECTIONS - Refined detection positions in samples (column vector)
+%
+% EXAMPLE:
+%   refinedDetections = snaptopeak(ecg, detections, 'WindowSize', 30);
+%
+% STATUS: Beta
 
 % Argument validation
 narginchk(2, inf);

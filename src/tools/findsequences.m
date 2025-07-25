@@ -20,8 +20,7 @@ function varargout = findsequences(A)
 %       To convert positions into subs/coordinates use IND2SUB
 %
 %
-% Examples:
-%
+% EXAMPLE:
 %     % There are sequences of 20s, 1s and NaNs (column-wise)
 %     A   =  [  20,  19,   3,   2, NaN, NaN
 %               20,  23,   1,   1,   1, NaN
@@ -34,6 +33,7 @@ function varargout = findsequences(A)
 %             1       14             15           2       % Sequence of two 1s (positions 14-15)
 %           NaN       16             18           3       % Sequence of three NaNs (positions 16-18)
 %
+% STATUS: Beta
 
 % Argument validation
 narginchk(1, 1);

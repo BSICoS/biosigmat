@@ -3,6 +3,7 @@
 ## Syntax
 
 ```matlab
+function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
 ```
 
 ## Description
@@ -19,7 +20,11 @@ Plethysmography signals delineation using adaptive thresholding.
 
 ## Output Arguments
 
-*To be documented*
+- **nD**: nD output
+- **nA**: nA output
+- **nB**: nB output
+- **nM**: nM output
+- **threshold**: threshold output
 
 ## Examples
 
@@ -35,4 +40,4 @@ result = pulsedelineation(input);
 
 ---
 
-**Module**: PPG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-24
+**Module**: PPG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25

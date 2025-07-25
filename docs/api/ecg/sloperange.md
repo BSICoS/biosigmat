@@ -1,16 +1,15 @@
-# `sloperange` - Compute ECG-derived respiration (EDR) using slope range method
+# `sloperange` - Compute ECG-derived respiration (EDR) using slope range method.
 
 ## Syntax
 
 ```matlab
 function varargout = sloperange(decg, tk, fs)
-sloperange(DECG, TK, FS) Computes ECG-derived respiration signal using
-EDR = sloperange(DECG, TK, FS)
+edr = sloperange(decg, tk, fs);
 ```
 
 ## Description
 
-Compute ECG-derived respiration (EDR) using slope range method
+Compute ECG-derived respiration (EDR) using slope range method.
 
 ## Source Code
 
@@ -29,8 +28,9 @@ Compute ECG-derived respiration (EDR) using slope range method
 ## Examples
 
 ```matlab
-% Basic usage example
-result = sloperange(input);
+Derive respiratory signal from ECG using slope range method
+edr = sloperange(decg, tk, fs);
+plot(tk, edr); title('ECG-derived Respiration');
 ```
 
 ## See Also
@@ -40,4 +40,4 @@ result = sloperange(input);
 
 ---
 
-**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-24
+**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25

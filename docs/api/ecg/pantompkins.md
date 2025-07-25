@@ -1,17 +1,15 @@
-# `pantompkins` - algorithm for R-wave detection in ECG signals
+# `pantompkins` - algorithm for R-wave detection in ECG signals.
 
 ## Syntax
 
 ```matlab
 function varargout = pantompkins(ecg, fs, varargin)
-pantompkins(ECG, FS) Detects R-waves in ECG signal using the Pan-Tompkins
-TK = pantompkins(ECG, FS)
-pantompkins(..., 'Name', Value) specifies optional parameters using
+rpeaks = pantompkins(ecg, fs);
 ```
 
 ## Description
 
-algorithm for R-wave detection in ECG signals
+algorithm for R-wave detection in ECG signals.
 
 ## Source Code
 
@@ -34,8 +32,8 @@ algorithm for R-wave detection in ECG signals
 ## Examples
 
 ```matlab
-% Basic usage example
-result = pantompkins(input);
+rpeaks = pantompkins(ecg, fs);
+plot(t, ecg); hold on; plot(rpeaks, ecg(round(rpeaks*fs)), 'ro');
 ```
 
 ## See Also
@@ -45,4 +43,4 @@ result = pantompkins(input);
 
 ---
 
-**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-24
+**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25

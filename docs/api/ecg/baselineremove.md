@@ -1,4 +1,4 @@
-# `baselineremove` - Removes baseline wander from biosignals using cubic spline interpolation
+# `baselineremove` - Removes baseline wander from biosignals using cubic spline interpolation.
 
 ## Syntax
 
@@ -8,7 +8,7 @@ function [ecgDetrended, baseline] = baselineremove(ecg, tk, offset, varargin)
 
 ## Description
 
-Removes baseline wander from biosignals using cubic spline interpolation
+Removes baseline wander from biosignals using cubic spline interpolation.
 
 ## Source Code
 
@@ -29,8 +29,10 @@ Removes baseline wander from biosignals using cubic spline interpolation
 ## Examples
 
 ```matlab
-% Basic usage example
-result = baselineremove(input);
+Remove baseline from ECG signal using R-peaks
+[cleanEcg, baseline] = baselineremove(ecg, rpeaks, 50);
+plot(1:length(ecg), ecg, 1:length(cleanEcg), cleanEcg);
+legend('Original', 'Detrended');
 ```
 
 ## See Also
@@ -40,4 +42,4 @@ result = baselineremove(input);
 
 ---
 
-**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-24
+**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25

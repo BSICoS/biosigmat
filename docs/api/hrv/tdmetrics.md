@@ -44,4 +44,4 @@ result = tdmetrics(input);
 
 ---
 
-**Module**: HRV | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-24
+**Module**: HRV | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25

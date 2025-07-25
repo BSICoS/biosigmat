@@ -529,8 +529,7 @@ for i = 1:length(functionList)
 end
 
 content = [content sprintf('\n## See Also\n\n')];
-content = [content sprintf('- [API Reference](../README.md)\n')];
-content = [content sprintf('- [Examples](../../examples/%s-examples.md)\n\n', module)];
+content = [content sprintf('- [API Reference](../README.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
 content = [content sprintf('**Functions**: %d | **Last Updated**: %s\n', ...
@@ -1039,16 +1038,8 @@ end
 content = [content sprintf('## Workflows\n\n')];
 content = [content sprintf('*Workflows will be listed here after processing*\n\n')];
 
-% Add getting started section
-content = [content sprintf('## Getting Started\n\n')];
-content = [content sprintf('1. Make sure biosigmat is properly installed\n')];
-content = [content sprintf('2. Add the required paths to MATLAB\n')];
-content = [content sprintf('3. Load any necessary fixture data\n')];
-content = [content sprintf('4. Run the example scripts\n\n')];
-
 content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [API Reference](../api/README.md)\n')];
-content = [content sprintf('- [Getting Started](../getting-started.md)\n\n')];
+content = [content sprintf('- [API Reference](../api/README.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
 content = [content sprintf('**Examples**: %d | **Last Updated**: %s\n', ...

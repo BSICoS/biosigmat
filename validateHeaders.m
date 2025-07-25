@@ -228,7 +228,7 @@ end
 
 if ~hasExample
     headerInfo.isCompliant = false;
-    headerInfo.violations{end+1} = 'Missing required section: "Example:" with proper indentation (%   Example:)';
+    headerInfo.violations{end+1} = 'Missing required section: "Example"';
 end
 
 % Check for See also section with exact format (optional - warning only)
@@ -249,34 +249,12 @@ if ~hasSeeAlso
     if ~isfield(headerInfo, 'warnings')
         headerInfo.warnings = {};
     end
-    headerInfo.warnings{end+1} = 'Missing optional section: "See also" (%   See also)';
-end
-
-% Check for Status section with exact format (optional - warning only)
-hasStatus = false;
-for i = 1:length(headerLines)
-    line = headerLines{i};
-
-    % Must be exactly "%   Status: " with proper indentation
-    if startsWith(line, '%   Status:')
-        hasStatus = true;
-        foundSections{end+1} = 'Status';
-        break;
-    end
-end
-
-% Add warning for missing Status section (optional)
-if ~hasStatus
-    if ~isfield(headerInfo, 'warnings')
-        headerInfo.warnings = {};
-    end
-    headerInfo.warnings{end+1} = 'Missing optional section: "Status:" (%   Status: Beta)';
+    headerInfo.warnings{end+1} = 'Missing optional section: "See also"';
 end
 
 % Store found sections for reporting
 headerInfo.foundSections = foundSections;
 headerInfo.hasSeeAlso = hasSeeAlso;
-headerInfo.hasStatus = hasStatus;
 
 end
 
@@ -388,9 +366,11 @@ if totalViolations > 0
         fprintf('\n');
     end
 
-    % Report detailed violations
+    % Report detailed violations and warnings
     fprintf('📋 Detailed Function Report:\n');
     fprintf('════════════════════════════');
+
+    % First show functions with violations
     for i = 1:length(validationResults.violations)
         violation = validationResults.violations{i};
         fprintf('\n📄 %s (%s module):\n', violation.functionName, violation.module);
@@ -405,10 +385,8 @@ if totalViolations > 0
         end
     end
 
-    % Also show warnings for compliant functions
+    % Then show compliant functions that have warnings
     if ~isempty(validationResults.compliant)
-        fprintf('\n📋 Compliant Functions with Warnings:\n');
-        fprintf('════════════════════════════════════');
         for i = 1:length(validationResults.compliant)
             compliant = validationResults.compliant{i};
             if isfield(compliant, 'warnings') && ~isempty(compliant.warnings)
@@ -422,16 +400,5 @@ if totalViolations > 0
 else
     fprintf('🎉 All function headers comply with biosigmat guidelines!\n');
 end
-
-fprintf('\n💡 Biosigmat Header Requirements (strict validation):\n');
-fprintf('   • First line: %% FUNCTIONNAME Description ending with period.\n');
-fprintf('   • Syntax descriptions with "%% " + 3 spaces indentation\n');
-fprintf('   • Required "Example" section (exact format)\n');
-fprintf('   • Optional "See also" section (⚠️  warning if missing)\n');
-fprintf('   • Optional "Status" section (⚠️  warning if missing)\n');
-fprintf('   • Required narginchk() and nargoutchk() calls\n');
-fprintf('   • Recommended inputParser usage\n');
-fprintf('   • All formatting is case-sensitive with exact indentation\n');
-fprintf('\n');
 
 end

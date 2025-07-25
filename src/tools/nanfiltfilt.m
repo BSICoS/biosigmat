@@ -38,7 +38,7 @@ function y = nanfiltfilt(b, a, x, maxgap)
 %     [b, a] = butter(4, 0.1);
 %     filtered = nanfiltfilt(b, a, signal, 10);
 %
-%   See also: NANFILTER, FILTFILT, BUTTER
+%   See also NANFILTER, FILTFILT, BUTTER
 
 
 % Argument validation

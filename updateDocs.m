@@ -124,6 +124,7 @@ docInfo.longDescription = '';
 docInfo.syntax = {};
 docInfo.examples = '';
 docInfo.seeAlso = {};
+docInfo.status = 'Stable'; % Default status
 
 try
     % Read file content with UTF-8 encoding
@@ -198,7 +199,7 @@ try
                 if ~isempty(spaceIdx) && length(cleanLine) > spaceIdx(1) + 8
                     seeAlsoText = strtrim(cleanLine(spaceIdx(1) + 8:end));
                     if ~isempty(seeAlsoText)
-                        seeAlsoList = [seeAlsoList, split(seeAlsoText, ',')];
+                        seeAlsoList = [seeAlsoList; split(seeAlsoText, ',')];
                     end
                 end
                 i = i + 1;
@@ -217,7 +218,7 @@ try
                     end
                 case 'seealso'
                     if ~isempty(cleanLine)
-                        seeAlsoList = [seeAlsoList, split(cleanLine, ',')];
+                        seeAlsoList = [seeAlsoList; split(cleanLine, ',')];
                     end
                 otherwise
                     % Long description section (before Example)
@@ -242,6 +243,19 @@ try
             end
         end
         docInfo.seeAlso = cleanSeeAlso;
+
+        % Extract status information (look for "Status:" in the last few lines of header)
+        for j = length(headerLines):-1:max(1, length(headerLines)-5)
+            line = headerLines{j};
+            cleanLine = strtrim(strrep(line, '%', ''));
+            if startsWith(cleanLine, 'Status:', 'IgnoreCase', true)
+                statusText = strtrim(cleanLine(8:end)); % Remove "Status:" prefix
+                if ~isempty(statusText)
+                    docInfo.status = statusText;
+                end
+                break;
+            end
+        end
     end
 
 catch ME
@@ -397,7 +411,22 @@ try
                 funcInfo = struct();
                 funcInfo.name = funcName;
                 funcInfo.description = docInfo.briefDescription;
-                funcInfo.status = '✅ Stable'; % Default status
+
+                % Format status with appropriate emoji
+                statusText = docInfo.status;
+                switch lower(statusText)
+                    case 'alpha'
+                        funcInfo.status = 'α Alpha';
+                    case 'beta'
+                        funcInfo.status = 'β Beta';
+                    case 'deprecated'
+                        funcInfo.status = '❌ Deprecated';
+                    case 'stable'
+                        funcInfo.status = '✅ Stable';
+                    otherwise
+                        funcInfo.status = '✅ Stable'; % Default
+                end
+
                 funcInfo.module = module;
 
                 moduleFunctions{end+1} = funcInfo;

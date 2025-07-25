@@ -26,7 +26,7 @@ function varargout = pantompkins(ecg, fs, varargin)
 %     plot(rpeaks, ecg(round(rpeaks*fs)), 'ro');
 %     title('Detected R-waves in ECG Signal');
 %
-%   See also: BASELINEREMOVE, LPDFILTER, FINDPEAKS
+%   See also BASELINEREMOVE, LPDFILTER, FINDPEAKS
 
 % Argument validation
 narginchk(2, inf);

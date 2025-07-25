@@ -1,30 +1,24 @@
 function threshold = medfiltThreshold(x, window, factor, maxthreshold)
 % MEDFILTTHRESHOLD Compute median-filtered adaptive threshold.
 %
-%   Computes an adaptive threshold for identifying outliers in a series using
-%   median filtering. The threshold is based on a median-filtered version
-%   of the series, with padding at the boundaries to handle edge effects.
+%   THRESHOLD = MEDFILTTHRESHOLD(X, WINDOW, FACTOR, MAXTHRESHOLD) computes an
+%   adaptive threshold for identifying outliers in a series using median filtering.
+%   The threshold is based on a median-filtered version of the series, with padding
+%   at the boundaries to handle edge effects. THRESHOLD is the adaptive threshold
+%   values, same length as X, computed as FACTOR times the median-filtered signal,
+%   capped at MAXTHRESHOLD.
 %
-% Inputs:
-%   x            - Series (in seconds) as a numeric vector
-%   window       - Window size for median filtering
-%   factor       - Multiplicative factor for threshold computation
-%   maxthreshold - Maximum threshold value
+%   Example:
+%     % Create sample series with outliers
+%     x = [0.8, 0.82, 0.81, 1.2, 0.79, 0.83, 0.80]';
 %
-% Outputs:
-%   threshold - Adaptive threshold values
+%     % Compute adaptive threshold
+%     threshold = medfiltThreshold(x, 5, 1.5, 1.5);
 %
-% EXAMPLE:
-%   % Create sample series
-%   x = [0.8, 0.82, 0.81, 1.2, 0.79, 0.83, 0.80]';
+%     % Identify outliers
+%     outliers = x > threshold;
 %
-%   % Compute adaptive threshold
-%   threshold = medfiltThreshold(x, 5, 1.5, 1.5);
-%
-%   % Identify outliers
-%   outliers = x > threshold;
-%
-% STATUS: Beta
+%   See also MEDFILT1, MOVMEDIAN
 
 
 % Check number of input and output arguments

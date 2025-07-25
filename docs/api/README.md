@@ -86,8 +86,6 @@ All functions sorted alphabetically:
 - β **Beta**: Feature complete, undergoing testing
 - α **Alpha**: Under development, API may change
 - ❌ **Deprecated**: No longer recommended for use
-- ⚪ **Undefined**: Status not specified
-
 ---
 
 *Last updated: 2025-07-25 | Total functions: 19*

@@ -120,7 +120,7 @@ function docInfo = extractFunctionDoc(filePath, functionName)
 docInfo = struct();
 docInfo.name = functionName;
 docInfo.description = '';
-docInfo.status = '⚪ Undefined'; % Default status
+docInfo.status = '✅ Stable'; % Default status
 docInfo.syntax = {};
 docInfo.inputs = {};
 docInfo.outputs = {};
@@ -684,7 +684,6 @@ content = [content sprintf('- ✅ **Stable**: Well-tested, production ready\n')]
 content = [content sprintf('- β **Beta**: Feature complete, undergoing testing\n')];
 content = [content sprintf('- α **Alpha**: Under development, API may change\n')];
 content = [content sprintf('- ❌ **Deprecated**: No longer recommended for use\n')];
-content = [content sprintf('- ⚪ **Undefined**: Status not specified\n\n')];
 
 content = [content sprintf('---\n\n')];
 content = [content sprintf('*Last updated: %s | Total functions: %d*\n', ...
@@ -1218,16 +1217,14 @@ function statusSymbol = mapStatusToSymbol(statusText)
 
 statusText = lower(strtrim(statusText));
 
-if contains(statusText, 'stable')
-    statusSymbol = '✅ Stable';
-elseif contains(statusText, 'beta')
+if contains(statusText, 'beta')
     statusSymbol = 'β Beta';
 elseif contains(statusText, 'alpha')
     statusSymbol = 'α Alpha';
 elseif contains(statusText, 'deprecated')
     statusSymbol = '❌ Deprecated';
 else
-    statusSymbol = '⚪ Undefined'; % Default for unrecognized status
+    statusSymbol = '✅ Stable'; % Default to stable
 end
 
 end

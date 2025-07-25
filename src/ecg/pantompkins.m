@@ -1,39 +1,31 @@
 function varargout = pantompkins(ecg, fs, varargin)
 % PANTOMPKINS Algorithm for R-wave detection in ECG signals.
 %
-%   PANTOMPKINS(ECG, FS) Detects R-waves in ECG signal using the Pan-Tompkins
-%              algorithm. This method applies bandpass filtering, derivative
-%              calculation, squaring, and integration to enhance R-wave peaks.
+%   TK = PANTOMPKINS(ECG, FS) Detects R-waves in ECG signals sampled at FS Hz
+%   using the Pan-Tompkins algorithm. This method applies bandpass filtering,
+%   derivative calculation, squaring, and integration to enhance R-wave peaks.
+%   TK is a column vector containing the R-wave occurrence times in seconds.
 %
-%   TK = PANTOMPKINS(ECG, FS)
-%       TK is a column vector containing the R-wave occurrence times in seconds.
+%   TK = PANTOMPKINS(..., Name, Value) allows specifying additional options using
+%   name-value pairs.
+%     'BandpassFreq'         -  Two-element vector [low, high] for bandpass filter
+%                               cutoff frequencies in Hz. Default: [5, 12]
+%     'WindowSize'           -  Integration window size in seconds. Default: 0.15
+%     'MinPeakDistance'      -  Minimum distance between peaks in seconds. Default: 0.5
+%     'SnapTopeakWindowSize' -  Window size in samples for peak refinement. Default: 20
+
+%   [TK, ECGFILTERED, DECG, DECGENVELOPE] = PANTOMPKINS(...) returns additional outputs:
+%     ECGFILTERED  - Bandpass filtered ECG signal
+%     DECG         - Squared derivative of the filtered ECG signal
+%     DECGENVELOPE - Integrated envelope signal used for peak detection
 %
-%   [TK, ECGFILTERED, DECG, DECGENVELOPE] = PANTOMPKINS(...)
-%       Returns additional outputs:
-%       - ECGFILTERED: Bandpass filtered ECG signal
-%       - DECG: Squared derivative of the filtered ECG signal
-%       - DECGENVELOPE: Integrated envelope signal used for peak detection
-%
-%   PANTOMPKINS(..., 'Name', Value) specifies optional parameters using
-%       name-value pair arguments:
-%       - 'BandpassFreq': Two-element vector [low, high] for bandpass filter
-%                        cutoff frequencies in Hz. Default: [5, 12]
-%       - 'WindowSize': Integration window size in seconds. Default: 0.15
-%       - 'MinPeakDistance': Minimum distance between peaks in seconds. Default: 0.5
-%       - 'UseSnapToPeak': Logical flag to enable peak refinement using snaptopeak.
-%                         Default: true
-%       - 'SnapTopeakWindowSize': Window size in samples for peak refinement.
-%                                Default: 20
-%
-% Inputs:
-%   ECG - Single-lead ECG signal (numeric vector)
-%   FS  - Sampling frequency in Hz (numeric scalar)
-%
-% EXAMPLE:
-%   rpeaks = pantompkins(ecg, fs);
-%   plot(t, ecg); hold on; plot(rpeaks, ecg(round(rpeaks*fs)), 'ro');
-%
-% STATUS: Beta
+%   Example:
+%     % Load ECG data and sampling frequency
+%     rpeaks = pantompkins(ecg, fs);
+%     plot(t, ecg); hold on;
+%     plot(rpeaks, ecg(round(rpeaks*fs)), 'ro');
+%     title('Detected R-waves in ECG Signal');
+
 
 % Argument validation
 narginchk(2, inf);
@@ -47,7 +39,6 @@ addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'BandpassFreq', [5, 12], @(x) isnumeric(x) && numel(x) == 2 && all(x > 0) && x(1) < x(2));
 addParameter(parser, 'WindowSize', 0.15, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'MinPeakDistance', 0.5, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'UseSnapToPeak', true, @(x) islogical(x) && isscalar(x));
 addParameter(parser, 'SnapTopeakWindowSize', 20, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
 parse(parser, ecg, fs, varargin{:});
@@ -57,7 +48,6 @@ fs = parser.Results.fs;
 bandpassFreq = parser.Results.BandpassFreq;
 windowSizeSeconds = parser.Results.WindowSize;
 minPeakDistanceSeconds = parser.Results.MinPeakDistance;
-useSnapToPeak = parser.Results.UseSnapToPeak;
 snapTopeakWindowSize = parser.Results.SnapTopeakWindowSize;
 
 ecg = ecg(:);
@@ -83,7 +73,7 @@ locs = sort(locs);
 locs = unique(locs);
 
 % Refine peak locations using snaptopeak if enabled
-if useSnapToPeak && ~isempty(locs)
+if ~isempty(locs)
     locs = snaptopeak(ecg, locs, 'WindowSize', snapTopeakWindowSize);
 end
 

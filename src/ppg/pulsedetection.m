@@ -62,7 +62,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %
 %   See also LPDFILTER, PULSEDELINEATION, FINDPEAKS
 %
-%   Status: Beta
+%   Status: Alpha
 
 
 % Check number of input and output arguments

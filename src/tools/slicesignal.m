@@ -1,34 +1,41 @@
 function [sliced, tcenter] = slicesignal(x, window, overlap, fs)
 % SLICESIGNAL Divide signal into overlapping segments.
 %
-% [SLICED, TCENTER] = SLICESIGNAL(X, WINDOW, OVERLAP, FS) divides a signal into overlapping segments of specified length.
-% Each segment becomes a column in the output matrix, making it easy to apply
-% spectral analysis methods like periodogram or pwelch to multiple segments.
+%   [SLICED, TCENTER] = SLICESIGNAL(X, WINDOW, OVERLAP, FS) divides input
+%   signal X into overlapping segments of specified length WINDOW samples.
+%   OVERLAP specifies the number of overlapping samples between consecutive
+%   segments, and FS is the sampling frequency in Hz. Each segment becomes
+%   a column in the output matrix SLICED, making it suitable for spectral
+%   analysis methods. TCENTER contains the time values in seconds
+%   corresponding to the center of each slice.
 %
-% Inputs:
-%   x - Input signal (numeric column vector)
-%   window - Length of each slice in samples (scalar)
-%   overlap - Number of overlapping samples between slices (scalar)
-%   fs - Sample rate in Hz (scalar)
+%   This function is particularly useful for time-frequency analysis where
+%   you need to apply spectral analysis methods like pwelch or periodogram
+%   to multiple overlapping segments of a signal.
 %
-% Outputs:
-%   sliced - Matrix where each column is a signal segment
-%   tcenter - Time axis in seconds corresponding to center of each slice (column vector)
+%   Example:
+%     % Create a chirp signal and slice it for time-frequency analysis
+%     fs = 1000;
+%     t = (0:1/fs:2)';
+%     x = chirp(t, 10, 2, 50) + 0.1*randn(size(t));
 %
-% EXAMPLE:
-%   % Slice a signal and compute time-frequency map with pwelch
-%   fs = 1000;
-%   tSignal = (0:1/fs:2)';
-%   x = chirp(tSignal, 10, 2, 50);
-%   [sliced, tcenter] = slicesignal(x, 256, 128, fs);
-%   [pxx, f] = pwelch(sliced, [], [], [], fs);
-%   imagesc(tcenter, f, 10*log10(pxx));
-%   axis xy;
-%   xlabel('Time (s)');
-%   ylabel('Frequency (Hz)');
-%   title('Time-Frequency Map');
+%     % Slice the signal with 50% overlap
+%     [sliced, tcenter] = slicesignal(x, 256, 128, fs);
 %
-% STATUS: Beta
+%     % Compute power spectral density for each slice
+%     [pxx, f] = pwelch(sliced, [], [], [], fs);
+%
+%     % Create time-frequency map
+%     figure;
+%     imagesc(tcenter, f, 10*log10(pxx));
+%     axis xy;
+%     xlabel('Time (s)');
+%     ylabel('Frequency (Hz)');
+%     title('Time-Frequency Spectrogram');
+%     colorbar;
+%
+%   See also PWELCH, SPECTROGRAM, PERIODOGRAM
+
 
 % Check number of input and output arguments
 narginchk(4, 4);

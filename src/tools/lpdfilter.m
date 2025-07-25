@@ -32,7 +32,7 @@ function [b, delay] = lpdfilter(fs, stopFreq, varargin)
 %     signalFiltered = filter(b, 1, signal);
 %     signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 %
-%   See also: FIRPMORD, FIRLS, FDESIGN.DIFFERENTIATOR
+%   See also FIRPMORD, FIRLS, FDESIGN.DIFFERENTIATOR
 
 
 % Argument validation

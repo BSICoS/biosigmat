@@ -355,17 +355,6 @@ if totalViolations > 0
         end
     end
 
-    % Report summary of violation types
-    if isfield(violationCounts, 'types')
-        fprintf('📊 Violation Summary:\n');
-        [sortedCounts, sortIdx] = sort(violationCounts.counts, 'descend');
-        sortedTypes = violationCounts.types(sortIdx);
-        for i = 1:length(sortedTypes)
-            fprintf('   %d functions: %s\n', sortedCounts(i), sortedTypes{i});
-        end
-        fprintf('\n');
-    end
-
     % Report detailed violations and warnings
     fprintf('📋 Detailed Function Report:\n');
     fprintf('════════════════════════════');

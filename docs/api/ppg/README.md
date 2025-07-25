@@ -8,7 +8,6 @@
 ## See Also
 
 - [API Reference](../README.md)
-- [Examples](../../examples/ppg-examples.md)
 
 ---
 

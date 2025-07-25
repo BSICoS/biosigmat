@@ -23,11 +23,14 @@ fprintf('🔍 Starting automatic header validation for biosigmat toolbox...\n');
 toolboxRoot = fileparts(mfilename('fullpath'));
 srcDir = fullfile(toolboxRoot, 'src');
 
-% Define all modules to validate
-modules = {'ecg', 'ppg', 'hrv', 'tools'};
+% Get modules dynamically from src directory
+srcContents = dir(srcDir);
+srcContents = srcContents([srcContents.isdir] & ~startsWith({srcContents.name}, '.'));
+modules = {srcContents.name};
+
+fprintf('📚 Found %d modules: %s\n', length(modules), strjoin(modules, ', '));
 
 fprintf('📂 Source directory: %s\n', srcDir);
-fprintf('📋 Modules to validate: %s\n', strjoin(modules, ', '));
 fprintf('\n');
 
 % Initialize validation results

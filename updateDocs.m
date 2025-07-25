@@ -6,7 +6,6 @@ function updateDocs()
 %
 % Usage:
 %   updateDocs()           % Update all documentation
-%   updateDocs('module')   % Update specific module (e.g. 'ecg', 'ppg')
 %
 % The script performs the following tasks:
 % 1. Scans all .m files in src/ directory
@@ -29,9 +28,14 @@ try
         fprintf('📁 Created docs directory\n');
     end
 
-    % Update API documentation for each module
-    modules = {'ecg', 'ppg', 'hrv', 'tools'};
+    % Get modules dynamically from src directory
+    srcContents = dir(srcDir);
+    srcContents = srcContents([srcContents.isdir] & ~startsWith({srcContents.name}, '.'));
+    modules = {srcContents.name};
 
+    fprintf('📚 Found %d modules: %s\n', length(modules), strjoin(modules, ', '));
+
+    % Update API documentation for each module
     for i = 1:length(modules)
         module = modules{i};
         fprintf('📚 Processing %s module...\n', module);

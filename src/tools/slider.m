@@ -1,5 +1,5 @@
 function hSlider = slider(varargin)
-% Creates and adds a scroll slider to a figure with time-based plots
+% SLIDER Creates and adds a scroll slider to a figure with time-based plots
 %
 % HSLIDER = SLIDER() This function adds a horizontal slider at the bottom of a figure to allow
 % scrolling through time-based plots. It works with both numeric and datetime

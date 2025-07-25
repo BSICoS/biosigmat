@@ -19,7 +19,6 @@
 ## See Also
 
 - [API Reference](../README.md)
-- [Examples](../../examples/tools-examples.md)
 
 ---
 

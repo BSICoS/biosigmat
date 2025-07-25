@@ -80,17 +80,6 @@ All functions sorted alphabetically:
 - [`tdmetrics`](hrv/tdmetrics.md)
 - [`trimnans`](tools/trimnans.md)
 
-## Usage Patterns
-
-### Common Workflows
-1. **ECG Analysis Pipeline**: `baselineremove` → `pantompkins` → `tdmetrics`
-2. **PPG Analysis Pipeline**: `pulsedetection` → `pulsedelineation`
-3. **Signal Preprocessing**: `trimnans` → `nanfiltfilt` → `interpgap`
-
-### Function Dependencies
-- Most ECG/PPG functions depend on tools from the `tools/` module
-- HRV functions require peak detection results from ECG/PPG functions
-- All filtering functions handle NaN values appropriately
 
 ## Development Status Legend
 - ✅ **Stable**: Well-tested, production ready

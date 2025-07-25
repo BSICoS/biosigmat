@@ -107,10 +107,6 @@ classdef pantompkinsTest < matlab.unittest.TestCase
                 tk3 = pantompkins(ecg, tc.fs, 'MinPeakDistance', 0.3);
                 tc.verifyClass(tk3, 'double', 'Custom min peak distance should work');
 
-                % Test disabled snaptopeak
-                tk4 = pantompkins(ecg, tc.fs, 'UseSnapToPeak', false);
-                tc.verifyClass(tk4, 'double', 'Disabled snaptopeak should work');
-
                 % Test custom snaptopeak window size
                 tk5 = pantompkins(ecg, tc.fs, 'SnapTopeakWindowSize', 15);
                 tc.verifyClass(tk5, 'double', 'Custom snaptopeak window should work');

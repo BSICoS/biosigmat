@@ -1,5 +1,5 @@
 function [pkl, akl] = peakedness(pxx, f, varargin)
-% PEAKEDNESSComputes the peakedness of power spectral density estimates.
+% PEAKEDNESS Computes the peakedness of power spectral density estimates.
 %
 % [Pkl, Akl] = PEAKEDNESS(PXX, F, REFERENCEFREQ, WINDOW) calculates the
 % peakedness of power spectral density estimates (PXX) at frequencies (F).

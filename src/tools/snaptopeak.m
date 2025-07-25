@@ -1,29 +1,39 @@
 function refinedDetections = snaptopeak(ecg, detections, varargin)
 % SNAPTOPEAK Refine QRS detections by snapping to local maxima.
 %
-%   REFINEDDETECTIONS = SNAPTOPEAK(ECG, DETECTIONS) Refines QRS detection
-%              positions by moving each detection to the nearest local
-%              maximum within a search window around the original detection.
-%              This improves the precision of R-wave peak localization.
-%              REFINEDDETECTIONS is a column vector containing the refined detection
-%              positions in samples, snapped to local maxima.
+%   REFINEDDETECTIONS = SNAPTOPEAK(ECG, DETECTIONS) refines QRS detection
+%   positions by moving each detection in DETECTIONS to the nearest local
+%   maximum within a search window around the original detection. ECG is
+%   the single-lead ECG signal and DETECTIONS contains the initial detection
+%   positions in samples. This improves the precision of R-wave peak
+%   localization by ensuring detections align with actual signal peaks.
+%   Returns REFINEDDETECTIONS as a column vector of refined positions with
+%   the same length as DETECTIONS.
 %
-%   snaptopeak(..., 'Name', Value) specifies optional parameters using
-%       name-value pair arguments:
-%       - 'WindowSize': Search window size around each detection in samples.
-%                      Default: 20 samples
+%   REFINEDDETECTIONS = SNAPTOPEAK(..., 'WindowSize', WINDOWSIZE)
+%   specifies the search window size WINDOWSIZE in samples around each
+%   detection. Default window size is 20 samples.
 %
-% Inputs:
-%   ECG        - Single-lead ECG signal (numeric vector)
-%   DETECTIONS - Initial detection positions in samples (numeric vector)
+%   The function searches for the maximum value within the specified window
+%   around each detection and moves the detection to that location. This is
+%   particularly useful after initial QRS detection to ensure precise
+%   alignment with R-wave peaks.
 %
-% Output:
-%   REFINEDDETECTIONS - Refined detection positions in samples (column vector)
+%   Example:
+%     % Load ECG data and perform initial detection
+%     load('ecg_sample.mat', 'ecg', 'fs');
 %
-% EXAMPLE:
-%   refinedDetections = snaptopeak(ecg, detections, 'WindowSize', 30);
+%     % Perform initial QRS detection (using pantompkins or similar)
+%     initialDetections = pantompkins(ecg, fs);
 %
-% STATUS: Beta
+%     % Refine detections by snapping to local maxima
+%     refinedDetections = snaptopeak(ecg, initialDetections);
+%
+%     % Use larger search window
+%     refinedDetections2 = snaptopeak(ecg, initialDetections, 'WindowSize', 30);
+%
+%   See also PANTOMPKINS, FINDPEAKS, MAX
+
 
 % Argument validation
 narginchk(2, inf);

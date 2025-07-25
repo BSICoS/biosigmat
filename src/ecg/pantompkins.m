@@ -28,6 +28,7 @@ function varargout = pantompkins(ecg, fs, varargin)
 %
 %   See also BASELINEREMOVE, LPDFILTER, FINDPEAKS
 
+
 % Argument validation
 narginchk(2, inf);
 nargoutchk(0, 4);

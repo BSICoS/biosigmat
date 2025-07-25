@@ -1,46 +1,39 @@
 function [pkl, akl] = peakedness(pxx, f, varargin)
 % PEAKEDNESS Computes the peakedness of power spectral density estimates.
 %
-% [Pkl, Akl] = PEAKEDNESS(PXX, F, REFERENCEFREQ, WINDOW) calculates the
-% peakedness of power spectral density estimates (PXX) at frequencies (F).
-% It measures how concentrated the power is in a narrow frequency band
-% compared to a wider band. The peakedness is defined as the percentage of
-% power in a narrow window around a reference frequency compared to the
-% power in a wider window. It also computes the absolute maximum peakedness
-% as the percentage of the maximum power in the narrow window compared to
-% the global maximum power in the spectrum.
+%   [PKL, AKL] = PEAKEDNESS(PXX, F) calculates the peakedness of power
+%   spectral density estimates PXX at frequencies F using an adaptive method
+%   that automatically determines the reference frequency as the spectrum
+%   maximum. PXX can be a column vector for a single spectrum or a matrix
+%   with spectra as columns. F is the frequency vector in Hz corresponding
+%   to PXX. Returns PKL (power concentration peakedness) and AKL (absolute
+%   maximum peakedness), both as percentages.
 %
-% Inputs:
-%   pxx           - Power spectral density estimates. Can be:
-%                   - Column vector for single spectrum
-%                   - Matrix with spectra as columns
-%   f             - Frequency vector (Hz) corresponding to pxx
-%   referenceFreq - (Optional) Reference frequency (Hz) for peakedness calculation.
-%                   If not provided, uses adaptive method (spectrum maximum as center)
-%   window        - (Optional) Search window bandwith centered around referenceFreq (Hz) [default: 0.125]
+%   The peakedness measures how concentrated the power is in a narrow
+%   frequency band compared to a wider band. Power concentration peakedness
+%   (PKL) is the percentage of power in a narrow window compared to power in
+%   a wider window. Absolute maximum peakedness (AKL) is the percentage of
+%   the maximum power in the window compared to the global maximum power.
 %
-% Outputs:
-%   pkl - Power concentration peakedness values (% of power in narrow vs wide window) (1 per spectrum in pxx)
-%   akl - Absolute maximum peakedness values (% of max in window vs global max) (1 per spectrum in pxx)
+%   [PKL, AKL] = PEAKEDNESS(PXX, F, REFERENCEFREQ) uses a fixed reference
+%   frequency REFERENCEFREQ in Hz for peakedness calculation instead of the
+%   adaptive method.
 %
-% EXAMPLE:
-%   % Generate a test spectrum with a peak at 0.3 Hz
-%   f = 0:0.01:1;
-%   pxx = exp(-((f-0.3)/0.05).^2) + 0.1*randn(size(f));
-%   [pkl, akl] = peakedness(pxx, f, 0.3);
-%   fprintf('Power concentration peakedness: %.1f%%\n', pkl);
-%   fprintf('Absolute maximum peakedness: %.1f%%\n', akl);
+%   [PKL, AKL] = PEAKEDNESS(PXX, F, REFERENCEFREQ, WINDOW) additionally
+%   specifies the search window bandwidth WINDOW in Hz centered around the
+%   reference frequency. Default window size is 0.125 Hz. Use empty array
+%   [] for REFERENCEFREQ to use adaptive method with custom window.
 %
-%   % Use adaptive method (no reference frequency)
-%   [pkl, akl] = peakedness(pxx, f);
+%   Example:
+%     % Generate a test spectrum with a peak at 0.3 Hz
+%     f = 0:0.01:1;
+%     pxx = exp(-((f-0.3)/0.05).^2) + 0.1*randn(size(f));
 %
-%   % Use custom window with fixed method
-%   [pkl, akl] = peakedness(pxx, f, 0.3, 0.2);
+%     % Calculate peakedness using fixed reference frequency
+%     [pkl, akl] = peakedness(pxx, f, 0.3);
 %
-%   % Use custom window with adaptive method
-%   [pkl, akl] = peakedness(pxx, f, [], 0.2);
-%
-% STATUS: Beta
+%   See also NANPWELCH, PWELCH
+
 
 % Check number of input and output arguments
 narginchk(2, inf);

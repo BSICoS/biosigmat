@@ -1,40 +1,37 @@
-# `snaptopeak` - Refine QRS detections by snapping to local maxima
+# `snaptopeak` - Refine QRS detections by snapping to local maxima.
 
 ## Syntax
 
 ```matlab
 function refinedDetections = snaptopeak(ecg, detections, varargin)
-snaptopeak(ECG, DETECTIONS) Refines QRS detection positions by moving
-REFINEDDETECTIONS = snaptopeak(ECG, DETECTIONS)
-snaptopeak(..., 'Name', Value) specifies optional parameters using
 ```
 
 ## Description
 
-Refine QRS detections by snapping to local maxima
+REFINEDDETECTIONS = SNAPTOPEAK(ECG, DETECTIONS) refines QRS detection positions by moving each detection in DETECTIONS to the nearest local maximum within a search window around the original detection. ECG is the single-lead ECG signal and DETECTIONS contains the initial detection positions in samples. This improves the precision of R-wave peak localization by ensuring detections align with actual signal peaks. Returns REFINEDDETECTIONS as a column vector of refined positions with the same length as DETECTIONS. REFINEDDETECTIONS = SNAPTOPEAK(..., 'WindowSize', WINDOWSIZE) specifies the search window size WINDOWSIZE in samples around each detection. Default window size is 20 samples. The function searches for the maximum value within the specified window around each detection and moves the detection to that location. This is particularly useful after initial QRS detection to ensure precise alignment with R-wave peaks.
 
 ## Source Code
 
 [View source code](../../../src/tools/snaptopeak.m)
 
-## Input Arguments
-
-- **ECG**: Single-lead ECG signal (numeric vector)
-- **DETECTIONS**: Initial detection positions in samples (numeric vector)
-- **REFINEDDETECTIONS**: Refined detection positions in samples (column vector)
-
-## Output Arguments
-
-- **refinedDetections**: refinedDetections output
-
 ## Examples
 
 ```matlab
-% Basic usage example
-result = snaptopeak(input);
+Load ECG data and perform initial detection
+load('ecg_sample.mat', 'ecg', 'fs');
+Perform initial QRS detection (using pantompkins or similar)
+initialDetections = pantompkins(ecg, fs);
+Refine detections by snapping to local maxima
+refinedDetections = snaptopeak(ecg, initialDetections);
+Use larger search window
+refinedDetections2 = snaptopeak(ecg, initialDetections, 'WindowSize', 30);
 ```
 
 ## See Also
+
+- PANTOMPKINS
+- FINDPEAKS
+- MAX
 
 - [TOOLS Module](README.md)
 - [API Reference](../README.md)

@@ -4,27 +4,15 @@
 
 ```matlab
 function [b, delay] = lpdfilter(fs, stopFreq, varargin)
-filterCoeff = lpdfilter(fs, stopFreq) designs an LPD filter with
-filterCoeff = lpdfilter(fs, stopFreq, Name, Value) allows specifying
 ```
 
 ## Description
 
-Low-pass derivative filter.
+B = LPDFILTER(FS, STOPFREQ) designs a low-pass derivative (LPD) linear-phase FIR filter with a specified sampling frequency FS and stop-band frequency STOPFREQ. using least-squares estimation. B = LPDFILTER(..., Name, Value) allows specifying additional options using name-value pairs. 'PassFreq' - Pass-band frequency in Hz (positive scalar). Must be less than STOPFREQ. If not specified, defaults to (STOPFREQ - 0.2) Hz. 'Order'    - Filter order (positive even integer). If not specified, automatically calculated based on transition band requirements. [B, DELAY] = LPDFILTER(...) also returns the filter delay, which is half the filter order.
 
 ## Source Code
 
 [View source code](../../../src/tools/lpdfilter.m)
-
-## Input Arguments
-
-- **fs**: Sampling frequency in Hz (positive numeric scalar).
-- **stopFreq**: Stop-band frequency in Hz (positive scalar).
-
-## Output Arguments
-
-- **b**: Filter impulsional response (1 x (Order+1) numeric array).
-- **delay**: Delay introduced by the filter (scalar).
 
 ## Examples
 
@@ -45,6 +33,10 @@ signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 ```
 
 ## See Also
+
+- FIRPMORD
+- FIRLS
+- FDESIGN.DIFFERENTIATOR
 
 - [TOOLS Module](README.md)
 - [API Reference](../README.md)

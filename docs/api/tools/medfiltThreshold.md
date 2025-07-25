@@ -1,35 +1,23 @@
-# `medfiltThreshold` - Compute median-filtered adaptive threshold
+# `medfiltThreshold` - Compute median-filtered adaptive threshold.
 
 ## Syntax
 
 ```matlab
 function threshold = medfiltThreshold(x, window, factor, maxthreshold)
-threshold = medfiltThreshold(x, 5, 1.5, 1.5);
 ```
 
 ## Description
 
-Compute median-filtered adaptive threshold
+THRESHOLD = MEDFILTTHRESHOLD(X, WINDOW, FACTOR, MAXTHRESHOLD) computes an adaptive threshold for identifying outliers in a series using median filtering. The threshold is based on a median-filtered version of the series, with padding at the boundaries to handle edge effects. THRESHOLD is the adaptive threshold values, same length as X, computed as FACTOR times the median-filtered signal, capped at MAXTHRESHOLD.
 
 ## Source Code
 
 [View source code](../../../src/tools/medfiltThreshold.m)
 
-## Input Arguments
-
-- **x**: Series (in seconds) as a numeric vector
-- **window**: Window size for median filtering
-- **factor**: Multiplicative factor for threshold computation
-- **maxthreshold**: Maximum threshold value
-
-## Output Arguments
-
-- **threshold**: Adaptive threshold values
-
 ## Examples
 
 ```matlab
-Create sample series
+Create sample series with outliers
 x = [0.8, 0.82, 0.81, 1.2, 0.79, 0.83, 0.80]';
 Compute adaptive threshold
 threshold = medfiltThreshold(x, 5, 1.5, 1.5);
@@ -38,6 +26,9 @@ outliers = x > threshold;
 ```
 
 ## See Also
+
+- MEDFILT1
+- MOVMEDIAN
 
 - [TOOLS Module](README.md)
 - [API Reference](../README.md)

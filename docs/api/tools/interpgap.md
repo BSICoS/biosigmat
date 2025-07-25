@@ -1,44 +1,38 @@
-# `interpgap` - Interpolate small NaN gaps in a signal
+# `interpgap` - Interpolate small NaN gaps in a signal.
 
 ## Syntax
 
 ```matlab
-function interpolatedSignal = interpgap(signal, maxgap, varargin)
-interpolated = interpgap(signal, 2);
-interpolatedCubic = interpgap(signal, 2, 'cubic');
+function interpolated = interpgap(x, maxgap, varargin)
 ```
 
 ## Description
 
-Interpolate small NaN gaps in a signal
+INTERPOLATED = INTERPGAP(X, MAXGAP) interpolates NaN gaps in a vector X that are smaller than or equal to a specified MAXGAP Gaps larger than MAXGAP are left unchanged. INTERPOLATED is a vector with the same size as X. INTERPOLATED = INTERPGAP(..., METHOD) allows specifying the interpolation method: 'linear'   - Linear interpolation (default) 'nearest'  - Nearest neighbor interpolation 'spline'   - Spline interpolation 'pchip'    - Piecewise cubic Hermite interpolating polynomial
 
 ## Source Code
 
 [View source code](../../../src/tools/interpgap.m)
 
-## Input Arguments
-
-- **signal**: Input signal (numeric vector)
-- **maxgap**: Maximum gap length in samples to interpolate (scalar)
-- **method**: (optional) Interpolation method: 'linear', 'nearest', 'cubic',
-- **spline, or pchip (default**: 'linear')
-
-## Output Arguments
-
-- **interpolatedSignal**: Signal with small gaps interpolated
-
 ## Examples
 
 ```matlab
-Create a signal with small gaps
-signal = [1, 2, NaN, 4, 5, NaN, NaN, 8, 9, 10]';
-interpolated = interpgap(signal, 2);
-interpolatedCubic = interpgap(signal, 2, 'cubic');
-plot(1:length(signal), signal, 'ro', 1:length(interpolated), interpolated, 'b-');
+Create a signal with small gaps and interpolate
+x = [1, 2, NaN, 4, 5, NaN, NaN, 8, 9, 10]';
+interpolated = interpgap(x, 2);
+interpolatedCubic = interpgap(x, 2, 'spline');
+Plot results
+figure;
+plot(1:length(x), x, 'ro', 1:length(interpolated), interpolated, 'b-');
 legend('Original', 'Interpolated');
+title('Signal Gap Interpolation');
 ```
 
 ## See Also
+
+- INTERP1
+- ISNAN
+- FILLMISSING
 
 - [TOOLS Module](README.md)
 - [API Reference](../README.md)

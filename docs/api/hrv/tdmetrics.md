@@ -1,43 +1,38 @@
-# `tdmetrics` - Compute classical time domain indices for heart rate variability analysis
+# `tdmetrics` - Compute standard time-domain indices for heart rate variability analysis.
 
 ## Syntax
 
 ```matlab
-function Output = tdmetrics(dtk)
-Output = tdmetrics(dtk) computes time domain indices from interval series (dtk).
+function metrics = tdmetrics(dtk)
 ```
 
 ## Description
 
-Compute classical time domain indices for heart rate variability analysis
+METRICS = TDMETRICS(DTK) computes standard time-domain metrics used in heart rate variability (HRV) analysis from interval series (DTK). METRICS is a structure containing the following time-domain metrics: MHR   - Mean heart rate (beats/min) SDNN  - Standard deviation of normal-to-normal (NN) intervals (ms) SDSD  - Standard deviation of differences between adjacent NN intervals (ms) RMSSD - Root mean square of successive differences of NN intervals (ms) PNN50 - Proportion of interval differences > 50ms with respect to all NN intervals ()
 
 ## Source Code
 
 [View source code](../../../src/hrv/tdmetrics.m)
 
-## Input Arguments
-
-- **dtk**: Interval series (in seconds) as a numeric vector
-- **TK**: tk - Required input parameter
-- **removeOutliers**: Optional parameter
-
-## Output Arguments
-
-- **Output**: Structure containing the following time domain metrics:
-- **mhr**: Mean heart rate (beats/min)
-- **sdnn**: Standard deviation of normal-to-normal (NN) intervals (ms)
-- **sdsd**: Standard deviation of differences between adjacent NN intervals (ms)
-- **rmssd**: Root mean square of successive differences of NN intervals (ms)
-- **pNN50**: Proportion of interval differences > 50ms with respect to all NN intervals ()
-
 ## Examples
 
 ```matlab
-% Basic usage example
-result = tdmetrics(input);
+Compute time domain metrics from R-R interval series
+load('ecg_data.mat');  Load ECG data
+rpeaks = pantompkins(ecg, fs);  Detect R-peaks
+dtk = diff(rpeaks);  Compute R-R intervals
+metrics = tdmetrics(dtk);
+Display results
+fprintf('Mean HR: .1f bpm\n', metrics.mhr);
+fprintf('SDNN: .1f ms\n', metrics.sdnn);
+fprintf('RMSSD: .1f ms\n', metrics.rmssd);
+fprintf('SDSD: .1f ms\n', metrics.sdsd);
+fprintf('pNN50: .1f \n', metrics.pNN50);
 ```
 
 ## See Also
+
+- PANTOMPKINS
 
 - [HRV Module](README.md)
 - [API Reference](../README.md)

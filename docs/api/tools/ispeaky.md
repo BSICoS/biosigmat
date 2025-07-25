@@ -4,27 +4,15 @@
 
 ```matlab
 function isPeaky = ispeaky(pkl, akl, pklThreshold, aklThreshold)
-isPeaky = ispeaky(pkl, akl, 45, 85);
 ```
 
 ## Description
 
-Determines if spectra are considered peaky based on peakedness thresholds.
+ISPEAKY = ISPEAKY(PKL, AKL, PKLTHRESHOLD, AKLTHRESHOLD) determines if spectra are considered peaky based on peakedness thresholds. ISPEAKY is a logical array indicating which spectra meet both criteria (PKL >= PKLTHRESHOLD and AKL >= AKLTHRESHOLD).
 
 ## Source Code
 
 [View source code](../../../src/tools/ispeaky.m)
-
-## Input Arguments
-
-- **pkl**: Power concentration peakedness values ()
-- **akl**: Absolute maximum peakedness values ()
-- **pklThreshold**: Peakedness threshold based on power concentration ()
-- **aklThreshold**: Peakedness threshold based on absolute maximum ()
-
-## Output Arguments
-
-- **isPeaky**: Logical array indicating which spectra are considered peaky
 
 ## Examples
 
@@ -41,6 +29,9 @@ Result: [false; true; true] (only 2nd and 3rd spectra are peaky)
 ```
 
 ## See Also
+
+- PEAKEDNESS
+- PERIODOGRAM
 
 - [TOOLS Module](README.md)
 - [API Reference](../README.md)

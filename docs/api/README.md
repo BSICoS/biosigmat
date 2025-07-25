@@ -9,9 +9,9 @@ Functions for electrocardiography signal analysis and QRS detection.
 
 | Function | Description | Status |
 | -------- | ----------- | ------ |
-| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | β Beta |
-| [`pantompkins`](ecg/pantompkins.md) | Algorithm for R-wave detection in ECG signals. | β Beta |
-| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | β Beta |
+| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | ✅ Stable |
+| [`pantompkins`](ecg/pantompkins.md) | Algorithm for R-wave detection in ECG signals. | ✅ Stable |
+| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | ✅ Stable |
 
 **[ECG Module Documentation](ecg/README.md)**
 
@@ -20,7 +20,7 @@ Functions for heart rate variability analysis and metrics calculation.
 
 | Function | Description | Status |
 | -------- | ----------- | ------ |
-| [`tdmetrics`](hrv/tdmetrics.md) | Compute classical time domain indices for heart rate variability analysis. | β Beta |
+| [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | ✅ Stable |
 
 **[HRV Module Documentation](hrv/README.md)**
 
@@ -29,8 +29,8 @@ Functions for photoplethysmography signal analysis and pulse detection.
 
 | Function | Description | Status |
 | -------- | ----------- | ------ |
-| [`pulsedelineation`](ppg/pulsedelineation.md) | Plethysmography signals delineation using adaptive thresholding. | β Beta |
-| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in plethysmography signals using adaptive thresholding. | β Beta |
+| [`pulsedelineation`](ppg/pulsedelineation.md) | Plethysmography signals delineation using adaptive thresholding. | ✅ Stable |
+| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using adaptive thresholding. | ✅ Stable |
 
 **[PPG Module Documentation](ppg/README.md)**
 
@@ -39,19 +39,20 @@ Utility functions for signal processing and data manipulation.
 
 | Function | Description | Status |
 | -------- | ----------- | ------ |
-| [`findsequences`](tools/findsequences.md) | Find sequences of repeated (adjacent/consecutive) numeric values | β Beta |
-| [`interpgap`](tools/interpgap.md) | Interpolate small NaN gaps in a signal. | β Beta |
-| [`ispeaky`](tools/ispeaky.md) | Determines if spectra are considered peaky based on peakedness thresholds. | β Beta |
-| [`lpdfilter`](tools/lpdfilter.md) | Low-pass derivative filter. | β Beta |
-| [`medfiltThreshold`](tools/medfiltThreshold.md) | Compute median-filtered adaptive threshold. | β Beta |
-| [`nanfilter`](tools/nanfilter.md) | Implements filter function with support for NaN values. | β Beta |
-| [`nanfiltfilt`](tools/nanfiltfilt.md) | Implements filtfilt function with support for NaN values. | β Beta |
-| [`nanpwelch`](tools/nanpwelch.md) | Compute Welch periodogram when signal has NaN segments. | β Beta |
-| [`peakedness`](tools/peakedness.md) | Computes the peakedness of power spectral density estimates. | β Beta |
-| [`slicesignal`](tools/slicesignal.md) | Divide signal into overlapping segments. | β Beta |
-| [`slider`](tools/slider.md) | Creates and adds a scroll slider to a figure with time-based plots | β Beta |
-| [`snaptopeak`](tools/snaptopeak.md) | Refine QRS detections by snapping to local maxima. | β Beta |
-| [`trimnans`](tools/trimnans.md) | Trim NaN values from the beginning and end of a signal. | β Beta |
+| [`findsequences`](tools/findsequences.md) | Find sequences of repeated (adjacent/consecutive) numeric values. | ✅ Stable |
+| [`interpgap`](tools/interpgap.md) | Interpolate small NaN gaps in a signal. | ✅ Stable |
+| [`ispeaky`](tools/ispeaky.md) | Determines if spectra are considered peaky based on peakedness thresholds. | ✅ Stable |
+| [`lpdfilter`](tools/lpdfilter.md) | Low-pass derivative filter. | ✅ Stable |
+| [`medfiltThreshold`](tools/medfiltThreshold.md) | Compute median-filtered adaptive threshold. | ✅ Stable |
+| [`nanfilter`](tools/nanfilter.md) | Implements filter function with support for NaN values. | ✅ Stable |
+| [`nanfiltfilt`](tools/nanfiltfilt.md) | Implements filtfilt function with support for NaN values. | ✅ Stable |
+| [`nanpwelch`](tools/nanpwelch.md) | Compute Welch periodogram when signal has NaN segments. | ✅ Stable |
+| [`peakedness`](tools/peakedness.md) | Computes the peakedness of power spectral density estimates. | ✅ Stable |
+| [`peakednessCost`](tools/peakednessCost.md) |  | ✅ Stable |
+| [`slicesignal`](tools/slicesignal.md) | Divide signal into overlapping segments. | ✅ Stable |
+| [`slider`](tools/slider.md) | Creates and adds a scroll slider to a figure with time-based plots. | ✅ Stable |
+| [`snaptopeak`](tools/snaptopeak.md) | Refine QRS detections by snapping to local maxima. | ✅ Stable |
+| [`trimnans`](tools/trimnans.md) | Trim NaN values from the beginning and end of a signal. | ✅ Stable |
 
 **[TOOLS Module Documentation](tools/README.md)**
 
@@ -71,6 +72,7 @@ All functions sorted alphabetically:
 - [`nanpwelch`](tools/nanpwelch.md)
 - [`pantompkins`](ecg/pantompkins.md)
 - [`peakedness`](tools/peakedness.md)
+- [`peakednessCost`](tools/peakednessCost.md)
 - [`pulsedelineation`](ppg/pulsedelineation.md)
 - [`pulsedetection`](ppg/pulsedetection.md)
 - [`slicesignal`](tools/slicesignal.md)
@@ -88,4 +90,4 @@ All functions sorted alphabetically:
 - ❌ **Deprecated**: No longer recommended for use
 ---
 
-*Last updated: 2025-07-25 | Total functions: 19*
+*Last updated: 2025-07-25 | Total functions: 20*

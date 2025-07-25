@@ -1,39 +1,24 @@
-# `pantompkins` - algorithm for R-wave detection in ECG signals.
+# `pantompkins` - Algorithm for R-wave detection in ECG signals.
 
 ## Syntax
 
 ```matlab
 function varargout = pantompkins(ecg, fs, varargin)
-rpeaks = pantompkins(ecg, fs);
 ```
 
 ## Description
 
-algorithm for R-wave detection in ECG signals.
+TK = PANTOMPKINS(ECG, FS) Detects R-waves in ECG signals sampled at FS Hz using the Pan-Tompkins algorithm. This method applies bandpass filtering, derivative calculation, squaring, and integration to enhance R-wave peaks. TK is a column vector containing the R-wave occurrence times in seconds. TK = PANTOMPKINS(..., Name, Value) allows specifying additional options using name-value pairs. 'BandpassFreq'         -  Two-element vector [low, high] for bandpass filter cutoff frequencies in Hz. Default: [5, 12] 'WindowSize'           -  Integration window size in seconds. Default: 0.15 'MinPeakDistance'      -  Minimum distance between peaks in seconds. Default: 0.5 'SnapTopeakWindowSize' -  Window size in samples for peak refinement. Default: 20
 
 ## Source Code
 
 [View source code](../../../src/ecg/pantompkins.m)
 
-## Input Arguments
-
-- **ECG**: Single-lead ECG signal (numeric vector)
-- **FS**: Sampling frequency in Hz (numeric scalar)
-- **BandpassFreq**: Optional parameter
-- **WindowSize**: Optional parameter (default: 0.15)
-- **MinPeakDistance**: Optional parameter (default: 0.5)
-- **UseSnapToPeak**: Optional parameter (default: true)
-- **SnapTopeakWindowSize**: Optional parameter (default: 20)
-
-## Output Arguments
-
-- **varargout**: Variable number of output arguments
-
 ## Examples
 
 ```matlab
-rpeaks = pantompkins(ecg, fs);
-plot(t, ecg); hold on; plot(rpeaks, ecg(round(rpeaks*fs)), 'ro');
+% Basic usage example
+result = pantompkins(input);
 ```
 
 ## See Also

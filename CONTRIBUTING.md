@@ -43,14 +43,27 @@ The project is organized as follows:
 
 ```matlab
 function outputSignal = processSignal(inputSignal, windowSize)
-% Processes the input signal using a sliding window approach
-% 
-% Inputs:
-%   inputSignal - The signal to be processed
-%   windowSize - Size of the sliding window
+% PROCESSSIGNAL Processes the input signal using a sliding window approach.
 %
-% Outputs:
-%   outputSignal - The processed signal
+%   OUTPUTSIGNAL = PROCESSSIGNAL(INPUTSIGNAL, WINDOWSIZE) processes the input
+%   signal using a sliding window approach. INPUTSIGNAL is the signal to be
+%   processed (numeric vector) and WINDOWSIZE is the size of the sliding window
+%   (positive scalar). OUTPUTSIGNAL is the processed signal.
+%
+%   Example:
+%     % Process a simple sine wave with a window size of 5
+%     t = 0:0.01:1;
+%     signal = sin(2*pi*10*t)';
+%     processed = processSignal(signal, 5);
+%     
+%     % Plot results
+%     figure;
+%     plot(t, signal, 'b', t, processed, 'r');
+%     legend('Original', 'Processed');
+%     title('Signal Processing Example');
+%
+%   See also FILTER, CONV
+
 
 % Check number of input and output arguments
 narginchk(2, 2);
@@ -61,7 +74,9 @@ parser = inputParser;
 parser.FunctionName = 'processSignal';
 addRequired(parser, 'inputSignal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'windowSize', @(x) isnumeric(x) && isscalar(x) && x > 0);
+
 parse(parser, inputSignal, windowSize);
+
 inputSignal = parser.Results.inputSignal;
 windowSize = parser.Results.windowSize;
 
@@ -69,7 +84,13 @@ windowSize = parser.Results.windowSize;
 end
 ```
 
-- The header comment must describe the function's purpose, inputs, and outputs.
+- The header comment must follow a specific structure:
+  - Function name in uppercase followed by brief description
+  - Main usage description with parameter explanations integrated in the text
+  - Additional usage forms (if applicable) in separate paragraphs
+  - Example section with complete, runnable code including plotting/visualization
+  - "See also" section with related functions
+  - No separate "Inputs" and "Outputs" sections - integrate descriptions in the main text
 - The argument validation and parsing block must always appear immediately after the header comment, before any other code.
 - Use the same commenting and structure style as shown above and in the files in `src/`.
 
@@ -87,33 +108,25 @@ end
 Test files must define a test class using MATLAB's unittest framework:
 
 ```matlab
-% functionNameTest.m - Test class for the functionName function
-classdef functionNameTest < matlab.unittest.TestCase
+% processSignalTest.m - Test class for the processSignal function
+classdef processSignalTest < matlab.unittest.TestCase
 
   methods (TestClassSetup)
     function addCodeToPath(tc)
-      % Add source path for the function under test
-      addpath('../../src/tools');
+      addpath('route/to/path');
     end
   end
 
   methods (Test)
     function testBasicFunctionality(tc)
-      % Setup input data
-      inputData = ...;  % define inputs
-      expected = ...;   % define expected output
+      % define expected output
+      expected = ...;
 
       % Execute function under test
-      actual = functionName(inputData);
+      actual = processSignal();
+
       % Verify result
       tc.verifyEqual(actual, expected, 'Basic functionality failed');
-    end
-
-    function testEdgeCase(tc)
-      % Setup edge-case input
-      badInput = ...;
-      % Verify error is thrown
-      tc.verifyError(@() functionName(badInput), '', 'Error handling failed');
     end
   end
 
@@ -127,8 +140,6 @@ Key requirements for each test file:
 - Define one test method per scenario inside `methods (Test)`
 - Use `tc.verify*` assertions (`verifyEqual`, `verifyTrue`, `verifyWarning`, etc.)
 - Name test methods starting with `test` and use descriptive comments
-- Handle special values (`NaN`, `Inf`) and multi-column inputs as needed
-- Include dependency checks via `exist` in a first test method if external functions are required
 
 ## MATLAB-Specific Guidelines
 

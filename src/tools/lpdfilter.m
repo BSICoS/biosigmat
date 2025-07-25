@@ -1,56 +1,40 @@
 function [b, delay] = lpdfilter(fs, stopFreq, varargin)
 % LPDFILTER Low-pass derivative filter.
-%   Designs a low-pass derivative (LPD) linear-phase FIR filter using
-%   least-squares estimation. The estimator filter minimizes the weighted
-%   integrated squared error between an ideal piecewise linear function
-%   and the magnitude response of the filter.
 %
-%   filterCoeff = lpdfilter(fs, stopFreq) designs an LPD filter with
-%   automatically determined passband frequency and filter order.
+%   B = LPDFILTER(FS, STOPFREQ) designs a low-pass derivative (LPD)
+%   linear-phase FIR filter with a specified sampling frequency FS
+%   and stop-band frequency STOPFREQ. using least-squares estimation.
 %
-%   filterCoeff = lpdfilter(fs, stopFreq, Name, Value) allows specifying
+%   B = LPDFILTER(..., Name, Value) allows specifying
 %   additional options using name-value pairs.
+%     'PassFreq' - Pass-band frequency in Hz (positive scalar).
+%                  Must be less than STOPFREQ. If not specified, defaults
+%                  to (STOPFREQ - 0.2) Hz.
+%     'Order'    - Filter order (positive even integer). If not specified,
+%                  automatically calculated based on transition band requirements.
 %
-% Inputs:
-%   fs        - Sampling frequency in Hz (positive numeric scalar).
-%               Must be greater than 2 * stopFreq to satisfy Nyquist criterion.
-%   stopFreq  - Stop-band frequency in Hz (positive scalar).
-%               Frequencies above this will be attenuated.
+%   [B, DELAY] = LPDFILTER(...) also returns the filter delay, which is half the filter order.
 %
-% Name-Value Pair Arguments:
-%   'PassFreq'     - Pass-band frequency in Hz (positive scalar).
-%                    Must be less than stopFreq. If not specified, defaults
-%                    to stopFreq - 0.2 Hz for optimal transition band.
-%   'Order'        - Filter order (positive even integer).
-%                    Higher orders provide sharper transitions but increased
-%                    computational cost. If not specified, automatically
-%                    calculated based on transition band requirements.
+%   Example:
+%     % Design filter and visualize the frequency response
+%     fs = 100;
+%     [b, delay] = lpdfilter(fs, 10);
 %
-% Outputs:
-%   b    - Filter impulsional response (1 x (Order+1) numeric array).
-%          Ready for use with filter() or conv(). Coefficients are scaled by
-%          fs/(2*pi) to approximate continuous-time derivative (from per-sample
-%          to per-second)
-%   delay - Delay introduced by the filter (scalar).
+%     [h, w] = freqz(b, 1, 2^16);
+%     figure;
+%     plot(w*fs/(2*pi), abs(h)/max(abs(h)));
+%     title('Normalized Frequency Response');
+%     xlabel('Frequency (Hz)');
+%     ylabel('Magnitude');
+%     grid on;
 %
-% EXAMPLE:
-%   % Design filter and visualize the frequency response
-%   fs = 100;
-%   [b, delay] = lpdfilter(fs, 10);
+%     % Apply filter to a signal and compensate delay
+%     signalFiltered = filter(b, 1, signal);
+%     signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 %
-%   [h, w] = freqz(b, 1, 2^16);
-%   figure;
-%   plot(w*fs/(2*pi), abs(h)/max(abs(h)));
-%   title('Normalized Frequency Response');
-%   xlabel('Frequency (Hz)');
-%   ylabel('Magnitude');
-%   grid on;
+%   See also: FIRPMORD, FIRLS, FDESIGN.DIFFERENTIATOR
 %
-%   % Apply filter to a signal and compensate delay
-%   signalFiltered = filter(b, 1, signal);
-%   signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
-%
-% STATUS: Beta
+%   Status: Beta
 
 % Argument validation
 narginchk(2, 6);

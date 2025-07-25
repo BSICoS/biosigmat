@@ -29,4 +29,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 6 | **Workflows**: 1 | **Last Updated**: 2025-07-24
+**Examples**: 6 | **Workflows**: 1 | **Last Updated**: 2025-07-25

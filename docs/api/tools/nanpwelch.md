@@ -43,4 +43,4 @@ result = nanpwelch(input);
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-24
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25

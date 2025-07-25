@@ -29,4 +29,4 @@ run('examples/ecg/pantompkinsExample.m');
 
 ---
 
-**Type**: Example | **Module**: ECG | **Last Updated**: 2025-07-24
+**Type**: Example | **Module**: ECG | **Last Updated**: 2025-07-25

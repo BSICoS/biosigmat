@@ -42,4 +42,4 @@ result = pulsedetection(input);
 
 ---
 
-**Module**: PPG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-24
+**Module**: PPG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25

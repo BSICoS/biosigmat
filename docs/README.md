@@ -17,6 +17,11 @@ Welcome to the documentation for the biosigmat toolbox - a MATLAB toolbox for bi
 ### Examples & Tutorials
 - [Code Examples](examples/README.md) - Ready-to-use examples
 
+### Contributing
+- [Contributing Guide](../CONTRIBUTING.md) - Guidelines for contributing to the project
+- [Code Style Guide](code-style-guide.md) - Coding standards and style guidelines
+- [License](../LICENSE) - Project license information
+
 ---
 
 *This documentation is automatically generated and updated. Last updated: 2025-07-24*

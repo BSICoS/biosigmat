@@ -1,40 +1,37 @@
 function varargout = nanpwelch(x, window, noverlap, nfft, fs, varargin)
 % NANPWELCH Compute Welch periodogram when signal has NaN segments.
 %
-% [PX, F, PXXSEGMENTS] = NANPWELCH(X, WINDOW, NOOVERLAP, NFFT, FS, MAXGAP)
-% computes the Welch power spectral density estimate for signals
-% containing NaN values. It trims NaN values at the beginning and end of the
-% signal, interpolates small gaps (≤ maxgap), and splits the signal at
-% large gaps (> maxgap). The power spectral density is computed for each
-% valid segment and averaged across all segments.
+%   PXX = NANPWELCH(X, WINDOW, NOVERLAP, NFFT, FS) computes the Welch power
+%   spectral density estimate for signals containing NaN values. X is the input
+%   signal (vector or matrix), WINDOW is the window for segmentation (scalar length
+%   or window vector), NOVERLAP is the number of overlapped samples, NFFT is the
+%   number of DFT points, and FS is the sample rate in Hz. It trims NaN values
+%   at the beginning and end of the signal and splits the signal at large gaps.
+%   The power spectral density is computed for each valid segment and averaged
+%   across all segments. PXX is the power spectral density estimate.
 %
-% Inputs:
-%   x - Input signal (numeric vector or matrix)
-%   window - Window for segmentation (scalar window length or window vector)
-%   noverlap - Number of overlapped samples (scalar)
-%   nfft - Number of DFT points (scalar)
-%   fs - Sample rate in Hz (scalar)
-%   maxgap - Maximum gap length in samples to interpolate (scalar, optional)
-%                  If empty or not provided, no interpolation is performed
+%   PXX = NANPWELCH(..., MAXGAP) interpolates small gaps (≤ MAXGAP) before
+%   computing the PSD. If MAXGAP is empty or not provided, no interpolation is performed.
 %
-% Outputs:
-%   pxx - Power spectral density estimate
-%         For vector input: column vector
-%         For matrix input: matrix where each column contains the PSD of the corresponding input signal
-%   f - Frequency axis in Hz (column vector, optional)
-%   pxxSegments - Power spectral density for each segment (optional)
-%                 For vector input: matrix where each column contains the PSD of one processed segment
-%                 For matrix input: cell array where pxxSegments{i} contains the PSD segments for signal i
+%   [PXX, F] = NANPWELCH(...) also returns the frequency vector F in Hz.
 %
-% EXAMPLE:
-%   % Compute Welch PSD for a signal with NaN gaps
-%   fs = 1000;
-%   t = 0:1/fs:1;
-%   signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
-%   signal(100:150) = NaN;  % Add NaN gap
-%   [pxx, f, pxxSegments] = nanpwelch(signal, 256, 128, 512, fs, 10);
+%   [PXX, F, PXXSEGMENTS] = NANPWELCH(...) returns additional output:
+%     PXXSEGMENTS - Power spectral density for each segment
+%                   For vector input: matrix where each column contains the PSD of one segment
+%                   For matrix input: cell array where PXXSEGMENTS{i} contains the PSD segments for signal i
 %
-% STATUS: Beta
+%   Example:
+%     % Compute Welch PSD for a signal with NaN gaps
+%     fs = 1000;
+%     t = 0:1/fs:1;
+%     signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
+%     signal(100:150) = NaN;  % Add NaN gap
+%
+%     % Compute PSD with gap interpolation
+%     [pxx, f] = nanpwelch(signal, 256, 128, 512, fs, 10);
+%
+%   See also PWELCH, PERIODOGRAM, TRIMNANS, INTERPGAP
+
 
 % Argument validation
 narginchk(5, 6);

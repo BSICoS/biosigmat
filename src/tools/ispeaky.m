@@ -1,29 +1,24 @@
 function isPeaky = ispeaky(pkl, akl, pklThreshold, aklThreshold)
 % ISPEAKY Determines if spectra are considered peaky based on peakedness thresholds.
 %
-% Inputs:
-%   pkl            - Power concentration peakedness values (%)
-%   akl            - Absolute maximum peakedness values (%)
-%   pklThreshold   - Peakedness threshold based on power concentration (%)
-%   aklThreshold   - Peakedness threshold based on absolute maximum (%)
+%   ISPEAKY = ISPEAKY(PKL, AKL, PKLTHRESHOLD, AKLTHRESHOLD) determines if spectra
+%   are considered peaky based on peakedness thresholds. ISPEAKY is a logical array
+%   indicating which spectra meet both criteria (PKL >= PKLTHRESHOLD and
+%   AKL >= AKLTHRESHOLD).
 %
-% Outputs:
-%   isPeaky        - Logical array indicating which spectra are considered peaky
-%                    (meet both pkl >= ksi_p and akl >= ksi_a criteria)
+%   Example:
+%     % Using with peakedness function output
+%     [pxx, f] = periodogram(signal, [], [], fs);
+%     [pkl, akl] = peakedness(pxx, f, 0.3);
+%     isPeaky = ispeaky(pkl, akl, 45, 85);
 %
-% EXAMPLE:
-%   % Using with peakedness function output
-%   [pxx, f] = periodogram(signal, [], [], fs);
-%   [pkl, akl] = peakedness(pxx, f, 0.3);
-%   isPeaky = ispeaky(pkl, akl, 45, 85);
+%     % Using with separate arrays
+%     pkl = [30; 50; 70];
+%     akl = [80; 90; 95];
+%     isPeaky = ispeaky(pkl, akl, 45, 85);
+%     % Result: [false; true; true] (only 2nd and 3rd spectra are peaky)
 %
-%   % Using with separate arrays
-%   pkl = [30; 50; 70];
-%   akl = [80; 90; 95];
-%   isPeaky = ispeaky(pkl, akl, 45, 85);
-%   % Result: [false; true; true] (only 2nd and 3rd spectra are peaky)
-%
-% STATUS: Beta
+%   See also PEAKEDNESS, PERIODOGRAM
 
 % Check number of input and output arguments
 narginchk(4, 4);

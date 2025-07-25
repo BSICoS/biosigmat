@@ -159,4 +159,5 @@ endIndices = sub2ind(szInput, endPoints(:, 1), endPoints(:, 2));
 
 % Create output matrix [value, startIndices, endIndices, seqLengths]
 sequences = [inputData(startIndices), startIndices, endIndices, seqLengths];
+
 end

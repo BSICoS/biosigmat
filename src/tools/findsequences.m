@@ -1,39 +1,38 @@
 function varargout = findsequences(A)
-% FINDSEQUENCES Find sequences of repeated (adjacent/consecutive) numeric values
+% FINDSEQUENCES Find sequences of repeated (adjacent/consecutive) numeric values.
 %
-%   findsequences(A) Find sequences of repeated numeric values in A along the
-%              first dimension. A should be numeric.
+%   SEQUENCES = FINDSEQUENCES(A) finds sequences of repeated numeric values in A along the
+%   first dimension. A should be numeric. SEQUENCES is a "m by 4" numeric matrix where
+%   m is the number of sequences found.
 %
-%   OUT = findsequences(...)
-%       OUT is a "m by 4" numeric matrix where m is the number of sequences found.
+%   Each sequence has 4 columns where:
+%     1st col. - The value being repeated
+%     2nd col. - The position of the first value of the sequence (startIndices)
+%     3rd col. - The position of the last value of the sequence (endIndices)
+%     4th col. - The length of the sequence (seqLengths)
 %
-%       Each sequence has 4 columns where:
-%           - 1st col.:  the value being repeated
-%           - 2nd col.:  the position of the first value of the sequence (startIndices)
-%           - 3rd col.:  the position of the last value of the sequence (endIndices)
-%           - 4th col.:  the length of the sequence (seqLengths)
+%   [VALUES, INPOS, FIPOS, LEN] = FINDSEQUENCES(...) returns SEQUENCES as separate outputs.
+%   If no sequences are found no value is returned. To convert positions into
+%   subs/coordinates use IND2SUB.
 %
-%   [VALUES, INPOS, FIPOS, LEN] = findsequences(...)
-%       Get OUT as separate outputs.
+%   Example:
+%     % Find sequences of repeated values in a matrix
+%     A = [20, 19,   3,   2, NaN, NaN;
+%          20, 23,   1,   1,   1, NaN;
+%          20,  7,   7, NaN,   1, NaN];
 %
-%       If no sequences are found no value is returned.
-%       To convert positions into subs/coordinates use IND2SUB
+%     OUT = findsequences(A);
+%     % OUT contains:
+%     %   Value  startIndices  endIndices  seqLengths
+%     %    20        1              3           3       % Three 20s in first column
+%     %     1       14             15           2       % Two 1s (positions 14-15)
+%     %   NaN       16             18           3       % Three NaNs (positions 16-18)
 %
+%     % Get separate outputs
+%     [values, startPos, endPos, lengths] = findsequences(A);
 %
-% EXAMPLE:
-%     % There are sequences of 20s, 1s and NaNs (column-wise)
-%     A   =  [  20,  19,   3,   2, NaN, NaN
-%               20,  23,   1,   1,   1, NaN
-%               20,   7,   7, NaN,   1, NaN]
-%
-%     OUT = findsequences(A)
-%     OUT =
-%          % Value  startIndices  endIndices  seqLengths
-%            20        1              3           3       % Sequence of three 20s in first column
-%             1       14             15           2       % Sequence of two 1s (positions 14-15)
-%           NaN       16             18           3       % Sequence of three NaNs (positions 16-18)
-%
-% STATUS: Beta
+%   See also IND2SUB, DIFF
+
 
 % Argument validation
 narginchk(1, 1);
@@ -85,7 +84,7 @@ AWithoutZeros = A;
 AWithoutZeros(specialMasks{1}) = NaN;
 
 % Process normal values
-Out = findSequencesByDiff(AWithoutZeros, nanPadding);
+sequences = findSequencesByDiff(AWithoutZeros, nanPadding);
 
 % Process special values (0, NaN, Inf, -Inf)
 for i = 1:4
@@ -100,35 +99,32 @@ for i = 1:4
 
         if ~isempty(tmp)
             % Combine with normal value results, replacing detected values with actual special values
-            Out = [Out; repmat(specialValues(i), size(tmp, 1), 1), tmp(:, 2:end)]; %#ok<AGROW>
+            sequences = [sequences; repmat(specialValues(i), size(tmp, 1), 1), tmp(:, 2:end)]; %#ok<AGROW>
         end
     end
 end
 
 % Format output based on requested number of output arguments
 if nargout < 2
-    varargout = {Out};
+    varargout = {sequences};
 else
     % Split columns into separate output arguments
-    varargout = num2cell(Out(:, 1:nargout), 1);
+    varargout = num2cell(sequences(:, 1:nargout), 1);
 end
 
 end
 
-function Out = findSequencesByDiff(inputData, nanPadding)
-% FINDSEQUENCESBYDIFF Find sequences of identical values using double differencing
+function sequences = findSequencesByDiff(inputData, nanPadding)
+% FINDSEQUENCESBYDIFF Find sequences of identical values using double differencing.
 %
-% Inputs:
-%   inputData - The data to be processed
-%   nanPadding - NaN padding for boundary detection
+%   SEQUENCES = FINDSEQUENCESBYDIFF(INPUTDATA, NANPADDING) finds sequences of
+%   identical values using a double differencing algorithm. SEQUENCES is a matrix
+%   with sequence information [value, startIndices, endIndices, seqLengths].
 %
-% Outputs:
-%   Out - Matrix with sequence information [value, startIndices, endIndices, seqLengths]
-%
-% Algorithm:
-%   1. Pads input data with NaNs at boundaries
-%   2. Uses double differencing to detect transitions between identical values
-%   3. Identifies start/end points of sequences by analyzing difference patterns
+%   Algorithm:
+%     1. Pads input data with NaNs at boundaries
+%     2. Uses double differencing to detect transitions between identical values
+%     3. Identifies start/end points of sequences by analyzing difference patterns
 
 % Calculate size of input data
 szInput = size(inputData);
@@ -145,7 +141,7 @@ diffIdx = diff(diff(paddedData, [], 1) == 0, [], 1);
 
 % If no sequences found, return empty result
 if isempty(startRows)
-    Out = [];
+    sequences = [];
     return;
 end
 
@@ -162,5 +158,5 @@ startIndices = sub2ind(szInput, startPoints(:, 1), startPoints(:, 2));
 endIndices = sub2ind(szInput, endPoints(:, 1), endPoints(:, 2));
 
 % Create output matrix [value, startIndices, endIndices, seqLengths]
-Out = [inputData(startIndices), startIndices, endIndices, seqLengths];
+sequences = [inputData(startIndices), startIndices, endIndices, seqLengths];
 end

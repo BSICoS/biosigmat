@@ -31,9 +31,8 @@ result = pantompkins(input);
 
 ## See Also
 
-- [ECG Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [ECG](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

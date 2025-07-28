@@ -28,6 +28,7 @@ additional outputs:
 load('ecg_data.mat'); % Load ECG signal and R-wave positions
 decg = diff(ecg); % Calculate ECG derivative
 edr = sloperange(decg, tk, fs);
+
 % Plot results
 figure;
 plot(tk, edr);
@@ -40,11 +41,9 @@ ylabel('EDR Amplitude');
 
 - PANTOMPKINS
 - BASELINEREMOVE
-- Status: Beta
 
-- [ECG Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [ECG](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

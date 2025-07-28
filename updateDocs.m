@@ -299,11 +299,11 @@ try
 
         docInfo.examples = strjoin(currentExample, newline);
 
-        % Clean up see also list
+        % Clean up see also list - only include items from header, exclude status
         cleanSeeAlso = {};
         for j = 1:length(seeAlsoList)
             item = strtrim(seeAlsoList{j});
-            if ~isempty(item)
+            if ~isempty(item) && ~startsWith(item, 'Status:', 'IgnoreCase', true)
                 cleanSeeAlso{end+1} = item;
             end
         end
@@ -452,11 +452,10 @@ if ~isempty(docInfo.seeAlso)
     end
     content = [content newline];
 end
-content = [content sprintf('- [%s Module](README.md)\n', upper(module))];
 content = [content sprintf('- [API Reference](../README.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
-content = [content sprintf('**Module**: %s | **Status**: 🔄 Auto-generated | **Last Updated**: %s\n', ...
+content = [content sprintf('**Module**: [%s](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: %s\n', ...
     upper(module), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 
 % Write file

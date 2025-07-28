@@ -21,6 +21,7 @@ ISPEAKY = ISPEAKY(PKL, AKL, PKLTHRESHOLD, AKLTHRESHOLD) determines if spectra ar
 [pxx, f] = periodogram(signal, [], [], fs);
 [pkl, akl] = peakedness(pxx, f, 0.3);
 isPeaky = ispeaky(pkl, akl, 45, 85);
+
 % Using with separate arrays
 pkl = [30; 50; 70];
 akl = [80; 90; 95];
@@ -33,9 +34,8 @@ isPeaky = ispeaky(pkl, akl, 45, 85);
 - PEAKEDNESS
 - PERIODOGRAM
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

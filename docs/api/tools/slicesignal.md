@@ -23,10 +23,13 @@ This function is particularly useful for time-frequency analysis where you need 
 fs = 1000;
 t = (0:1/fs:2)';
 x = chirp(t, 10, 2, 50) + 0.1*randn(size(t));
+
 % Slice the signal with 50% overlap
 [sliced, tcenter] = slicesignal(x, 256, 128, fs);
+
 % Compute power spectral density for each slice
 [pxx, f] = pwelch(sliced, [], [], [], fs);
+
 % Create time-frequency map
 figure;
 imagesc(tcenter, f, 10*log10(pxx));
@@ -43,9 +46,8 @@ colorbar;
 - SPECTROGRAM
 - PERIODOGRAM
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

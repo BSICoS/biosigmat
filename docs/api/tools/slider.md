@@ -31,6 +31,7 @@ plot(t, x);
 xlabel('Time (s)');
 ylabel('Amplitude');
 title('Long Time Series with Interactive Slider');
+
 % Add slider for navigation
 slider();
 ```
@@ -42,9 +43,8 @@ slider();
 - UICONTROL
 - XLIM
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

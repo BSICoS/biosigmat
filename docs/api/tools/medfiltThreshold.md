@@ -19,8 +19,10 @@ THRESHOLD = MEDFILTTHRESHOLD(X, WINDOW, FACTOR, MAXTHRESHOLD) computes an adapti
 ```matlab
 % Create sample series with outliers
 x = [0.8, 0.82, 0.81, 1.2, 0.79, 0.83, 0.80]';
+
 % Compute adaptive threshold
 threshold = medfiltThreshold(x, 5, 1.5, 1.5);
+
 % Identify outliers
 outliers = x > threshold;
 ```
@@ -30,9 +32,8 @@ outliers = x > threshold;
 - MEDFILT1
 - MOVMEDIAN
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

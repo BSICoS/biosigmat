@@ -23,10 +23,13 @@ The function searches for the maximum value within the specified window around e
 ```matlab
 % Load ECG data and perform initial detection
 load('ecg_sample.mat', 'ecg', 'fs');
+
 % Perform initial QRS detection (using pantompkins or similar)
 initialDetections = pantompkins(ecg, fs);
+
 % Refine detections by snapping to local maxima
 refinedDetections = snaptopeak(ecg, initialDetections);
+
 % Use larger search window
 refinedDetections2 = snaptopeak(ecg, initialDetections, 'WindowSize', 30);
 ```
@@ -37,9 +40,8 @@ refinedDetections2 = snaptopeak(ecg, initialDetections, 'WindowSize', 30);
 - FINDPEAKS
 - MAX
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

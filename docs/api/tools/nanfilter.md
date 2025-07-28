@@ -26,6 +26,7 @@ fs = 1000;
 t = 0:1/fs:1;
 signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
 signal(100:150) = NaN;  % Add NaN gap
+
 % Design and apply filter
 [b, a] = butter(4, 0.1);
 filtered = nanfilter(b, a, signal, 10);
@@ -37,9 +38,8 @@ filtered = nanfilter(b, a, signal, 10);
 - NANFILTFILT
 - INTERPGAP
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

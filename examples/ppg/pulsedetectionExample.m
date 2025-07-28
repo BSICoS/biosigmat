@@ -1,12 +1,20 @@
-%% PPG Pulse Detection Example
-% This example demonstrates how to use the pulsedetection function to
-% delineate a PPG signal. The signal must be LPD-filtered before using pulsedetection.
+% PULSEDETECTIONEXAMPLE Example demonstrating pulse detection in PPG signals.
+%
+% This example demonstrates how to detect individual pulses in photoplethysmographic
+% (PPG) signals using the pulsedetection function. The process requires the PPG signal
+% to be preprocessed with low-pass derivative (LPD) filtering before pulse detection
+% can be applied. The example loads PPG signal data from fixture files, applies the
+% necessary preprocessing steps, and uses the pulsedetection algorithm to identify
+% pulse locations. Results are visualized showing the original PPG signal with
+% detected pulse markers, demonstrating the algorithm's effectiveness in identifying
+% individual cardiac cycles within the PPG waveform.
+
 
 % Add source paths
 addpath('../../src/ppg');
 addpath('../../src/tools');
 
-%% Load PPG signal from fixtures
+% Load PPG signal from fixtures
 ppgData = readtable('../../fixtures/ppg/ppg_signals.csv');
 signal = ppgData.sig;
 t = ppgData.t;
@@ -20,8 +28,7 @@ t = t(1:2*60*fs);
 [b, a] = butter(4, 0.5 / (fs/2), 'high');
 signal = filtfilt(b, a, signal);
 
-%% Apply LPD (Low-Pass Differentiator) filter
-% The pulseDelineation function now expects a pre-filtered signal
+% Apply LPD (Low-Pass Differentiator) filter
 fpLPD = 7.8;        % Pass-band frequency (Hz)
 fcLPD = 8;          % Cut-off frequency (Hz)
 orderLPD = 100;     % Filter order (samples)

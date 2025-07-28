@@ -1,12 +1,22 @@
-%% PPG Pulse Delineation Example
-% This example demonstrates how to use the pulsedelineation function to
-% delineate a PPG signal. The signal must be LPD-filtered before using pulsedelineation.
+% PULSEDELINEATIONEXAMPLE Example demonstrating pulse delineation in PPG signals.
+%
+% This example demonstrates how to perform detailed pulse delineation in
+% photoplethysmographic (PPG) signals using the pulsedelineation function. The
+% process requires the PPG signal to be preprocessed with low-pass derivative (LPD)
+% filtering before delineation can be applied. The example loads PPG signal data
+% from fixture files, applies the necessary preprocessing steps, and uses the
+% pulsedelineation algorithm to identify key fiducial points within each pulse
+% including onset, peak, and offset locations. Results are visualized showing
+% the original PPG signal with detailed pulse delineation markers, demonstrating
+% the algorithm's capability to extract morphological features from individual
+% cardiac cycles.
+
 
 % Add source paths
 addpath('../../src/ppg');
 addpath('../../src/tools');
 
-%% Load PPG signal from fixtures
+% Load PPG signal from fixtures
 ppgData = readtable('../../fixtures/ppg/ppg_signals.csv');
 signal = ppgData.sig;
 t = ppgData.t;
@@ -20,8 +30,7 @@ t = t(1:2*60*fs);
 [b, a] = butter(4, 0.5 / (fs/2), 'high');
 signal = filtfilt(b, a, signal);
 
-%% Apply LPD (Low-Pass Differentiator) filter
-% The pulseDelineation function now expects a pre-filtered signal
+% Apply LPD (Low-Pass Differentiator) filter
 fpLPD = 7.8;        % Pass-band frequency (Hz)
 fcLPD = 8;          % Cut-off frequency (Hz)
 orderLPD = 100;     % Filter order (samples)
@@ -36,7 +45,7 @@ fprintf('  Filter order: %d samples\n', orderLPD);
 signalFiltered = filter(b, 1, signal);
 signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
-%% Set up pulse delineation parameters
+% Set up pulse delineation parameters
 Setup = struct();
 
 % Adaptive threshold parameters
@@ -52,7 +61,7 @@ fprintf('\nPulse delineation parameters:\n');
 fprintf('  Threshold adaptation factor: %.1f\n', Setup.alfa);
 fprintf('  Refractory period: %.0f ms\n', Setup.refractPeriod * 1000);
 
-%% Run pulse delineation on filtered signal
+% Run pulse delineation on filtered signal
 fprintf('\nRunning pulse delineation...\n');
 [nD, nA, nB, nM, threshold] = pulsedelineation(signalFiltered, fs, Setup);
 

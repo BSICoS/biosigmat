@@ -26,12 +26,12 @@ For matrix input: cell array where PXXSEGMENTS{i} contains the PSD segments for 
 ## Examples
 
 ```matlab
-Compute Welch PSD for a signal with NaN gaps
+% Compute Welch PSD for a signal with NaN gaps
 fs = 1000;
 t = 0:1/fs:1;
 signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
-signal(100:150) = NaN;   Add NaN gap
-Compute PSD with gap interpolation
+signal(100:150) = NaN;  % Add NaN gap
+% Compute PSD with gap interpolation
 [pxx, f] = nanpwelch(signal, 256, 128, 512, fs, 10);
 ```
 

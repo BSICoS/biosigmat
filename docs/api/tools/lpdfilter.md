@@ -27,7 +27,7 @@ automatically calculated based on transition band requirements.
 ## Examples
 
 ```matlab
-Design filter and visualize the frequency response
+% Design filter and visualize the frequency response
 fs = 100;
 [b, delay] = lpdfilter(fs, 10);
 [h, w] = freqz(b, 1, 2^16);
@@ -37,7 +37,7 @@ title('Normalized Frequency Response');
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 grid on;
-Apply filter to a signal and compensate delay
+% Apply filter to a signal and compensate delay
 signalFiltered = filter(b, 1, signal);
 signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 ```

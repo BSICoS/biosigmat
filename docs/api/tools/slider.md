@@ -25,13 +25,13 @@ The slider automatically adjusts its behavior when the view is zoomed or panned,
 ## Examples
 
 ```matlab
-Plot the signal
+% Plot the signal
 figure;
 plot(t, x);
 xlabel('Time (s)');
 ylabel('Amplitude');
 title('Long Time Series with Interactive Slider');
-Add slider for navigation
+% Add slider for navigation
 slider();
 ```
 

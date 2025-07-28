@@ -24,17 +24,17 @@ containing the following time-domain metrics:
 ## Examples
 
 ```matlab
-Compute time domain metrics from R-R interval series
-load('ecg_data.mat');  Load ECG data
-rpeaks = pantompkins(ecg, fs);  Detect R-peaks
-dtk = diff(rpeaks);  Compute R-R intervals
+% Compute time domain metrics from R-R interval series
+load('ecg_data.mat'); % Load ECG data
+rpeaks = pantompkins(ecg, fs); % Detect R-peaks
+dtk = diff(rpeaks); % Compute R-R intervals
 metrics = tdmetrics(dtk);
-Display results
-fprintf('Mean HR: .1f bpm\n', metrics.mhr);
-fprintf('SDNN: .1f ms\n', metrics.sdnn);
-fprintf('RMSSD: .1f ms\n', metrics.rmssd);
-fprintf('SDSD: .1f ms\n', metrics.sdsd);
-fprintf('pNN50: .1f \n', metrics.pNN50);
+% Display results
+fprintf('Mean HR: %.1f bpm\n', metrics.mhr);
+fprintf('SDNN: %.1f ms\n', metrics.sdnn);
+fprintf('RMSSD: %.1f ms\n', metrics.rmssd);
+fprintf('SDSD: %.1f ms\n', metrics.sdsd);
+fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 ```
 
 ## See Also

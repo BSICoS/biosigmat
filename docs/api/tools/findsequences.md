@@ -25,17 +25,17 @@ Each sequence has 4 columns where:
 ## Examples
 
 ```matlab
-Find sequences of repeated values in a matrix
+% Find sequences of repeated values in a matrix
 A = [20, 19,   3,   2, NaN, NaN;
-20, 23,   1,   1,   1, NaN;
-20,  7,   7, NaN,   1, NaN];
+    20, 23,   1,   1,   1, NaN;
+    20,  7,   7, NaN,   1, NaN];
 OUT = findsequences(A);
-OUT contains:
-Value  startIndices  endIndices  seqLengths
-20        1              3           3        Three 20s in first column
-1       14             15           2        Two 1s (positions 14-15)
-NaN       16             18           3        Three NaNs (positions 16-18)
-Get separate outputs
+% OUT contains:
+%   Value  startIndices  endIndices  seqLengths
+%    20        1              3           3       % Three 20s in first column
+%     1       14             15           2       % Two 1s (positions 14-15)
+%   NaN       16             18           3       % Three NaNs (positions 16-18)
+% Get separate outputs
 [values, startPos, endPos, lengths] = findsequences(A);
 ```
 

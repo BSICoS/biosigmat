@@ -19,15 +19,15 @@ This function is particularly useful for time-frequency analysis where you need 
 ## Examples
 
 ```matlab
-Create a chirp signal and slice it for time-frequency analysis
+% Create a chirp signal and slice it for time-frequency analysis
 fs = 1000;
 t = (0:1/fs:2)';
 x = chirp(t, 10, 2, 50) + 0.1*randn(size(t));
-Slice the signal with 50 overlap
+% Slice the signal with 50% overlap
 [sliced, tcenter] = slicesignal(x, 256, 128, fs);
-Compute power spectral density for each slice
+% Compute power spectral density for each slice
 [pxx, f] = pwelch(sliced, [], [], [], fs);
-Create time-frequency map
+% Create time-frequency map
 figure;
 imagesc(tcenter, f, 10*log10(pxx));
 axis xy;

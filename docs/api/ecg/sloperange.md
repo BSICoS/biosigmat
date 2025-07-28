@@ -37,6 +37,8 @@ xlabel('Time (s)');
 ylabel('EDR Amplitude');
 ```
 
+[View detailed example](../../../examples/ecg/sloperangeExample.m)
+
 ## See Also
 
 - PANTOMPKINS

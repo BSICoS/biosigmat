@@ -38,6 +38,8 @@ fprintf('SDSD: %.1f ms\n', metrics.sdsd);
 fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 ```
 
+[View detailed example](../../../examples/hrv/tdmetricsExample.m)
+
 ## See Also
 
 - PANTOMPKINS

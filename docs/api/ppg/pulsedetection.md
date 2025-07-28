@@ -67,6 +67,8 @@ fprintf('Detected %d pulses\n', length(nD));
 fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 ```
 
+[View detailed example](../../../examples/ppg/pulsedetectionExample.m)
+
 ## See Also
 
 - LPDFILTER

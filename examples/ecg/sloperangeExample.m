@@ -1,4 +1,4 @@
-% SLOPERANGEEXAMPLE Example demonstrating ECG-derived respiration using slope range method
+% SLOPERANGEEXAMPLE Example demonstrating ECG-derived respiration using slope range method.
 %
 % This example demonstrates how to extract respiratory information from ECG signals
 % using the slope range method. The process begins by loading ECG signals and

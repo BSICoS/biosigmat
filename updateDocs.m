@@ -628,7 +628,7 @@ apiReadmePath = fullfile(docsDir, 'api', 'README.md');
 % Create the content
 content = sprintf('# biosigmat API Reference\n\n');
 content = [content sprintf('Complete reference documentation for all functions in the biosigmat toolbox.\n\n')];
-content = [content sprintf('## Function Categories\n\n')];
+content = [content sprintf('## Modules\n\n')];
 
 % Define module information
 moduleInfo = struct();
@@ -649,25 +649,47 @@ for i = 1:length(moduleNames)
 
     % Add module header
     if isfield(moduleInfo, module)
-        content = [content sprintf('### %s\n', moduleInfo.(module).title)];
+        content = [content sprintf('### [%s](%s/README.md)\n', moduleInfo.(module).title, module)];
         content = [content sprintf('%s\n\n', moduleInfo.(module).desc)];
     else
-        content = [content sprintf('### %s\n', upper(module))];
+        content = [content sprintf('### [%s](%s/README.md)\n', upper(module), module)];
         content = [content sprintf('Functions for %s processing.\n\n', module)];
     end
 
     % Add function table
-    content = [content sprintf('| Function | Description | Status |\n')];
-    content = [content sprintf('| -------- | ----------- | ------ |\n')];
+    if strcmp(module, 'tools')
+        % Tools module - no examples column
+        content = [content sprintf('| Function | Description | Status |\n')];
+        content = [content sprintf('| -------- | ----------- | ------ |\n')];
 
-    for j = 1:length(functions)
-        func = functions{j};
-        content = [content sprintf('| [`%s`](%s/%s.md) | %s | %s |\n', ...
-            func.name, module, func.name, func.description, func.status)];
+        for j = 1:length(functions)
+            func = functions{j};
+            content = [content sprintf('| [`%s`](%s/%s.md) | %s | %s |\n', ...
+                func.name, module, func.name, func.description, func.status)];
+        end
+    else
+        % Other modules - include examples column
+        content = [content sprintf('| Function | Description | Examples | Status |\n')];
+        content = [content sprintf('| -------- | ----------- | -------- | ------ |\n')];
+
+        % Get toolbox root to check for example files
+        toolboxRoot = fileparts(docsDir);
+
+        for j = 1:length(functions)
+            func = functions{j};
+
+            % Check if example file exists
+            examplePath = fullfile(toolboxRoot, 'examples', module, [func.name 'Example.m']);
+            if exist(examplePath, 'file')
+                exampleLink = sprintf('[View code](../../examples/%s/%sExample.m)', module, func.name);
+            else
+                exampleLink = '-';
+            end
+
+            content = [content sprintf('| [`%s`](%s/%s.md) | %s | %s | %s |\n', ...
+                func.name, module, func.name, func.description, exampleLink, func.status)];
+        end
     end
-
-    content = [content sprintf('\n**[%s Module Documentation](%s/README.md)**\n\n', ...
-        upper(module), module)];
 end
 
 % Add alphabetical index

@@ -1,4 +1,4 @@
-% TFMAPWORKFLOW Workflow demonstrating time-frequency analysis of synthetic signals
+% TFMAPWORKFLOW Workflow demonstrating time-frequency analysis of synthetic signals.
 %
 % This workflow demonstrates how to create comprehensive time-frequency maps of
 % synthetic signals using advanced signal processing techniques. The process begins

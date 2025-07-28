@@ -294,6 +294,12 @@ try
 
         % Store extracted information - join paragraphs with double newline
         docInfo.longDescription = strjoin(longDesc, '\n\n');
+
+        % Remove trailing empty lines from examples
+        while ~isempty(currentExample) && isempty(currentExample{end})
+            currentExample(end) = [];
+        end
+
         docInfo.examples = strjoin(currentExample, newline);
 
         % Clean up see also list

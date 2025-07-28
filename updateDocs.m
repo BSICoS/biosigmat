@@ -294,8 +294,10 @@ end
 
 % Check if this paragraph contains parameter definitions (lines starting with quotes)
 % or output definitions (lines with uppercase words followed by dash)
+% or column definitions (lines with ordinal numbers followed by col.)
 hasParameters = false;
 hasOutputs = false;
+hasColumns = false;
 for i = 1:length(paragraphLines)
     line = paragraphLines{i};
     % Check for parameter definitions (quotes and dash)
@@ -309,10 +311,15 @@ for i = 1:length(paragraphLines)
         hasOutputs = true;
         break;
     end
+    % Check for column definitions (ordinal numbers + col. + dash)
+    if ~isempty(trimmedLine) && ~isempty(regexp(trimmedLine, '^\d+(st|nd|rd|th)\s+col\.\s*-', 'once'))
+        hasColumns = true;
+        break;
+    end
 end
 
-if hasParameters || hasOutputs
-    % For parameter/output lists, preserve line breaks and add bullet points
+if hasParameters || hasOutputs || hasColumns
+    % For parameter/output/column lists, preserve line breaks and add bullet points
     formattedLines = {};
     for i = 1:length(paragraphLines)
         line = strtrim(paragraphLines{i});
@@ -325,8 +332,12 @@ if hasParameters || hasOutputs
             elseif ~isempty(regexp(line, '^[A-Z][A-Z0-9]*\s*-', 'once'))
                 % Add bullet point for output lines
                 formattedLines{end+1} = ['- ' line];
+                % Check if this line is a column definition (ordinal + col. + dash)
+            elseif ~isempty(regexp(line, '^\d+(st|nd|rd|th)\s+col\.\s*-', 'once'))
+                % Add bullet point for column lines
+                formattedLines{end+1} = ['- ' line];
             else
-                % Regular line in the parameter/output paragraph
+                % Regular line in the parameter/output/column paragraph
                 formattedLines{end+1} = line;
             end
         end

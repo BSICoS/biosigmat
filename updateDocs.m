@@ -464,7 +464,7 @@ end
 content = [content sprintf('- [API Reference](../README.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
-content = [content sprintf('**Module**: [%s](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: %s\n', ...
+content = [content sprintf('**Module**: [%s](README.md) | **Last Updated**: %s\n', ...
     upper(module), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 
 % Write file
@@ -1027,9 +1027,6 @@ if ~isempty(docInfo.description)
     content = [content sprintf('%s\n\n', docInfo.description)];
 end
 
-% Add module reference
-content = [content sprintf('**Module**: %s\n\n', upper(module))];
-
 % Add steps if available
 if ~isempty(docInfo.steps)
     content = [content sprintf('## Steps\n\n')];
@@ -1039,25 +1036,19 @@ if ~isempty(docInfo.steps)
     content = [content newline];
 end
 
-% Add usage section
-content = [content sprintf('## Usage\n\n')];
-content = [content sprintf('Run the example from the MATLAB command window:\n\n')];
-content = [content sprintf('```matlab\n')];
-content = [content sprintf('run(''examples/%s/%s.m'');\n', module, exampleName)];
-content = [content sprintf('```\n\n')];
-
-% Add file location
-content = [content sprintf('## File Location\n\n')];
-content = [content sprintf('`examples/%s/%s.m`\n\n', module, exampleName)];
+% Add source code link
+content = [content sprintf('## Source Code\n\n')];
+content = [content sprintf('[View source code](../../examples/%s/%s.m)\n\n', module, exampleName)];
 
 % Add see also section
 content = [content sprintf('## See Also\n\n')];
+content = [content sprintf('- [API Reference](../api/README.md)\n\n')];
 content = [content sprintf('- [%s Module](../api/%s/README.md)\n', upper(module), module)];
 content = [content sprintf('- [Examples Overview](README.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
-content = [content sprintf('**Type**: Example | **Module**: %s | **Last Updated**: %s\n', ...
-    upper(module), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+content = [content sprintf('**Module**: [%s](../api/%s/README.md) | **Last Updated**: %s\n', ...
+    upper(module), module, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 
 % Write file
 try
@@ -1163,7 +1154,7 @@ for i = 1:length(moduleNames)
     examples = examplesByModule.(module);
 
     if ~isempty(examples)
-        content = [content sprintf('### %s Module\n\n', upper(module))];
+        content = [content sprintf('### %s\n\n', upper(module))];
 
         for j = 1:length(examples)
             exampleName = examples{j};

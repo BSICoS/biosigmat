@@ -4,25 +4,17 @@
 
 This example demonstrates how to use the baselineremove function to
 
-**Module**: ECG
+## Source Code
 
-## Usage
-
-Run the example from the MATLAB command window:
-
-```matlab
-run('examples/ecg/baselineremoveExample.m');
-```
-
-## File Location
-
-`examples/ecg/baselineremoveExample.m`
+[View source code](../../examples/ecg/baselineremoveExample.m)
 
 ## See Also
+
+- [API Reference](../api/README.md)
 
 - [ECG Module](../api/ecg/README.md)
 - [Examples Overview](README.md)
 
 ---
 
-**Type**: Example | **Module**: ECG | **Last Updated**: 2025-07-28
+**Module**: [ECG](../api/ecg/README.md) | **Last Updated**: 2025-07-28

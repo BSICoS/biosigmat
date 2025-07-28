@@ -4,30 +4,22 @@
 
 This example shows how to:
 
-**Module**: ECG
-
 ## Steps
 
 1. This example shows how to: - Load ECG signals and R-peak timing data - Preprocess ECG signal with bandpass filtering - Calculate ECG derivative for slope analysis - Apply the sloperange function to extract respiratory signal - Visualize the results with multiple subplots
 2. The example uses fixture data from CSV files containing: - ECG signal sampled at 256 Hz - Pre-calculated R-peak timing in seconds
 
-## Usage
+## Source Code
 
-Run the example from the MATLAB command window:
-
-```matlab
-run('examples/ecg/sloperangeExample.m');
-```
-
-## File Location
-
-`examples/ecg/sloperangeExample.m`
+[View source code](../../examples/ecg/sloperangeExample.m)
 
 ## See Also
+
+- [API Reference](../api/README.md)
 
 - [ECG Module](../api/ecg/README.md)
 - [Examples Overview](README.md)
 
 ---
 
-**Type**: Example | **Module**: ECG | **Last Updated**: 2025-07-28
+**Module**: [ECG](../api/ecg/README.md) | **Last Updated**: 2025-07-28

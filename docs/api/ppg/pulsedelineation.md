@@ -50,4 +50,4 @@ Status: Alpha
 
 ---
 
-**Module**: [PPG](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [PPG](README.md) | **Last Updated**: 2025-07-28

@@ -32,4 +32,4 @@ run('examples/workflows/pcaverageWorkflow.m');
 
 ---
 
-**Type**: Workflow | **Last Updated**: 2025-07-25
+**Type**: Workflow | **Last Updated**: 2025-07-28

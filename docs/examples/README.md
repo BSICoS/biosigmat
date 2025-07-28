@@ -30,4 +30,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 6 | **Workflows**: 2 | **Last Updated**: 2025-07-25
+**Examples**: 6 | **Workflows**: 2 | **Last Updated**: 2025-07-28

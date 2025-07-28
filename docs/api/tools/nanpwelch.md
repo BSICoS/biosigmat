@@ -8,7 +8,16 @@ function varargout = nanpwelch(x, window, noverlap, nfft, fs, varargin)
 
 ## Description
 
-PXX = NANPWELCH(X, WINDOW, NOVERLAP, NFFT, FS) computes the Welch power spectral density estimate for signals containing NaN values. X is the input signal (vector or matrix), WINDOW is the window for segmentation (scalar length or window vector), NOVERLAP is the number of overlapped samples, NFFT is the number of DFT points, and FS is the sample rate in Hz. It trims NaN values at the beginning and end of the signal and splits the signal at large gaps. The power spectral density is computed for each valid segment and averaged across all segments. PXX is the power spectral density estimate. PXX = NANPWELCH(..., MAXGAP) interpolates small gaps (≤ MAXGAP) before computing the PSD. If MAXGAP is empty or not provided, no interpolation is performed. [PXX, F] = NANPWELCH(...) also returns the frequency vector F in Hz. [PXX, F, PXXSEGMENTS] = NANPWELCH(...) returns additional output: PXXSEGMENTS - Power spectral density for each segment For vector input: matrix where each column contains the PSD of one segment For matrix input: cell array where PXXSEGMENTS{i} contains the PSD segments for signal i
+PXX = NANPWELCH(X, WINDOW, NOVERLAP, NFFT, FS) computes the Welch power spectral density estimate for signals containing NaN values. X is the input signal (vector or matrix), WINDOW is the window for segmentation (scalar length or window vector), NOVERLAP is the number of overlapped samples, NFFT is the number of DFT points, and FS is the sample rate in Hz. It trims NaN values at the beginning and end of the signal and splits the signal at large gaps. The power spectral density is computed for each valid segment and averaged across all segments. PXX is the power spectral density estimate.
+
+PXX = NANPWELCH(..., MAXGAP) interpolates small gaps (≤ MAXGAP) before computing the PSD. If MAXGAP is empty or not provided, no interpolation is performed.
+
+[PXX, F] = NANPWELCH(...) also returns the frequency vector F in Hz.
+
+[PXX, F, PXXSEGMENTS] = NANPWELCH(...) returns additional output:
+- PXXSEGMENTS - Power spectral density for each segment
+For vector input: matrix where each column contains the PSD of one segment
+For matrix input: cell array where PXXSEGMENTS{i} contains the PSD segments for signal i
 
 ## Source Code
 
@@ -38,4 +47,4 @@ Compute PSD with gap interpolation
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

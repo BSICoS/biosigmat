@@ -8,7 +8,14 @@ function metrics = tdmetrics(dtk)
 
 ## Description
 
-METRICS = TDMETRICS(DTK) computes standard time-domain metrics used in heart rate variability (HRV) analysis from interval series (DTK). METRICS is a structure containing the following time-domain metrics: MHR   - Mean heart rate (beats/min) SDNN  - Standard deviation of normal-to-normal (NN) intervals (ms) SDSD  - Standard deviation of differences between adjacent NN intervals (ms) RMSSD - Root mean square of successive differences of NN intervals (ms) PNN50 - Proportion of interval differences > 50ms with respect to all NN intervals ()
+METRICS = TDMETRICS(DTK) computes standard time-domain metrics used in heart rate
+variability (HRV) analysis from interval series (DTK). METRICS is a structure
+containing the following time-domain metrics:
+- MHR   - Mean heart rate (beats/min)
+- SDNN  - Standard deviation of normal-to-normal (NN) intervals (ms)
+- SDSD  - Standard deviation of differences between adjacent NN intervals (ms)
+- RMSSD - Root mean square of successive differences of NN intervals (ms)
+- PNN50 - Proportion of interval differences > 50ms with respect to all NN intervals ()
 
 ## Source Code
 
@@ -39,4 +46,4 @@ fprintf('pNN50: .1f \n', metrics.pNN50);
 
 ---
 
-**Module**: HRV | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: HRV | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

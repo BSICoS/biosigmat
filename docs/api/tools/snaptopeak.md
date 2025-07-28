@@ -8,7 +8,11 @@ function refinedDetections = snaptopeak(ecg, detections, varargin)
 
 ## Description
 
-REFINEDDETECTIONS = SNAPTOPEAK(ECG, DETECTIONS) refines QRS detection positions by moving each detection in DETECTIONS to the nearest local maximum within a search window around the original detection. ECG is the single-lead ECG signal and DETECTIONS contains the initial detection positions in samples. This improves the precision of R-wave peak localization by ensuring detections align with actual signal peaks. Returns REFINEDDETECTIONS as a column vector of refined positions with the same length as DETECTIONS. REFINEDDETECTIONS = SNAPTOPEAK(..., 'WindowSize', WINDOWSIZE) specifies the search window size WINDOWSIZE in samples around each detection. Default window size is 20 samples. The function searches for the maximum value within the specified window around each detection and moves the detection to that location. This is particularly useful after initial QRS detection to ensure precise alignment with R-wave peaks.
+REFINEDDETECTIONS = SNAPTOPEAK(ECG, DETECTIONS) refines QRS detection positions by moving each detection in DETECTIONS to the nearest local maximum within a search window around the original detection. ECG is the single-lead ECG signal and DETECTIONS contains the initial detection positions in samples. This improves the precision of R-wave peak localization by ensuring detections align with actual signal peaks. Returns REFINEDDETECTIONS as a column vector of refined positions with the same length as DETECTIONS.
+
+REFINEDDETECTIONS = SNAPTOPEAK(..., 'WindowSize', WINDOWSIZE) specifies the search window size WINDOWSIZE in samples around each detection. Default window size is 20 samples.
+
+The function searches for the maximum value within the specified window around each detection and moves the detection to that location. This is particularly useful after initial QRS detection to ensure precise alignment with R-wave peaks.
 
 ## Source Code
 
@@ -38,4 +42,4 @@ refinedDetections2 = snaptopeak(ecg, initialDetections, 'WindowSize', 30);
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

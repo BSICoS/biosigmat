@@ -8,7 +8,17 @@ function [b, delay] = lpdfilter(fs, stopFreq, varargin)
 
 ## Description
 
-B = LPDFILTER(FS, STOPFREQ) designs a low-pass derivative (LPD) linear-phase FIR filter with a specified sampling frequency FS and stop-band frequency STOPFREQ. using least-squares estimation. B = LPDFILTER(..., Name, Value) allows specifying additional options using name-value pairs. 'PassFreq' - Pass-band frequency in Hz (positive scalar). Must be less than STOPFREQ. If not specified, defaults to (STOPFREQ - 0.2) Hz. 'Order'    - Filter order (positive even integer). If not specified, automatically calculated based on transition band requirements. [B, DELAY] = LPDFILTER(...) also returns the filter delay, which is half the filter order.
+B = LPDFILTER(FS, STOPFREQ) designs a low-pass derivative (LPD) linear-phase FIR filter with a specified sampling frequency FS and stop-band frequency STOPFREQ. using least-squares estimation.
+
+B = LPDFILTER(..., Name, Value) allows specifying additional options
+using name-value pairs.
+- 'PassFreq' - Pass-band frequency in Hz (positive scalar).
+Must be less than STOPFREQ. If not specified, defaults
+to (STOPFREQ - 0.2) Hz.
+- 'Order'    - Filter order (positive even integer). If not specified,
+automatically calculated based on transition band requirements.
+
+[B, DELAY] = LPDFILTER(...) also returns the filter delay, which is half the filter order.
 
 ## Source Code
 
@@ -43,4 +53,4 @@ signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

@@ -8,7 +8,15 @@ function varargout = pantompkins(ecg, fs, varargin)
 
 ## Description
 
-TK = PANTOMPKINS(ECG, FS) Detects R-waves in ECG signals sampled at FS Hz using the Pan-Tompkins algorithm. This method applies bandpass filtering, derivative calculation, squaring, and integration to enhance R-wave peaks. TK is a column vector containing the R-wave occurrence times in seconds. TK = PANTOMPKINS(..., Name, Value) allows specifying additional options using name-value pairs. 'BandpassFreq'         -  Two-element vector [low, high] for bandpass filter cutoff frequencies in Hz. Default: [5, 12] 'WindowSize'           -  Integration window size in seconds. Default: 0.15 'MinPeakDistance'      -  Minimum distance between peaks in seconds. Default: 0.5 'SnapTopeakWindowSize' -  Window size in samples for peak refinement. Default: 20
+TK = PANTOMPKINS(ECG, FS) Detects R-waves in ECG signals sampled at FS Hz using the Pan-Tompkins algorithm. This method applies bandpass filtering, derivative calculation, squaring, and integration to enhance R-wave peaks. TK is a column vector containing the R-wave occurrence times in seconds.
+
+TK = PANTOMPKINS(..., Name, Value) allows specifying additional options using
+name-value pairs.
+- 'BandpassFreq'         -  Two-element vector [low, high] for bandpass filter
+cutoff frequencies in Hz. Default: [5, 12]
+- 'WindowSize'           -  Integration window size in seconds. Default: 0.15
+- 'MinPeakDistance'      -  Minimum distance between peaks in seconds. Default: 0.5
+- 'SnapTopeakWindowSize' -  Window size in samples for peak refinement. Default: 20
 
 ## Source Code
 
@@ -28,4 +36,4 @@ result = pantompkins(input);
 
 ---
 
-**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

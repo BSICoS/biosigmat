@@ -25,4 +25,4 @@ run('examples/hrv/tdmetricsExample.m');
 
 ---
 
-**Type**: Example | **Module**: HRV | **Last Updated**: 2025-07-25
+**Type**: Example | **Module**: HRV | **Last Updated**: 2025-07-28

@@ -1,4 +1,4 @@
-name: MATLAB Tests
+name: MATLAB Tests & Header Validation
 
 on:
   push:
@@ -44,6 +44,18 @@ jobs:
               fprintf('  - %s %s\n', installedToolboxes(i).Name, installedToolboxes(i).Version);
           end
           fprintf('=== End Diagnostic ===\n');
+    
+    - name: Validate headers
+      uses: matlab-actions/run-command@v2
+      with:
+        command: |
+          try
+            validateHeadersCI;
+            fprintf('All headers comply with biosigmat guidelines!\n');
+          catch ME
+            fprintf('::warning title=Header Validation::Header validation found issues: %s\n', ME.message);
+            fprintf('Header validation completed with warnings. Continuing with tests...\n');
+          end
     
     - name: Run tests
       uses: matlab-actions/run-command@v2

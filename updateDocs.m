@@ -953,12 +953,13 @@ end
 function docInfo = extractWorkflowDoc(filePath, workflowName)
 % Extract documentation from workflow file header comments
 
-% Initialize structure
+% Initialize structure with same fields as extractExampleDoc for consistency
 docInfo = struct();
 docInfo.name = workflowName;
 docInfo.title = '';
-docInfo.description = '';
-docInfo.workflow = {};
+docInfo.briefDescription = '';
+docInfo.longDescription = '';
+docInfo.steps = {};
 docInfo.requirements = {};
 
 try
@@ -966,45 +967,61 @@ try
     fileContent = fileread(filePath, 'Encoding', 'UTF-8');
     lines = splitlines(fileContent);
 
-    % Extract header comments
-    inHeader = false;
+    % Extract header comments - all consecutive lines starting with '%'
     headerLines = {};
 
-    for i = 1:min(100, length(lines)) % Check first 100 lines for workflows
-        line = strtrim(lines{i});
+    for i = 1:length(lines)
+        line = lines{i};
 
-        if startsWith(line, '%') && ~inHeader
-            inHeader = true;
-            % First comment line is usually the title
-            if isempty(docInfo.title) && length(line) > 1
-                title = strrep(line, '%', '');
-                title = strtrim(title);
-                docInfo.title = title;
-            end
+        % If line starts with '%', it's part of the header
+        if startsWith(strtrim(line), '%')
             headerLines{end+1} = line;
-        elseif inHeader && startsWith(line, '%')
-            headerLines{end+1} = line;
-        elseif inHeader && ~startsWith(line, '%')
-            break; % End of header comments
+        elseif ~isempty(headerLines)
+            % If we already have header lines and find a non-comment line,
+            % this marks the end of header
+            break;
         end
     end
 
-    % Parse workflow description and steps
-    inWorkflowSection = false;
-    for i = 1:length(headerLines)
-        line = headerLines{i};
-        cleanLine = strtrim(strrep(line, '%', ''));
-
-        if contains(cleanLine, 'workflow:') || contains(cleanLine, 'The workflow')
-            inWorkflowSection = true;
-            if ~isempty(cleanLine) && isempty(docInfo.description)
-                docInfo.description = cleanLine;
+    % Parse the header format (same as example headers)
+    if ~isempty(headerLines)
+        % First line should be workflow name and brief description
+        firstLine = strtrim(strrep(headerLines{1}, '%', ''));
+        if startsWith(upper(firstLine), upper(workflowName))
+            % Find where the workflow name ends and description begins
+            nameEnd = length(workflowName);
+            if length(firstLine) > nameEnd
+                docInfo.title = firstLine(1:nameEnd);
+                remainder = strtrim(firstLine(nameEnd+1:end));
+                if ~isempty(remainder)
+                    docInfo.briefDescription = remainder;
+                end
+            else
+                docInfo.title = firstLine;
             end
-        elseif inWorkflowSection && ~isempty(regexp(cleanLine, '^\d+\.', 'once'))
-            docInfo.workflow{end+1} = cleanLine;
-        elseif ~inWorkflowSection && ~isempty(cleanLine) && ...
-                isempty(docInfo.description) && ~contains(upper(cleanLine), upper(workflowName))
-            docInfo.description = cleanLine;
+        else
+            % Fallback - use the whole first line as title
+            docInfo.title = firstLine;
+        end
+
+        % Parse remaining lines for long description
+        longDescLines = {};
+
+        i = 2; % Start from second line
+        while i <= length(headerLines)
+            line = strtrim(strrep(headerLines{i}, '%', ''));
+
+            % Skip empty lines at the beginning
+            if ~isempty(line)
+                longDescLines{end+1} = line;
+            end
+
+            i = i + 1;
+        end
+
+        % Join long description lines with spaces
+        if ~isempty(longDescLines)
+            docInfo.longDescription = strjoin(longDescLines, ' ');
         end
     end
 
@@ -1017,14 +1034,29 @@ end
 function generateExampleDoc(examplesDocsDir, exampleName, docInfo, module)
 % Generate markdown documentation for an example
 
-outputPath = fullfile(examplesDocsDir, [exampleName '.md']);
+generateCommonDoc(examplesDocsDir, exampleName, docInfo, 'example', module);
 
-% Create markdown content with brief description (similar to function docs)
-% Use the filename case instead of the header case
+end
+
+function generateWorkflowDoc(workflowsDocsDir, workflowName, docInfo)
+% Generate markdown documentation for a workflow
+
+generateCommonDoc(workflowsDocsDir, workflowName, docInfo, 'workflow', []);
+
+end
+
+function generateCommonDoc(outputDir, itemName, docInfo, itemType, module)
+% Generate markdown documentation for examples or workflows with unified format
+
+outputPath = fullfile(outputDir, [itemName '.md']);
+
+% Create markdown content with brief description (unified format)
 if ~isempty(docInfo.briefDescription)
-    content = sprintf('# `%s` - %s\n\n', exampleName, docInfo.briefDescription);
+    content = sprintf('# `%s` - %s\n\n', itemName, docInfo.briefDescription);
+elseif strcmp(itemType, 'workflow')
+    content = sprintf('# %s Workflow\n\n', itemName);
 else
-    content = sprintf('# %s Example\n\n', exampleName);
+    content = sprintf('# %s Example\n\n', itemName);
 end
 
 % Add description section (long description)
@@ -1033,90 +1065,38 @@ if ~isempty(docInfo.longDescription)
     content = [content sprintf('%s\n\n', docInfo.longDescription)];
 elseif ~isempty(docInfo.briefDescription)
     content = [content sprintf('%s\n\n', docInfo.briefDescription)];
+elseif strcmp(itemType, 'workflow')
+    content = [content sprintf('This workflow demonstrates advanced signal processing techniques.\n\n')];
 else
-    content = [content sprintf('This example demonstrates the usage of %s.\n\n', exampleName)];
+    content = [content sprintf('This example demonstrates the usage of %s.\n\n', itemName)];
 end
 
 % Add source code link
 content = [content sprintf('## Source Code\n\n')];
-content = [content sprintf('[View source code](../../examples/%s/%s.m)\n\n', module, exampleName)];
+if strcmp(itemType, 'workflow')
+    content = [content sprintf('[View source code](../../examples/workflows/%s.m)\n\n', itemName)];
+else
+    content = [content sprintf('[View source code](../../examples/%s/%s.m)\n\n', module, itemName)];
+end
 
 % Add see also section
 content = [content sprintf('## See Also\n\n')];
 content = [content sprintf('- [API Reference](../api/README.md)\n')];
-content = [content sprintf('- [%s Module](../api/%s/README.md)\n', upper(module), module)];
-content = [content sprintf('- [Examples Overview](README.md)\n\n')];
-
-content = [content sprintf('---\n\n')];
-content = [content sprintf('**Module**: [%s](../api/%s/README.md) | **Last Updated**: %s\n', ...
-    upper(module), module, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
-
-% Write file
-try
-    fid = fopen(outputPath, 'w', 'n', 'UTF-8');
-    if fid == -1
-        error('Could not open file for writing: %s', outputPath);
-    end
-    fprintf(fid, '%s', content);
-    fclose(fid);
-catch ME
-    if fid ~= -1
-        fclose(fid);
-    end
-    rethrow(ME);
-end
-
-end
-
-function generateWorkflowDoc(workflowsDocsDir, workflowName, docInfo)
-% Generate markdown documentation for a workflow
-
-outputPath = fullfile(workflowsDocsDir, [workflowName '.md']);
-
-% Create markdown content
-if ~isempty(docInfo.title)
-    content = sprintf('# %s\n\n', docInfo.title);
+if strcmp(itemType, 'workflow')
+    content = [content sprintf('- [Examples Overview](README.md)\n\n')];
 else
-    content = sprintf('# %s Workflow\n\n', workflowName);
+    content = [content sprintf('- [%s Module](../api/%s/README.md)\n', upper(module), module)];
+    content = [content sprintf('- [Examples Overview](README.md)\n\n')];
 end
-
-% Add description
-if ~isempty(docInfo.description)
-    content = [content sprintf('## Description\n\n')];
-    content = [content sprintf('%s\n\n', docInfo.description)];
-end
-
-% Add workflow type
-content = [content sprintf('**Type**: Workflow\n\n')];
-
-% Add workflow steps if available
-if ~isempty(docInfo.workflow)
-    content = [content sprintf('## Workflow Steps\n\n')];
-    for i = 1:length(docInfo.workflow)
-        content = [content sprintf('%s\n', docInfo.workflow{i})];
-    end
-    content = [content newline];
-end
-
-% Add usage section
-content = [content sprintf('## Usage\n\n')];
-content = [content sprintf('Run the workflow from the MATLAB command window:\n\n')];
-content = [content sprintf('```matlab\n')];
-content = [content sprintf('run(''examples/workflows/%s.m'');\n', workflowName)];
-content = [content sprintf('```\n\n')];
-
-% Add file location
-content = [content sprintf('## File Location\n\n')];
-content = [content sprintf('`examples/workflows/%s.m`\n\n', workflowName)];
-
-% Add see also section
-content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [Workflows Overview](README.md#workflows)\n')];
-content = [content sprintf('- [Examples Overview](README.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
-content = [content sprintf('**Type**: Workflow | **Last Updated**: %s\n', ...
-    string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+if strcmp(itemType, 'workflow')
+    content = [content sprintf('**Last Updated**: %s\n', ...
+        string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+else
+    content = [content sprintf('**Module**: [%s](../api/%s/README.md) | **Last Updated**: %s\n', ...
+        upper(module), module, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+end
 
 % Write file
 try

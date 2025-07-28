@@ -1,13 +1,16 @@
-% TFMAP WORKFLOW
+% TFMAPWORKFLOW Workflow demonstrating time-frequency analysis of synthetic signals
 %
-% This workflow demonstrates how to create a time-frequency map of a synthetic signal
-% using the nanpwelch function and slicesignal for segmentation.
-%
-% The workflow:
-% 1. Generates a synthetic chirp signal with variable dominant frequency
-% 2. Slices the signal into 20-second segments with 50% overlap
-% 3. Computes power spectral density matrix using nanpwelch
-% 4. Creates a time-frequency plot
+% This workflow demonstrates how to create comprehensive time-frequency maps of
+% synthetic signals using advanced signal processing techniques. The process begins
+% by generating a synthetic chirp signal with time-varying dominant frequency to
+% simulate real-world signal characteristics. The signal is then systematically
+% sliced into overlapping 20-second segments with 50% overlap to ensure adequate
+% temporal resolution. Power spectral density is computed for each segment using
+% the nanpwelch function, creating a matrix of frequency content over time. Finally,
+% the results are visualized as a time-frequency plot that reveals how the signal's
+% spectral characteristics evolve over time, providing valuable insights for
+% understanding non-stationary signal behavior.
+
 
 % Add required paths for source code
 addpath(fullfile('..', '..', 'src', 'tools'));

@@ -1,7 +1,13 @@
-% BASELINEREMOVE EXAMPLE
+% BASELINEREMOVEEXAMPLE Example demonstrating baseline wander removal from ECG signals.
 %
-% This example demonstrates how to use the baselineremove function to
-% remove baseline wander from real ECG signals.
+% This example demonstrates how to effectively remove baseline wander from real ECG
+% signals using the baselineremove function. The process involves loading ECG signal
+% data from a CSV file and applying baseline removal techniques to eliminate
+% low-frequency artifacts that can interfere with ECG analysis. The example shows
+% the comparison between original and processed signals through visualization,
+% highlighting the effectiveness of the baseline removal algorithm in preserving
+% the ECG morphology while eliminating unwanted baseline drift.
+
 
 % Add necessary paths
 addpath('../../src/ecg');

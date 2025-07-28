@@ -1,7 +1,12 @@
-% tdmetricsExample.m - Example usage of tdmetrics function
+% TDMETRICSEXAMPLE Example demonstrating time-domain heart rate variability analysis.
 %
-% This example demonstrates how to use the tdmetrics function to compute
-% time domain heart rate variability metrics from ECG R-peak timings.
+% This example demonstrates how to compute time-domain heart rate variability (HRV)
+% metrics from ECG R-peak timing data using the tdmetrics function. The process
+% begins by loading pre-calculated R-peak timing data from CSV fixture files.
+% The R-peak intervals are then computed and used as input to the tdmetrics function,
+% which calculates various time-domain HRV parameters including statistical measures
+% of RR interval variability.
+
 
 % Add required paths
 addpath('../../src/tools');

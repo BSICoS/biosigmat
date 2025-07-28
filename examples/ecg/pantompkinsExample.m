@@ -1,11 +1,14 @@
-% PANTOMPKINS EXAMPLE
+% PANTOMPKINSEXAMPLE Example demonstrating R-wave detection using Pan-Tompkins algorithm.
 %
-% This example demonstrates the use of the PANTOMPKINS algorithm for R-wave detection in ECG signals.
-% It shows how to load ECG data, apply the PANTOMPKINS algorithm, and visualize all intermediate
-% processing steps including filtered signal, squared derivative, and integrated envelope.
-%
-% The example uses fixture data from a CSV file containing:
-%   - ECG signal sampled at 256 Hz
+% This example demonstrates the implementation of the Pan-Tompkins algorithm for
+% reliable R-wave detection in ECG signals. The process begins by loading ECG data
+% sampled at 256 Hz from fixture files. The Pan-Tompkins algorithm is then applied
+% to detect R-wave peaks through a series of filtering and processing steps including
+% bandpass filtering, differentiation, squaring, and integration. The example provides
+% comprehensive visualization of all intermediate processing steps, showing the
+% filtered signal, squared derivative, integrated envelope, and final R-wave detection
+% results, allowing users to understand each stage of the algorithm's operation.
+
 
 % Add required paths for source code and fixtures
 addpath(fullfile('..', '..', 'src', 'ecg'));

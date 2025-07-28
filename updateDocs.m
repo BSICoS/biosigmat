@@ -498,12 +498,44 @@ for i = 1:length(functionList)
     content = [content sprintf('- [`%s`](%s.md)\n', funcName, funcName)];
 end
 
+% Add Examples section (exclude tools module)
+if ~strcmp(module, 'tools')
+    content = [content sprintf('\n## Examples\n\n')];
+
+    % Get toolbox root to check for example files
+    toolboxRoot = fileparts(fileparts(fileparts(moduleDocsDir))); % Go up 3 levels: api/module -> api -> docs -> root
+
+    examplesList = {};
+    for i = 1:length(functionList)
+        funcName = functionList{i};
+        examplePath = fullfile(toolboxRoot, 'examples', module, [funcName 'Example.m']);
+        if exist(examplePath, 'file')
+            examplesList{end+1} = funcName;
+        end
+    end
+
+    if ~isempty(examplesList)
+        for i = 1:length(examplesList)
+            funcName = examplesList{i};
+            content = [content sprintf('- [`%sExample`](../../../examples/%s/%sExample.m)\n', funcName, module, funcName)];
+        end
+    else
+        content = [content sprintf('*No examples available for this module*\n')];
+    end
+end
+
 content = [content sprintf('\n## See Also\n\n')];
 content = [content sprintf('- [API Reference](../README.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
-content = [content sprintf('**Functions**: %d | **Last Updated**: %s\n', ...
-    length(functionList), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+if strcmp(module, 'tools')
+    content = [content sprintf('**Functions**: %d | **Last Updated**: %s\n', ...
+        length(functionList), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+else
+    examplesCount = length(examplesList);
+    content = [content sprintf('**Functions**: %d | **Examples**: %d | **Last Updated**: %s\n', ...
+        length(functionList), examplesCount, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
+end
 
 % Write file
 fid = fopen(readmePath, 'w', 'n', 'UTF-8');

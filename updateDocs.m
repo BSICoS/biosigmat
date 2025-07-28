@@ -198,17 +198,16 @@ try
                 currentSection = 'example';
                 i = i + 1;
                 continue;
-            elseif startsWith(cleanLine, 'See also', 'IgnoreCase', true)
+            elseif startsWith(cleanLine, 'See also')
                 % Before switching to see also, save any remaining paragraph
                 if ~isempty(currentParagraph) && strcmp(currentSection, '')
                     longDesc{end+1} = formatParagraph(currentParagraph);
                     currentParagraph = {};
                 end
                 currentSection = 'seealso';
-                % Extract see also items from the same line (no colon expected)
-                spaceIdx = strfind(lower(cleanLine), 'see also');
-                if ~isempty(spaceIdx) && length(cleanLine) > spaceIdx(1) + 8
-                    seeAlsoText = strtrim(cleanLine(spaceIdx(1) + 8:end));
+                % Extract see also items from the same line (starts with "See also")
+                if length(cleanLine) > 8
+                    seeAlsoText = strtrim(cleanLine(9:end)); % Remove "See also" prefix
                     if ~isempty(seeAlsoText)
                         seeAlsoList = [seeAlsoList; split(seeAlsoText, ',')];
                     end
@@ -303,17 +302,17 @@ try
         cleanSeeAlso = {};
         for j = 1:length(seeAlsoList)
             item = strtrim(seeAlsoList{j});
-            if ~isempty(item) && ~startsWith(item, 'Status:', 'IgnoreCase', true)
+            if ~isempty(item) && ~startsWith(item, 'Status:')
                 cleanSeeAlso{end+1} = item;
             end
         end
         docInfo.seeAlso = cleanSeeAlso;
 
-        % Extract status information (look for "Status:" in the last few lines of header)
+        % Extract status information (look for "Status:" at the beginning of lines)
         for j = length(headerLines):-1:max(1, length(headerLines)-5)
             line = headerLines{j};
             cleanLine = strtrim(strrep(line, '%', ''));
-            if startsWith(cleanLine, 'Status:', 'IgnoreCase', true)
+            if startsWith(cleanLine, 'Status:')
                 statusText = strtrim(cleanLine(8:end)); % Remove "Status:" prefix
                 if ~isempty(statusText)
                     docInfo.status = statusText;

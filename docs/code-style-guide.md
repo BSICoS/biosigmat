@@ -121,6 +121,31 @@ Key requirements for each test file:
 - Use `tc.verify*` assertions (`verifyEqual`, `verifyTrue`, `verifyWarning`, etc.)
 - Name test methods starting with `test` and use descriptive comments
 
+
+## Example Structure
+
+Each example file must demonstrate the usage of a function in a clear, reproducible, and self-contained way. Example files must follow these guidelines:
+
+- Filename must be `functionNameExample.m` and be located under `examples/` with a matching subfolder to the function in `src/`.
+- Add comments throughout to explain each step and the purpose of the code blocks.
+- The example should be runnable as-is and produce meaningful output or plots.
+- Begin with a header comment summarizing what the example demonstrates with proper format. For example:
+
+```matlab
+% BASELINEREMOVEEXAMPLE Example demonstrating baseline wander removal from ECG signals.
+%
+% This example demonstrates how to effectively remove baseline wander from real ECG
+% signals using the baselineremove function. The process involves loading ECG signal
+% data from a CSV file and applying baseline removal techniques to eliminate
+% low-frequency artifacts that can interfere with ECG analysis. The example shows
+% the comparison between original and processed signals through visualization,
+% highlighting the effectiveness of the baseline removal algorithm in preserving
+% the ECG morphology while eliminating unwanted baseline drift.
+
+
+% ...function implementation...
+```
+
 ## MATLAB-Specific Guidelines
 
 - Use column vectors consistently

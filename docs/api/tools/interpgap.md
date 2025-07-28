@@ -28,6 +28,7 @@ method:
 x = [1, 2, NaN, 4, 5, NaN, NaN, 8, 9, 10]';
 interpolated = interpgap(x, 2);
 interpolatedCubic = interpgap(x, 2, 'spline');
+
 % Plot results
 figure;
 plot(1:length(x), x, 'ro', 1:length(interpolated), interpolated, 'b-');
@@ -41,9 +42,8 @@ title('Signal Gap Interpolation');
 - ISNAN
 - FILLMISSING
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

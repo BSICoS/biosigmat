@@ -29,12 +29,14 @@ Each sequence has 4 columns where:
 A = [20, 19,   3,   2, NaN, NaN;
     20, 23,   1,   1,   1, NaN;
     20,  7,   7, NaN,   1, NaN];
+
 OUT = findsequences(A);
 % OUT contains:
 %   Value  startIndices  endIndices  seqLengths
 %    20        1              3           3       % Three 20s in first column
 %     1       14             15           2       % Two 1s (positions 14-15)
 %   NaN       16             18           3       % Three NaNs (positions 16-18)
+
 % Get separate outputs
 [values, startPos, endPos, lengths] = findsequences(A);
 ```
@@ -44,9 +46,8 @@ OUT = findsequences(A);
 - IND2SUB
 - DIFF
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

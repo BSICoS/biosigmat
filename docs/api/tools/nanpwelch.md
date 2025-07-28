@@ -31,6 +31,7 @@ fs = 1000;
 t = 0:1/fs:1;
 signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
 signal(100:150) = NaN;  % Add NaN gap
+
 % Compute PSD with gap interpolation
 [pxx, f] = nanpwelch(signal, 256, 128, 512, fs, 10);
 ```
@@ -42,9 +43,8 @@ signal(100:150) = NaN;  % Add NaN gap
 - TRIMNANS
 - INTERPGAP
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

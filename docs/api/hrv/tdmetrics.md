@@ -29,6 +29,7 @@ load('ecg_data.mat'); % Load ECG data
 rpeaks = pantompkins(ecg, fs); % Detect R-peaks
 dtk = diff(rpeaks); % Compute R-R intervals
 metrics = tdmetrics(dtk);
+
 % Display results
 fprintf('Mean HR: %.1f bpm\n', metrics.mhr);
 fprintf('SDNN: %.1f ms\n', metrics.sdnn);
@@ -41,9 +42,8 @@ fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 
 - PANTOMPKINS
 
-- [HRV Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: HRV | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [HRV](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

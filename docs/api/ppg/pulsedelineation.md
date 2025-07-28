@@ -27,6 +27,7 @@ Out: nD            = Location of peaks detected in filtered signal (seconds) nA 
 [b, delay] = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
 signalFiltered = filter(b, 1, signal);
 signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
+
 % Set up pulse delineation parameters
 Setup = struct();
 Setup.alfa = 0.2;                   % Threshold adaptation factor
@@ -34,16 +35,17 @@ Setup.refractPeriod = 150e-3;       % Refractory period (s)
 Setup.thrIncidences = 1.5;          % Threshold for incidences
 Setup.wdw_nA = 250e-3;              % Window for onset detection (s)
 Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
+
 % Run pulse delineation on filtered signal
 [nD, nA, nB, nM, threshold] = pulsedelineation(signalFiltered, fs, Setup);
+
 Status: Alpha
 ```
 
 ## See Also
 
-- [PPG Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: PPG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [PPG](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

@@ -31,9 +31,8 @@ trimmed = trimnans(signal);
 - FIND
 - RMMISSING
 
-- [TOOLS Module](README.md)
 - [API Reference](../README.md)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

@@ -24,11 +24,11 @@ method:
 ## Examples
 
 ```matlab
-Create a signal with small gaps and interpolate
+% Create a signal with small gaps and interpolate
 x = [1, 2, NaN, 4, 5, NaN, NaN, 8, 9, 10]';
 interpolated = interpgap(x, 2);
 interpolatedCubic = interpgap(x, 2, 'spline');
-Plot results
+% Plot results
 figure;
 plot(1:length(x), x, 'ro', 1:length(interpolated), interpolated, 'b-');
 legend('Original', 'Interpolated');

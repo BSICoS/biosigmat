@@ -24,11 +24,11 @@ additional outputs:
 ## Examples
 
 ```matlab
-Derive respiratory signal from ECG using slope range method
-load('ecg_data.mat');  Load ECG signal and R-wave positions
-decg = diff(ecg);  Calculate ECG derivative
+% Derive respiratory signal from ECG using slope range method
+load('ecg_data.mat'); % Load ECG signal and R-wave positions
+decg = diff(ecg); % Calculate ECG derivative
 edr = sloperange(decg, tk, fs);
-Plot results
+% Plot results
 figure;
 plot(tk, edr);
 title('ECG-derived Respiration');

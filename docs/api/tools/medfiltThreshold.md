@@ -17,11 +17,11 @@ THRESHOLD = MEDFILTTHRESHOLD(X, WINDOW, FACTOR, MAXTHRESHOLD) computes an adapti
 ## Examples
 
 ```matlab
-Create sample series with outliers
+% Create sample series with outliers
 x = [0.8, 0.82, 0.81, 1.2, 0.79, 0.83, 0.80]';
-Compute adaptive threshold
+% Compute adaptive threshold
 threshold = medfiltThreshold(x, 5, 1.5, 1.5);
-Identify outliers
+% Identify outliers
 outliers = x > threshold;
 ```
 

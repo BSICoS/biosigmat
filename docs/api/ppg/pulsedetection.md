@@ -33,19 +33,19 @@ steeper threshold slopes
 ## Examples
 
 ```matlab
-Load PPG signal and apply LPD filtering
+% Load PPG signal and apply LPD filtering
 load('ppg_sample.mat', 'ppg', 'fs');
-Design and apply LPD filter
+% Design and apply LPD filter
 fcLPD = 8; fpLPD = 0.9; orderLPD = 4;
 [b, delay] = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
 signalFiltered = filter(b, 1, ppg);
 signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
-Detect pulses with default parameters
+% Detect pulses with default parameters
 [nD, threshold] = pulsedetection(signalFiltered, fs);
-Detect pulses with custom parameters
+% Detect pulses with custom parameters
 [nD2, threshold2] = pulsedetection(signalFiltered, fs, ...
-'alfa', 0.3, 'refractPeriod', 0.2, 'thrIncidences', 2.0);
-Visualize results
+   'alfa', 0.3, 'refractPeriod', 0.2, 'thrIncidences', 2.0);
+% Visualize results
 t = (0:length(signalFiltered)-1) / fs;
 figure;
 plot(t, signalFiltered, 'b');
@@ -56,10 +56,10 @@ xlabel('Time (s)');
 ylabel('Amplitude');
 title('PPG Pulse Detection with Adaptive Threshold');
 legend('Filtered PPG', 'Threshold', 'Detected Pulses');
-Calculate heart rate
+% Calculate heart rate
 heartRate = 60 ./ diff(nD);
-fprintf('Detected d pulses\n', length(nD));
-fprintf('Mean heart rate: .1f bpm\n', mean(heartRate));
+fprintf('Detected %d pulses\n', length(nD));
+fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 ```
 
 ## See Also

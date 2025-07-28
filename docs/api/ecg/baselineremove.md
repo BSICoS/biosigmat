@@ -21,7 +21,7 @@ ECGDETRENDED = BASELINEREMOVE(..., WINDOW) allows specifying the number of sampl
 ## Examples
 
 ```matlab
-Remove baseline from ECG signal using R-peaks
+% Remove baseline from ECG signal using R-peaks
 [cleanEcg, baseline] = baselineremove(ecg, rpeaks, 50);
 plot(1:length(ecg), ecg, 1:length(cleanEcg), cleanEcg);
 legend('Original', 'Detrended');

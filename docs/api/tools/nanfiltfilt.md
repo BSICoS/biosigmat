@@ -29,12 +29,12 @@ NANFILTFILT should not be used when the intent of a filter is to modify signal p
 ## Examples
 
 ```matlab
-Filter a noisy signal with NaN gaps
+% Filter a noisy signal with NaN gaps
 fs = 1000;
 t = 0:1/fs:1;
 signal = sin(2*pi*50*t)' + 0.1*randn(length(t),1);
-signal(100:150) = NaN;   Add NaN gap
-Design and apply filter
+signal(100:150) = NaN;  % Add NaN gap
+% Design and apply filter
 [b, a] = butter(4, 0.1);
 filtered = nanfiltfilt(b, a, signal, 10);
 ```

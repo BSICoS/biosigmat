@@ -19,10 +19,10 @@ This function is useful for cleaning up signals that may have NaN padding at the
 ## Examples
 
 ```matlab
-Create a signal with NaN padding at both ends
+% Create a signal with NaN padding at both ends
 signal = [NaN; NaN; 1; 2; NaN; 3; 4; NaN; NaN];
 trimmed = trimnans(signal);
-Result: trimmed = [1; 2; NaN; 3; 4]
+% Result: trimmed = [1; 2; NaN; 3; 4]
 ```
 
 ## See Also

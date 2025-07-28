@@ -23,10 +23,10 @@ The peakedness measures how concentrated the power is in a narrow frequency band
 ## Examples
 
 ```matlab
-Generate a test spectrum with a peak at 0.3 Hz
+% Generate a test spectrum with a peak at 0.3 Hz
 f = 0:0.01:1;
 pxx = exp(-((f-0.3)/0.05).^2) + 0.1*randn(size(f));
-Calculate peakedness using fixed reference frequency
+% Calculate peakedness using fixed reference frequency
 [pkl, akl] = peakedness(pxx, f, 0.3);
 ```
 

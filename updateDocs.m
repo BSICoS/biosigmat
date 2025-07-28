@@ -179,6 +179,7 @@ try
         % Parse sections
         currentSection = '';
         longDesc = {};
+        currentParagraph = {};
         currentExample = {};
         seeAlsoList = {};
 
@@ -189,10 +190,20 @@ try
 
             % Check for section headers
             if strcmpi(cleanLine, 'Example:') || strcmpi(cleanLine, 'Examples:')
+                % Before switching to example, save any remaining paragraph
+                if ~isempty(currentParagraph) && strcmp(currentSection, '')
+                    longDesc{end+1} = formatParagraph(currentParagraph);
+                    currentParagraph = {};
+                end
                 currentSection = 'example';
                 i = i + 1;
                 continue;
             elseif startsWith(cleanLine, 'See also', 'IgnoreCase', true)
+                % Before switching to see also, save any remaining paragraph
+                if ~isempty(currentParagraph) && strcmp(currentSection, '')
+                    longDesc{end+1} = formatParagraph(currentParagraph);
+                    currentParagraph = {};
+                end
                 currentSection = 'seealso';
                 % Extract see also items from the same line (no colon expected)
                 spaceIdx = strfind(lower(cleanLine), 'see also');
@@ -205,7 +216,11 @@ try
                 i = i + 1;
                 continue;
             elseif isempty(cleanLine)
-                % Empty line - continue
+                % Empty line - end current paragraph if we're in description section
+                if strcmp(currentSection, '') && ~isempty(currentParagraph)
+                    longDesc{end+1} = formatParagraph(currentParagraph);
+                    currentParagraph = {};
+                end
                 i = i + 1;
                 continue;
             end
@@ -223,15 +238,20 @@ try
                 otherwise
                     % Long description section (before Example)
                     if ~isempty(cleanLine)
-                        longDesc{end+1} = cleanLine;
+                        currentParagraph{end+1} = cleanLine;
                     end
             end
 
             i = i + 1;
         end
 
-        % Store extracted information
-        docInfo.longDescription = strjoin(longDesc, ' ');
+        % Save any remaining paragraph
+        if ~isempty(currentParagraph) && strcmp(currentSection, '')
+            longDesc{end+1} = formatParagraph(currentParagraph);
+        end
+
+        % Store extracted information - join paragraphs with double newline
+        docInfo.longDescription = strjoin(longDesc, '\n\n');
         docInfo.examples = strjoin(currentExample, newline);
 
         % Clean up see also list
@@ -260,6 +280,48 @@ try
 
 catch ME
     fprintf('⚠️  Warning: Could not extract docs from %s: %s\n', functionName, ME.message);
+end
+
+end
+
+function formattedParagraph = formatParagraph(paragraphLines)
+% Format a paragraph preserving special formatting for parameter lists
+
+if isempty(paragraphLines)
+    formattedParagraph = '';
+    return;
+end
+
+% Check if this paragraph contains parameter definitions (lines starting with quotes)
+hasParameters = false;
+for i = 1:length(paragraphLines)
+    line = paragraphLines{i};
+    if contains(line, '''') && contains(line, '-')
+        hasParameters = true;
+        break;
+    end
+end
+
+if hasParameters
+    % For parameter lists, preserve line breaks and add bullet points
+    formattedLines = {};
+    for i = 1:length(paragraphLines)
+        line = strtrim(paragraphLines{i});
+        if ~isempty(line)
+            % Check if this line is a parameter definition (starts with quote)
+            if startsWith(line, '''')
+                % Add bullet point for parameter lines
+                formattedLines{end+1} = ['- ' line];
+            else
+                % Regular line in the parameter paragraph
+                formattedLines{end+1} = line;
+            end
+        end
+    end
+    formattedParagraph = strjoin(formattedLines, '\n');
+else
+    % For regular text, join with spaces
+    formattedParagraph = strjoin(paragraphLines, ' ');
 end
 
 end
@@ -1047,5 +1109,3 @@ if exist(readmePath, 'file')
 end
 
 end
-
-

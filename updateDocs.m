@@ -876,7 +876,8 @@ function docInfo = extractExampleDoc(filePath, exampleName)
 docInfo = struct();
 docInfo.name = exampleName;
 docInfo.title = '';
-docInfo.description = '';
+docInfo.briefDescription = '';
+docInfo.longDescription = '';
 docInfo.steps = {};
 docInfo.requirements = {};
 
@@ -885,58 +886,62 @@ try
     fileContent = fileread(filePath, 'Encoding', 'UTF-8');
     lines = splitlines(fileContent);
 
-    % Extract header comments
-    inHeader = false;
+    % Extract header comments - all consecutive lines starting with '%'
     headerLines = {};
 
-    for i = 1:min(50, length(lines)) % Check first 50 lines
-        line = strtrim(lines{i});
+    for i = 1:length(lines)
+        line = lines{i};
 
-        if startsWith(line, '%') && ~inHeader
-            inHeader = true;
-            % First comment line is usually the title
-            if isempty(docInfo.title) && length(line) > 1
-                title = strrep(line, '%', '');
-                title = strtrim(title);
-                docInfo.title = title;
-            end
+        % If line starts with '%', it's part of the header
+        if startsWith(strtrim(line), '%')
             headerLines{end+1} = line;
-        elseif inHeader && startsWith(line, '%')
-            headerLines{end+1} = line;
-
-            % Look for description
-            cleanLine = strtrim(strrep(line, '%', ''));
-            if ~isempty(cleanLine) && isempty(docInfo.description) && ...
-                    ~contains(upper(cleanLine), upper(exampleName)) && ...
-                    ~startsWith(cleanLine, 'This example')
-                docInfo.description = cleanLine;
-            elseif startsWith(cleanLine, 'This example')
-                docInfo.description = cleanLine;
-            end
-        elseif inHeader && ~startsWith(line, '%')
-            break; % End of header comments
+        elseif ~isempty(headerLines)
+            % If we already have header lines and find a non-comment line,
+            % this marks the end of header
+            break;
         end
     end
 
-    % Extract steps from comments (look for numbered lists or workflow descriptions)
-    currentStep = '';
-    for i = 1:length(headerLines)
-        line = headerLines{i};
-        cleanLine = strtrim(strrep(line, '%', ''));
-
-        % Look for numbered steps or workflow descriptions
-        if ~isempty(regexp(cleanLine, '^\d+\.', 'once')) || ...
-                contains(cleanLine, ':') && length(cleanLine) > 10
-            if ~isempty(currentStep)
-                docInfo.steps{end+1} = currentStep;
+    % Parse the header format (similar to function headers)
+    if ~isempty(headerLines)
+        % First line should be example name and brief description
+        firstLine = strtrim(strrep(headerLines{1}, '%', ''));
+        if startsWith(upper(firstLine), upper(exampleName))
+            % Find where the example name ends and description begins
+            nameEnd = length(exampleName);
+            if length(firstLine) > nameEnd
+                docInfo.title = firstLine(1:nameEnd);
+                remainder = strtrim(firstLine(nameEnd+1:end));
+                if ~isempty(remainder)
+                    docInfo.briefDescription = remainder;
+                end
+            else
+                docInfo.title = firstLine;
             end
-            currentStep = cleanLine;
-        elseif ~isempty(currentStep) && ~isempty(cleanLine)
-            currentStep = [currentStep ' ' cleanLine];
+        else
+            % Fallback - use the whole first line as title
+            docInfo.title = firstLine;
         end
-    end
-    if ~isempty(currentStep)
-        docInfo.steps{end+1} = currentStep;
+
+        % Parse remaining lines for long description
+        longDescLines = {};
+
+        i = 2; % Start from second line
+        while i <= length(headerLines)
+            line = strtrim(strrep(headerLines{i}, '%', ''));
+
+            % Skip empty lines at the beginning
+            if ~isempty(line)
+                longDescLines{end+1} = line;
+            end
+
+            i = i + 1;
+        end
+
+        % Join long description lines with spaces
+        if ~isempty(longDescLines)
+            docInfo.longDescription = strjoin(longDescLines, ' ');
+        end
     end
 
 catch ME
@@ -1014,26 +1019,22 @@ function generateExampleDoc(examplesDocsDir, exampleName, docInfo, module)
 
 outputPath = fullfile(examplesDocsDir, [exampleName '.md']);
 
-% Create markdown content
-if ~isempty(docInfo.title)
-    content = sprintf('# %s\n\n', docInfo.title);
+% Create markdown content with brief description (similar to function docs)
+% Use the filename case instead of the header case
+if ~isempty(docInfo.briefDescription)
+    content = sprintf('# `%s` - %s\n\n', exampleName, docInfo.briefDescription);
 else
     content = sprintf('# %s Example\n\n', exampleName);
 end
 
-% Add description
-if ~isempty(docInfo.description)
-    content = [content sprintf('## Description\n\n')];
-    content = [content sprintf('%s\n\n', docInfo.description)];
-end
-
-% Add steps if available
-if ~isempty(docInfo.steps)
-    content = [content sprintf('## Steps\n\n')];
-    for i = 1:length(docInfo.steps)
-        content = [content sprintf('%d. %s\n', i, docInfo.steps{i})];
-    end
-    content = [content newline];
+% Add description section (long description)
+content = [content sprintf('## Description\n\n')];
+if ~isempty(docInfo.longDescription)
+    content = [content sprintf('%s\n\n', docInfo.longDescription)];
+elseif ~isempty(docInfo.briefDescription)
+    content = [content sprintf('%s\n\n', docInfo.briefDescription)];
+else
+    content = [content sprintf('This example demonstrates the usage of %s.\n\n', exampleName)];
 end
 
 % Add source code link
@@ -1042,7 +1043,7 @@ content = [content sprintf('[View source code](../../examples/%s/%s.m)\n\n', mod
 
 % Add see also section
 content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [API Reference](../api/README.md)\n\n')];
+content = [content sprintf('- [API Reference](../api/README.md)\n')];
 content = [content sprintf('- [%s Module](../api/%s/README.md)\n', upper(module), module)];
 content = [content sprintf('- [Examples Overview](README.md)\n\n')];
 

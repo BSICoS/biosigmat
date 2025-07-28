@@ -1,17 +1,10 @@
-# PCAVERAGE WORKFLOW
+# PCAVERAGEWORKFLOW Workflow demonstrating peak-conditioned average processing.
 
 ## Description
 
-PCAVERAGE WORKFLOW
+This workflow demonstrates the peak-conditioned average processing technique
 
 **Type**: Workflow
-
-## Workflow Steps
-
-1. Loads respiratory signal from edr_signals.csv
-2. Applies detrend to remove linear trends
-3. Slices the signal
-4. Computes power spectral density segments using nanpwelch
 
 ## Usage
 

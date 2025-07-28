@@ -440,6 +440,16 @@ else
     content = [content sprintf('```\n\n')];
 end
 
+% Add link to detailed example if it exists (exclude tools module)
+if ~strcmp(module, 'tools')
+    % Check if example file exists
+    toolboxRoot = fileparts(fileparts(fileparts(moduleDocsDir))); % Go up 3 levels: api/module -> api -> docs -> root
+    examplePath = fullfile(toolboxRoot, 'examples', module, [functionName 'Example.m']);
+    if exist(examplePath, 'file')
+        content = [content sprintf('[View detailed example](../../../examples/%s/%sExample.m)\n\n', module, functionName)];
+    end
+end
+
 % Add see also section
 content = [content sprintf('## See Also\n\n')];
 if ~isempty(docInfo.seeAlso)

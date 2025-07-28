@@ -27,6 +27,8 @@ plot(1:length(ecg), ecg, 1:length(cleanEcg), cleanEcg);
 legend('Original', 'Detrended');
 ```
 
+[View detailed example](../../../examples/ecg/baselineremoveExample.m)
+
 ## See Also
 
 - PAMTOMPKINS

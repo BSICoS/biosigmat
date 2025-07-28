@@ -42,6 +42,8 @@ Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
 Status: Alpha
 ```
 
+[View detailed example](../../../examples/ppg/pulsedelineationExample.m)
+
 ## See Also
 
 - [API Reference](../README.md)

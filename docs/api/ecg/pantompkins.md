@@ -29,6 +29,8 @@ cutoff frequencies in Hz. Default: [5, 12]
 result = pantompkins(input);
 ```
 
+[View detailed example](../../../examples/ecg/pantompkinsExample.m)
+
 ## See Also
 
 - [API Reference](../README.md)

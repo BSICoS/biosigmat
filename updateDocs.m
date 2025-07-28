@@ -158,8 +158,11 @@ try
         if startsWith(strtrim(line), '%')
             inHeader = true;
             headerLines{end+1} = line;
-        elseif inHeader && ~startsWith(strtrim(line), '%')
-            break; % End of header comments
+        elseif inHeader && ~isempty(strtrim(line)) && ~startsWith(strtrim(line), '%')
+            break; % End of header comments (non-empty line that doesn't start with %)
+        elseif inHeader && isempty(strtrim(line))
+            % Empty line within header - treat as part of header
+            headerLines{end+1} = line;
         end
     end
 
@@ -216,8 +219,12 @@ try
                 i = i + 1;
                 continue;
             elseif isempty(cleanLine)
-                % Empty line - end current paragraph if we're in description section
-                if strcmp(currentSection, '') && ~isempty(currentParagraph)
+                % Empty line handling
+                if strcmp(currentSection, 'example')
+                    % In example section, preserve empty lines
+                    currentExample{end+1} = '';
+                elseif strcmp(currentSection, '') && ~isempty(currentParagraph)
+                    % End current paragraph if we're in description section
                     longDesc{end+1} = formatParagraph(currentParagraph);
                     currentParagraph = {};
                 end
@@ -228,45 +235,44 @@ try
             % Process content based on current section
             switch currentSection
                 case 'example'
-                    if ~isempty(cleanLine)
-                        % For examples, preserve the original line with '%' characters
-                        originalLine = line;
+                    % For examples, always process the line (including empty ones handled above)
+                    % For examples, preserve the original line with '%' characters
+                    originalLine = line;
 
-                        if contains(originalLine, '%')
-                            % Find the first '%' character
-                            percentPos = strfind(originalLine, '%');
-                            if ~isempty(percentPos)
-                                % Take everything from the first '%' onward
-                                lineFromPercent = originalLine(percentPos(1):end);
-                                % Remove the '%' and one following space if present
-                                if length(lineFromPercent) > 1 && lineFromPercent(2) == ' '
-                                    exampleLine = lineFromPercent(3:end);
-                                else
-                                    exampleLine = lineFromPercent(2:end);
-                                end
-
-                                % For comment lines starting with %, remove all leading spaces
-                                % For code lines, remove only the standard 5 leading spaces
-                                if startsWith(strtrim(exampleLine), '%')
-                                    % This is a comment line, remove all leading spaces
-                                    exampleLine = strtrim(exampleLine);
-                                else
-                                    % This is code, remove exactly 5 leading spaces if present
-                                    trimmedLine = strtrim(exampleLine);
-                                    leadingSpaces = length(exampleLine) - length(trimmedLine);
-                                    spacesToRemove = min(5, leadingSpaces);
-                                    if spacesToRemove > 0
-                                        exampleLine = exampleLine(spacesToRemove+1:end);
-                                    end
-                                end
+                    if contains(originalLine, '%')
+                        % Find the first '%' character
+                        percentPos = strfind(originalLine, '%');
+                        if ~isempty(percentPos)
+                            % Take everything from the first '%' onward
+                            lineFromPercent = originalLine(percentPos(1):end);
+                            % Remove the '%' and one following space if present
+                            if length(lineFromPercent) > 1 && lineFromPercent(2) == ' '
+                                exampleLine = lineFromPercent(3:end);
                             else
-                                exampleLine = strtrim(originalLine);
+                                exampleLine = lineFromPercent(2:end);
+                            end
+
+                            % For comment lines starting with %, remove all leading spaces
+                            % For code lines, remove only the standard 5 leading spaces
+                            if startsWith(strtrim(exampleLine), '%')
+                                % This is a comment line, remove all leading spaces
+                                exampleLine = strtrim(exampleLine);
+                            else
+                                % This is code, remove exactly 5 leading spaces if present
+                                trimmedLine = strtrim(exampleLine);
+                                leadingSpaces = length(exampleLine) - length(trimmedLine);
+                                spacesToRemove = min(5, leadingSpaces);
+                                if spacesToRemove > 0
+                                    exampleLine = exampleLine(spacesToRemove+1:end);
+                                end
                             end
                         else
                             exampleLine = strtrim(originalLine);
                         end
-                        currentExample{end+1} = exampleLine;
+                    else
+                        exampleLine = strtrim(originalLine);
                     end
+                    currentExample{end+1} = exampleLine;
                 case 'seealso'
                     if ~isempty(cleanLine)
                         seeAlsoList = [seeAlsoList; split(cleanLine, ',')];

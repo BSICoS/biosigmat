@@ -1,28 +1,18 @@
-# TFMAPWORKFLOW Workflow demonstrating time-frequency analysis of synthetic signals.
+# `tfmapWorkflow` - Workflow demonstrating time-frequency analysis of synthetic signals.
 
 ## Description
 
-This workflow demonstrates how to create comprehensive time-frequency maps of
+This workflow demonstrates how to create comprehensive time-frequency maps of synthetic signals using advanced signal processing techniques. The process begins by generating a synthetic chirp signal with time-varying dominant frequency to simulate real-world signal characteristics. The signal is then systematically sliced into overlapping 20-second segments with 50 overlap to ensure adequate temporal resolution. Power spectral density is computed for each segment using the nanpwelch function, creating a matrix of frequency content over time. Finally, the results are visualized as a time-frequency plot that reveals how the signal's spectral characteristics evolve over time, providing valuable insights for understanding non-stationary signal behavior.
 
-**Type**: Workflow
+## Source Code
 
-## Usage
-
-Run the workflow from the MATLAB command window:
-
-```matlab
-run('examples/workflows/tfmapWorkflow.m');
-```
-
-## File Location
-
-`examples/workflows/tfmapWorkflow.m`
+[View source code](../../examples/workflows/tfmapWorkflow.m)
 
 ## See Also
 
-- [Workflows Overview](README.md#workflows)
+- [API Reference](../api/README.md)
 - [Examples Overview](README.md)
 
 ---
 
-**Type**: Workflow | **Last Updated**: 2025-07-28
+**Last Updated**: 2025-07-28

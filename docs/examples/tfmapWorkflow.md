@@ -1,17 +1,10 @@
-# TFMAP WORKFLOW
+# TFMAPWORKFLOW Workflow demonstrating time-frequency analysis of synthetic signals.
 
 ## Description
 
-TFMAP WORKFLOW
+This workflow demonstrates how to create comprehensive time-frequency maps of
 
 **Type**: Workflow
-
-## Workflow Steps
-
-1. Generates a synthetic chirp signal with variable dominant frequency
-2. Slices the signal into 20-second segments with 50 overlap
-3. Computes power spectral density matrix using nanpwelch
-4. Creates a time-frequency plot
 
 ## Usage
 

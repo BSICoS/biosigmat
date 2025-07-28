@@ -4,29 +4,21 @@
 
 This example demonstrates the use of the PANTOMPKINS algorithm for R-wave detection in ECG signals.
 
-**Module**: ECG
-
 ## Steps
 
 1. The example uses fixture data from a CSV file containing: - ECG signal sampled at 256 Hz
 
-## Usage
+## Source Code
 
-Run the example from the MATLAB command window:
-
-```matlab
-run('examples/ecg/pantompkinsExample.m');
-```
-
-## File Location
-
-`examples/ecg/pantompkinsExample.m`
+[View source code](../../examples/ecg/pantompkinsExample.m)
 
 ## See Also
+
+- [API Reference](../api/README.md)
 
 - [ECG Module](../api/ecg/README.md)
 - [Examples Overview](README.md)
 
 ---
 
-**Type**: Example | **Module**: ECG | **Last Updated**: 2025-07-28
+**Module**: [ECG](../api/ecg/README.md) | **Last Updated**: 2025-07-28

@@ -37,4 +37,4 @@ legend('Original', 'Detrended');
 
 ---
 
-**Module**: [ECG](README.md) | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28
+**Module**: [ECG](README.md) | **Last Updated**: 2025-07-28

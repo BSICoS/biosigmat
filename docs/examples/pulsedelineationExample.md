@@ -4,25 +4,17 @@
 
 This example demonstrates how to use the pulsedelineation function to
 
-**Module**: PPG
+## Source Code
 
-## Usage
-
-Run the example from the MATLAB command window:
-
-```matlab
-run('examples/ppg/pulsedelineationExample.m');
-```
-
-## File Location
-
-`examples/ppg/pulsedelineationExample.m`
+[View source code](../../examples/ppg/pulsedelineationExample.m)
 
 ## See Also
+
+- [API Reference](../api/README.md)
 
 - [PPG Module](../api/ppg/README.md)
 - [Examples Overview](README.md)
 
 ---
 
-**Type**: Example | **Module**: PPG | **Last Updated**: 2025-07-28
+**Module**: [PPG](../api/ppg/README.md) | **Last Updated**: 2025-07-28

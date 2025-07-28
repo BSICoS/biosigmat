@@ -4,17 +4,17 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ## Examples by Module
 
-### ECG Module
+### ECG
 
 - [`baselineremoveExample`](baselineremoveExample.md)
 - [`pantompkinsExample`](pantompkinsExample.md)
 - [`sloperangeExample`](sloperangeExample.md)
 
-### HRV Module
+### HRV
 
 - [`tdmetricsExample`](tdmetricsExample.md)
 
-### PPG Module
+### PPG
 
 - [`pulsedelineationExample`](pulsedelineationExample.md)
 - [`pulsedetectionExample`](pulsedetectionExample.md)

@@ -293,17 +293,26 @@ if isempty(paragraphLines)
 end
 
 % Check if this paragraph contains parameter definitions (lines starting with quotes)
+% or output definitions (lines with uppercase words followed by dash)
 hasParameters = false;
+hasOutputs = false;
 for i = 1:length(paragraphLines)
     line = paragraphLines{i};
+    % Check for parameter definitions (quotes and dash)
     if contains(line, '''') && contains(line, '-')
         hasParameters = true;
         break;
     end
+    % Check for output definitions (uppercase word followed by dash)
+    trimmedLine = strtrim(line);
+    if ~isempty(trimmedLine) && ~isempty(regexp(trimmedLine, '^[A-Z][A-Z0-9]*\s*-', 'once'))
+        hasOutputs = true;
+        break;
+    end
 end
 
-if hasParameters
-    % For parameter lists, preserve line breaks and add bullet points
+if hasParameters || hasOutputs
+    % For parameter/output lists, preserve line breaks and add bullet points
     formattedLines = {};
     for i = 1:length(paragraphLines)
         line = strtrim(paragraphLines{i});
@@ -312,8 +321,12 @@ if hasParameters
             if startsWith(line, '''')
                 % Add bullet point for parameter lines
                 formattedLines{end+1} = ['- ' line];
+                % Check if this line is an output definition (starts with uppercase word + dash)
+            elseif ~isempty(regexp(line, '^[A-Z][A-Z0-9]*\s*-', 'once'))
+                % Add bullet point for output lines
+                formattedLines{end+1} = ['- ' line];
             else
-                % Regular line in the parameter paragraph
+                % Regular line in the parameter/output paragraph
                 formattedLines{end+1} = line;
             end
         end

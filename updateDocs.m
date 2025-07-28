@@ -148,21 +148,18 @@ try
         docInfo.syntax{1} = funcLine;
     end
 
-    % Extract header comments following new format
+    % Extract header comments - all consecutive lines starting with '%' after function declaration
     headerLines = {};
-    inHeader = false;
 
-    for i = funcLineIdx+1:min(funcLineIdx+100, length(lines)) % Check lines after function declaration
+    for i = funcLineIdx+1:length(lines)
         line = lines{i};
 
+        % If line starts with '%', it's part of the header
         if startsWith(strtrim(line), '%')
-            inHeader = true;
             headerLines{end+1} = line;
-        elseif inHeader && ~isempty(strtrim(line)) && ~startsWith(strtrim(line), '%')
-            break; % End of header comments (non-empty line that doesn't start with %)
-        elseif inHeader && isempty(strtrim(line))
-            % Empty line within header - treat as part of header
-            headerLines{end+1} = line;
+        else
+            % First non-comment line means header has ended
+            break;
         end
     end
 

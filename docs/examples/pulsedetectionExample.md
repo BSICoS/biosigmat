@@ -25,4 +25,4 @@ run('examples/ppg/pulsedetectionExample.m');
 
 ---
 
-**Type**: Example | **Module**: PPG | **Last Updated**: 2025-07-25
+**Type**: Example | **Module**: PPG | **Last Updated**: 2025-07-28

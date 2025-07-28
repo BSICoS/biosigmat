@@ -8,7 +8,15 @@ function varargout = findsequences(A)
 
 ## Description
 
-SEQUENCES = FINDSEQUENCES(A) finds sequences of repeated numeric values in A along the first dimension. A should be numeric. SEQUENCES is a "m by 4" numeric matrix where m is the number of sequences found. Each sequence has 4 columns where: 1st col. - The value being repeated 2nd col. - The position of the first value of the sequence (startIndices) 3rd col. - The position of the last value of the sequence (endIndices) 4th col. - The length of the sequence (seqLengths) [VALUES, INPOS, FIPOS, LEN] = FINDSEQUENCES(...) returns SEQUENCES as separate outputs. If no sequences are found no value is returned. To convert positions into subs/coordinates use IND2SUB.
+SEQUENCES = FINDSEQUENCES(A) finds sequences of repeated numeric values in A along the first dimension. A should be numeric. SEQUENCES is a "m by 4" numeric matrix where m is the number of sequences found.
+
+Each sequence has 4 columns where:
+- 1st col. - The value being repeated
+- 2nd col. - The position of the first value of the sequence (startIndices)
+- 3rd col. - The position of the last value of the sequence (endIndices)
+- 4th col. - The length of the sequence (seqLengths)
+
+[VALUES, INPOS, FIPOS, LEN] = FINDSEQUENCES(...) returns SEQUENCES as separate outputs. If no sequences are found no value is returned. To convert positions into subs/coordinates use IND2SUB.
 
 ## Source Code
 
@@ -41,4 +49,4 @@ Get separate outputs
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

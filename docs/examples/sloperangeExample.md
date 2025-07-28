@@ -30,4 +30,4 @@ run('examples/ecg/sloperangeExample.m');
 
 ---
 
-**Type**: Example | **Module**: ECG | **Last Updated**: 2025-07-25
+**Type**: Example | **Module**: ECG | **Last Updated**: 2025-07-28

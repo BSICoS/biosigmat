@@ -8,7 +8,9 @@ function trimmedSignal = trimnans(signal)
 
 ## Description
 
-TRIMMEDSIGNAL = TRIMNANS(SIGNAL) removes NaN values from the beginning and end of the input signal SIGNAL, returning the trimmed signal TRIMMEDSIGNAL. The function preserves any NaN values that occur in the middle of the signal between valid data points. If all values in the signal are NaN, an empty array is returned. This function is useful for cleaning up signals that may have NaN padding at the edges due to filtering operations, data acquisition issues, or preprocessing steps. It ensures that the signal starts and ends with valid numeric values while maintaining the original structure of any internal NaN values.
+TRIMMEDSIGNAL = TRIMNANS(SIGNAL) removes NaN values from the beginning and end of the input signal SIGNAL, returning the trimmed signal TRIMMEDSIGNAL. The function preserves any NaN values that occur in the middle of the signal between valid data points. If all values in the signal are NaN, an empty array is returned.
+
+This function is useful for cleaning up signals that may have NaN padding at the edges due to filtering operations, data acquisition issues, or preprocessing steps. It ensures that the signal starts and ends with valid numeric values while maintaining the original structure of any internal NaN values.
 
 ## Source Code
 
@@ -34,4 +36,4 @@ Result: trimmed = [1; 2; NaN; 3; 4]
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

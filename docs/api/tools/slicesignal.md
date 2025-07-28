@@ -8,7 +8,9 @@ function [sliced, tcenter] = slicesignal(x, window, overlap, fs)
 
 ## Description
 
-[SLICED, TCENTER] = SLICESIGNAL(X, WINDOW, OVERLAP, FS) divides input signal X into overlapping segments of specified length WINDOW samples. OVERLAP specifies the number of overlapping samples between consecutive segments, and FS is the sampling frequency in Hz. Each segment becomes a column in the output matrix SLICED, making it suitable for spectral analysis methods. TCENTER contains the time values in seconds corresponding to the center of each slice. This function is particularly useful for time-frequency analysis where you need to apply spectral analysis methods like pwelch or periodogram to multiple overlapping segments of a signal.
+[SLICED, TCENTER] = SLICESIGNAL(X, WINDOW, OVERLAP, FS) divides input signal X into overlapping segments of specified length WINDOW samples. OVERLAP specifies the number of overlapping samples between consecutive segments, and FS is the sampling frequency in Hz. Each segment becomes a column in the output matrix SLICED, making it suitable for spectral analysis methods. TCENTER contains the time values in seconds corresponding to the center of each slice.
+
+This function is particularly useful for time-frequency analysis where you need to apply spectral analysis methods like pwelch or periodogram to multiple overlapping segments of a signal.
 
 ## Source Code
 
@@ -46,4 +48,4 @@ colorbar;
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

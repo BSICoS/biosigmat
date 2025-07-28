@@ -8,7 +8,14 @@ function interpolated = interpgap(x, maxgap, varargin)
 
 ## Description
 
-INTERPOLATED = INTERPGAP(X, MAXGAP) interpolates NaN gaps in a vector X that are smaller than or equal to a specified MAXGAP Gaps larger than MAXGAP are left unchanged. INTERPOLATED is a vector with the same size as X. INTERPOLATED = INTERPGAP(..., METHOD) allows specifying the interpolation method: 'linear'   - Linear interpolation (default) 'nearest'  - Nearest neighbor interpolation 'spline'   - Spline interpolation 'pchip'    - Piecewise cubic Hermite interpolating polynomial
+INTERPOLATED = INTERPGAP(X, MAXGAP) interpolates NaN gaps in a vector X that are smaller than or equal to a specified MAXGAP Gaps larger than MAXGAP are left unchanged. INTERPOLATED is a vector with the same size as X.
+
+INTERPOLATED = INTERPGAP(..., METHOD) allows specifying the interpolation
+method:
+- 'linear'   - Linear interpolation (default)
+- 'nearest'  - Nearest neighbor interpolation
+- 'spline'   - Spline interpolation
+- 'pchip'    - Piecewise cubic Hermite interpolating polynomial
 
 ## Source Code
 
@@ -39,4 +46,4 @@ title('Signal Gap Interpolation');
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

@@ -8,7 +8,14 @@ function varargout = sloperange(decg, tk, fs)
 
 ## Description
 
-EDR = SLOPERANGE(DECG, TK, FS) computes ECG-derived respiration (EDR) signal using the slope range method. This method analyzes the derivative of the ECG signal (DECG) around R-wave peaks (TK) to extract respiratory information. EDR is a column vector with the same length as TK. [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = SLOPERANGE(...) returns additional outputs: UPSLOPES   - Matrix containing upslope values around R-waves DOWNSLOPES - Matrix containing downslope values around R-waves UPMAXPOS   - Positions of maximum upslope values DOWNMINPOS - Positions of minimum downslope values
+EDR = SLOPERANGE(DECG, TK, FS) computes ECG-derived respiration (EDR) signal using the slope range method. This method analyzes the derivative of the ECG signal (DECG) around R-wave peaks (TK) to extract respiratory information. EDR is a column vector with the same length as TK.
+
+[EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = SLOPERANGE(...) returns
+additional outputs:
+- UPSLOPES   - Matrix containing upslope values around R-waves
+- DOWNSLOPES - Matrix containing downslope values around R-waves
+- UPMAXPOS   - Positions of maximum upslope values
+- DOWNMINPOS - Positions of minimum downslope values
 
 ## Source Code
 
@@ -40,4 +47,4 @@ ylabel('EDR Amplitude');
 
 ---
 
-**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: ECG | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

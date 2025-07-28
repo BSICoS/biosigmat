@@ -48,7 +48,6 @@ Utility functions for signal processing and data manipulation.
 | [`nanfiltfilt`](tools/nanfiltfilt.md) | Implements filtfilt function with support for NaN values. | ✅ Stable |
 | [`nanpwelch`](tools/nanpwelch.md) | Compute Welch periodogram when signal has NaN segments. | ✅ Stable |
 | [`peakedness`](tools/peakedness.md) | Computes the peakedness of power spectral density estimates. | ✅ Stable |
-| [`peakednessCost`](tools/peakednessCost.md) |  | ✅ Stable |
 | [`slicesignal`](tools/slicesignal.md) | Divide signal into overlapping segments. | ✅ Stable |
 | [`slider`](tools/slider.md) | Creates and adds a scroll slider to a figure with time-based plots. | ✅ Stable |
 | [`snaptopeak`](tools/snaptopeak.md) | Refine QRS detections by snapping to local maxima. | ✅ Stable |
@@ -72,7 +71,6 @@ All functions sorted alphabetically:
 - [`nanpwelch`](tools/nanpwelch.md)
 - [`pantompkins`](ecg/pantompkins.md)
 - [`peakedness`](tools/peakedness.md)
-- [`peakednessCost`](tools/peakednessCost.md)
 - [`pulsedelineation`](ppg/pulsedelineation.md)
 - [`pulsedetection`](ppg/pulsedetection.md)
 - [`slicesignal`](tools/slicesignal.md)
@@ -90,4 +88,4 @@ All functions sorted alphabetically:
 - ❌ **Deprecated**: No longer recommended for use
 ---
 
-*Last updated: 2025-07-25 | Total functions: 20*
+*Last updated: 2025-07-28 | Total functions: 19*

@@ -38,4 +38,4 @@ Result: [false; true; true] (only 2nd and 3rd spectra are peaky)
 
 ---
 
-**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-25
+**Module**: TOOLS | **Status**: 🔄 Auto-generated | **Last Updated**: 2025-07-28

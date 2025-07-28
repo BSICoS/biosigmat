@@ -11,7 +11,6 @@
 - [`nanfiltfilt`](nanfiltfilt.md)
 - [`nanpwelch`](nanpwelch.md)
 - [`peakedness`](peakedness.md)
-- [`peakednessCost`](peakednessCost.md)
 - [`slicesignal`](slicesignal.md)
 - [`slider`](slider.md)
 - [`snaptopeak`](snaptopeak.md)
@@ -23,4 +22,4 @@
 
 ---
 
-**Functions**: 14 | **Last Updated**: 2025-07-25
+**Functions**: 13 | **Last Updated**: 2025-07-28

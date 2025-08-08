@@ -39,6 +39,7 @@ markdown_extensions:
   - admonition
   - attr_list
   - md_in_html
+  - tables
   - toc:
       permalink: true
   - pymdownx.details

@@ -589,15 +589,15 @@ try
                 statusText = docInfo.status;
                 switch lower(statusText)
                     case 'alpha'
-                        funcInfo.status = 'α Alpha';
+                        funcInfo.status = ':material-alpha: Alpha';
                     case 'beta'
-                        funcInfo.status = 'β Beta';
+                        funcInfo.status = ':material-beta: Beta';
                     case 'deprecated'
-                        funcInfo.status = '❌ Deprecated';
+                        funcInfo.status = ':material-cancel: Deprecated';
                     case 'stable'
-                        funcInfo.status = '✅ Stable';
+                        funcInfo.status = ':white_check_mark: Stable';
                     otherwise
-                        funcInfo.status = '✅ Stable'; % Default
+                        funcInfo.status = ':white_check_mark: Stable'; % Default
                 end
 
                 funcInfo.module = module;
@@ -651,10 +651,10 @@ for i = 1:length(moduleNames)
 
     % Add module header
     if isfield(moduleInfo, module)
-        content = [content sprintf('\n### [%s](%s/index.md)\n', moduleInfo.(module).title, module)];
+        content = [content sprintf('\n### [%s](%s/index.md)\n\n', moduleInfo.(module).title, module)];
         content = [content sprintf('%s\n\n', moduleInfo.(module).desc)];
     else
-        content = [content sprintf('\n### [%s](%s/index.md)\n', upper(module), module)];
+        content = [content sprintf('\n### [%s](%s/index.md)\n\n', upper(module), module)];
         content = [content sprintf('Functions for %s processing.\n\n', module)];
     end
 
@@ -695,8 +695,8 @@ for i = 1:length(moduleNames)
 end
 
 % Add alphabetical index
-content = [content sprintf('## Function Index\n\n')];
-content = [content sprintf('### Alphabetical Index\n')];
+content = [content sprintf('\n## Function Index\n\n')];
+content = [content sprintf('### Alphabetical Index\n\n')];
 content = [content sprintf('All functions sorted alphabetically:\n\n')];
 
 % Sort all functions alphabetically
@@ -710,13 +710,13 @@ for i = 1:length(sortedFunctions)
 end
 
 % Add legend and footer
-content = [content sprintf('\n\n## Development Status Legend\n')];
-content = [content sprintf('- ✅ **Stable**: Well-tested, production ready\n')];
-content = [content sprintf('- β **Beta**: Feature complete, undergoing testing\n')];
-content = [content sprintf('- α **Alpha**: Under development, API may change\n')];
-content = [content sprintf('- ❌ **Deprecated**: No longer recommended for use\n')];
+content = [content sprintf('\n\n## Development Status Legend\n\n')];
+content = [content sprintf('- :white_check_mark: **Stable**: Well-tested, production ready\n')];
+content = [content sprintf('- :material-alpha: **Beta**: Feature complete, undergoing testing\n')];
+content = [content sprintf('- :material-beta: **Alpha**: Under development, API may change\n')];
+content = [content sprintf('- :material-cancel: **Deprecated**: No longer recommended for use\n')];
 
-content = [content sprintf('---\n\n')];
+content = [content sprintf('\n---\n\n')];
 content = [content sprintf('*Last updated: %s | Total functions: %d*\n', ...
     string(datetime('now', 'Format', 'yyyy-MM-dd')), totalFunctions)];
 

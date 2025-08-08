@@ -9,7 +9,7 @@ A MATLAB library for biomedical signal processing (ECG, PPG, and respiration) de
 ## Quick Navigation
 
 ### Getting Started
-- [Installation Guide](installation.md)
+- [Installation Guide](getting-started/installation.md)
 
 ### API Reference
 - [Complete API Documentation](api/index.md)

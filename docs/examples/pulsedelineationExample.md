@@ -1,4 +1,6 @@
-# `pulsedelineationExample` - Example demonstrating pulse delineation in PPG signals.
+# `pulsedelineationExample`
+
+Example demonstrating pulse delineation in PPG signals.
 
 ## Description
 

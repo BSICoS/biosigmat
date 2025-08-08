@@ -1,4 +1,6 @@
-# `sloperangeExample` - Example demonstrating ECG-derived respiration using slope range method.
+# `sloperangeExample`
+
+Example demonstrating ECG-derived respiration using slope range method.
 
 ## Description
 

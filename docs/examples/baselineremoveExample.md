@@ -1,4 +1,6 @@
-# `baselineremoveExample` - Example demonstrating baseline wander removal from ECG signals.
+# `baselineremoveExample`
+
+Example demonstrating baseline wander removal from ECG signals.
 
 ## Description
 

@@ -1,4 +1,6 @@
-# `pulsedetectionExample` - Example demonstrating pulse detection in PPG signals.
+# `pulsedetectionExample`
+
+Example demonstrating pulse detection in PPG signals.
 
 ## Description
 

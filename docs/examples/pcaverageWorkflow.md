@@ -1,4 +1,6 @@
-# `pcaverageWorkflow` - Workflow demonstrating peak-conditioned average processing.
+# `pcaverageWorkflow`
+
+Workflow demonstrating peak-conditioned average processing.
 
 ## Description
 

@@ -1,4 +1,6 @@
-# `tdmetricsExample` - Example demonstrating time-domain heart rate variability analysis.
+# `tdmetricsExample`
+
+Example demonstrating time-domain heart rate variability analysis.
 
 ## Description
 

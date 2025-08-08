@@ -1,4 +1,6 @@
-# `tfmapWorkflow` - Workflow demonstrating time-frequency analysis of synthetic signals.
+# `tfmapWorkflow`
+
+Workflow demonstrating time-frequency analysis of synthetic signals.
 
 ## Description
 

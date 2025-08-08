@@ -1054,7 +1054,8 @@ outputPath = fullfile(outputDir, [itemName '.md']);
 
 % Create markdown content with brief description (unified format)
 if ~isempty(docInfo.briefDescription)
-    content = sprintf('# `%s` - %s\n\n', itemName, docInfo.briefDescription);
+    content = sprintf('# `%s`\n\n', itemName);
+    content = [content sprintf('%s\n\n', docInfo.briefDescription)];
 elseif strcmp(itemType, 'workflow')
     content = sprintf('# %s Workflow\n\n', itemName);
 else

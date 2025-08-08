@@ -1,4 +1,6 @@
-# `pantompkinsExample` - Example demonstrating R-wave detection using Pan-Tompkins algorithm.
+# `pantompkinsExample`
+
+Example demonstrating R-wave detection using Pan-Tompkins algorithm.
 
 ## Description
 

@@ -19,7 +19,7 @@ A MATLAB library for biomedical signal processing (ECG, PPG, and respiration) de
 - [General Tools](api/tools/index.md) - Utility functions for signal processing
 
 ### Examples & Tutorials
-- [Code Examples](api/examples/index.md) - Ready-to-use examples
+- [Code Examples](examples/index.md) - Ready-to-use examples
 
 ### Contributing
 - [Contributing Guide](CONTRIBUTING.md) - Guidelines for contributing to the project

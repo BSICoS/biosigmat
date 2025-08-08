@@ -10,8 +10,6 @@ This guide will help you install and set up the biosigmat toolbox in your MATLAB
 
 </div>
 
-## :material-package-variant: Prerequisites
-
 !!! warning "Required MATLAB Toolboxes"
     The following MATLAB toolboxes are required for full functionality:
 

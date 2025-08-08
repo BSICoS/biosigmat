@@ -1,5 +1,3 @@
-                    # License
-
 <div class="result" markdown>
 
 :material-scale-balance:{ .lg .middle } **GNU General Public License v3.0**
@@ -19,9 +17,6 @@ Everyone is permitted to copy and distribute verbatim copies of this license doc
     - **Freedom to study**: Access to source code  
     - **Freedom to share**: Distribute copies to help others
     - **Freedom to improve**: Modify and distribute improvements
-    - 
-
-
 
 
 ## Preamble

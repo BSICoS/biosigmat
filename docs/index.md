@@ -1,5 +1,5 @@
 ---
-title: Welcome to Biosigmat
+title: Welcome
 ---
 
 # Biosigmat

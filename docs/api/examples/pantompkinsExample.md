@@ -16,4 +16,4 @@ This example demonstrates the implementation of the Pan-Tompkins algorithm for r
 
 ---
 
-**Module**: [ECG](../api/ecg/README.md) | **Last Updated**: 2025-07-28
+**Module**: [ECG](../api/ecg/README.md) | **Last Updated**: 2025-08-08

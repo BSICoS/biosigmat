@@ -18,4 +18,4 @@
 
 ---
 
-**Functions**: 3 | **Examples**: 3 | **Last Updated**: 2025-07-28
+**Functions**: 3 | **Examples**: 3 | **Last Updated**: 2025-08-08

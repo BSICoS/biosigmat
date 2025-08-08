@@ -16,4 +16,4 @@ This example demonstrates how to detect individual pulses in photoplethysmograph
 
 ---
 
-**Module**: [PPG](../api/ppg/README.md) | **Last Updated**: 2025-07-28
+**Module**: [PPG](../api/ppg/README.md) | **Last Updated**: 2025-08-08

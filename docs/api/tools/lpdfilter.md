@@ -54,4 +54,4 @@ signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
 ---
 
-**Module**: [TOOLS](README.md) | **Last Updated**: 2025-07-28
+**Module**: [TOOLS](README.md) | **Last Updated**: 2025-08-08

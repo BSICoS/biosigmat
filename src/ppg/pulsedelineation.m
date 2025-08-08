@@ -17,7 +17,6 @@ function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Se
 %           .tauRR      = Fraction of estimated RR where threshold reaches its
 %                         minimum value (alfa*amplitude of previous SSF peak)
 %                         [Default: 1]. If tauRR increases, steeper slope
-%           .thrIncidences = Threshold for incidences [Default: 1.5]
 %           .wdw_nA     = Window width for searching pulse onset [Default: 250e-3]
 %           .wdw_nB     = Window width for searching pulse offset [Default: 150e-3]
 %           .fsi        = Sampling frequency for interpolation [Default: 2*fs]
@@ -40,7 +39,6 @@ function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Se
 %   Setup = struct();
 %   Setup.alfa = 0.2;                   % Threshold adaptation factor
 %   Setup.refractPeriod = 150e-3;       % Refractory period (s)
-%   Setup.thrIncidences = 1.5;          % Threshold for incidences
 %   Setup.wdw_nA = 250e-3;              % Window for onset detection (s)
 %   Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
 %
@@ -62,7 +60,6 @@ if ~isfield(Setup,'Lenvelope'),                 Setup.Lenvelope = 300;          
 if ~isfield(Setup,'alfa'),                      Setup.alfa = 0.2;                               end
 if ~isfield(Setup,'tauRR'),                     Setup.tauRR = 1;                                end
 if ~isfield(Setup,'refractPeriod'),             Setup.refractPeriod = 150e-03;                  end
-if ~isfield(Setup,'thrIncidences'),             Setup.thrIncidences = 1.5;                      end
 
 if ~isfield(Setup,'wdw_nA'),                    Setup.wdw_nA = 250e-3;                          end
 if ~isfield(Setup,'wdw_nB'),                    Setup.wdw_nB = 150e-3;                          end
@@ -88,7 +85,6 @@ if isempty (nD) %#ok
     detectionSetup.alfa            = alfa;
     detectionSetup.tauRR           = tauRR;
     detectionSetup.refractPeriod   = refractPeriod;
-    detectionSetup.thrIncidences   = thrIncidences;
 
     [ nD , threshold ] = pulsedetection ( signal, fs, detectionSetup );
 end

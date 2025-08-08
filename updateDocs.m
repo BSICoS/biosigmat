@@ -1081,11 +1081,11 @@ end
 
 % Add see also section
 content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [API Reference](../api/index.md)\n')];
+content = [content sprintf('- [API Reference](../index.md)\n')];
 if strcmp(itemType, 'workflow')
     content = [content sprintf('- [Examples Overview](index.md)\n\n')];
 else
-    content = [content sprintf('- [%s Module](../api/%s/index.md)\n', upper(module), module)];
+    content = [content sprintf('- [%s Module](../%s/index.md)\n', upper(module), module)];
     content = [content sprintf('- [Examples Overview](index.md)\n\n')];
 end
 
@@ -1094,7 +1094,7 @@ if strcmp(itemType, 'workflow')
     content = [content sprintf('**Last Updated**: %s\n', ...
         string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 else
-    content = [content sprintf('**Module**: [%s](../api/%s/index.md) | **Last Updated**: %s\n', ...
+    content = [content sprintf('**Module**: [%s](../%s/index.md) | **Last Updated**: %s\n', ...
         upper(module), module, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 end
 
@@ -1151,7 +1151,7 @@ content = [content sprintf('## Workflows\n\n')];
 content = [content sprintf('*Workflows will be listed here after processing*\n\n')];
 
 content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [API Reference](../api/index.md)\n\n')];
+content = [content sprintf('- [API Reference](../index.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
 content = [content sprintf('**Examples**: %d | **Last Updated**: %s\n', ...

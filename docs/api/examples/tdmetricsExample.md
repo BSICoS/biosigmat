@@ -10,10 +10,10 @@ This example demonstrates how to compute time-domain heart rate variability (HRV
 
 ## See Also
 
-- [API Reference](../api/index.md)
-- [HRV Module](../api/hrv/index.md)
+- [API Reference](../index.md)
+- [HRV Module](../hrv/index.md)
 - [Examples Overview](index.md)
 
 ---
 
-**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2025-08-08
+**Module**: [HRV](../hrv/index.md) | **Last Updated**: 2025-08-08

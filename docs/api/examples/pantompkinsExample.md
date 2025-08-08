@@ -10,10 +10,10 @@ This example demonstrates the implementation of the Pan-Tompkins algorithm for r
 
 ## See Also
 
-- [API Reference](../api/index.md)
-- [ECG Module](../api/ecg/index.md)
+- [API Reference](../index.md)
+- [ECG Module](../ecg/index.md)
 - [Examples Overview](index.md)
 
 ---
 
-**Module**: [ECG](../api/ecg/index.md) | **Last Updated**: 2025-08-08
+**Module**: [ECG](../ecg/index.md) | **Last Updated**: 2025-08-08

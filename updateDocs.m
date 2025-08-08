@@ -630,7 +630,7 @@ apiReadmePath = fullfile(docsDir, 'api', 'index.md');
 % Create the content
 content = sprintf('# API Reference\n\n');
 content = [content sprintf('Complete reference documentation for all functions in the biosigmat toolbox.\n\n')];
-content = [content sprintf('## Modules\n\n')];
+content = [content sprintf('## Modules\n')];
 
 % Define module information
 moduleInfo = struct();
@@ -651,10 +651,10 @@ for i = 1:length(moduleNames)
 
     % Add module header
     if isfield(moduleInfo, module)
-        content = [content sprintf('### [%s](%s/index.md)\n', moduleInfo.(module).title, module)];
+        content = [content sprintf('\n### [%s](%s/index.md)\n', moduleInfo.(module).title, module)];
         content = [content sprintf('%s\n\n', moduleInfo.(module).desc)];
     else
-        content = [content sprintf('### [%s](%s/index.md)\n', upper(module), module)];
+        content = [content sprintf('\n### [%s](%s/index.md)\n', upper(module), module)];
         content = [content sprintf('Functions for %s processing.\n\n', module)];
     end
 

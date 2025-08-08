@@ -45,12 +45,12 @@ try
     % Update examples documentation
     examplesDir = fullfile(toolboxRoot, 'examples');
     fprintf('📋 Processing examples...\n');
-    updateExamplesDocs(examplesDir, strcat(docsDir, '/api'));
+    updateExamplesDocs(examplesDir, docsDir);
 
     % Update workflows documentation
     workflowsDir = fullfile(examplesDir, 'workflows');
     fprintf('⚙️ Processing workflows...\n');
-    updateWorkflowsDocs(workflowsDir, strcat(docsDir, '/api'));
+    updateWorkflowsDocs(workflowsDir, docsDir);
 
     % Update main API index
     updateApiIndex(docsDir, modules);
@@ -1085,7 +1085,7 @@ content = [content sprintf('- [API Reference](../index.md)\n')];
 if strcmp(itemType, 'workflow')
     content = [content sprintf('- [Examples Overview](index.md)\n\n')];
 else
-    content = [content sprintf('- [%s Module](../%s/index.md)\n', upper(module), module)];
+    content = [content sprintf('- [%s Module](../api/%s/index.md)\n', upper(module), module)];
     content = [content sprintf('- [Examples Overview](index.md)\n\n')];
 end
 

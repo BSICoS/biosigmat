@@ -11,7 +11,7 @@ This example demonstrates the implementation of the Pan-Tompkins algorithm for r
 ## See Also
 
 - [API Reference](../index.md)
-- [ECG Module](../ecg/index.md)
+- [ECG Module](../api/ecg/index.md)
 - [Examples Overview](index.md)
 
 ---

@@ -11,7 +11,7 @@ This example demonstrates how to compute time-domain heart rate variability (HRV
 ## See Also
 
 - [API Reference](../index.md)
-- [HRV Module](../hrv/index.md)
+- [HRV Module](../api/hrv/index.md)
 - [Examples Overview](index.md)
 
 ---

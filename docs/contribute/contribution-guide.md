@@ -6,24 +6,22 @@ Thank you for your interest in contributing to biosigmat! This document provides
 
 The project is organized as follows:
 
-- `src/`: Contains the source code of the library
-  - `tools/`: Utility functions used throughout the library
-  - Additional subdirectories for specific functionality
-- `test/`: Contains test files for the source code
-  - `tools/`: Tests for utility functions
-  - Additional subdirectories matching the structure in `src/`
-- `examples/`: Contains example usage of the library functions
-  - Subdirectories matching the structure in `src/`
+- **`src/`**: Contains the source code of the library
+    - **`tools/`**: Utility functions used throughout the library
+    - Additional subdirectories for specific functionality
+- **`test/`**: Contains test files for the source code
+    - **`tools/`**: Tests for utility functions
+    - Additional subdirectories matching the structure in `src/`
+- **`examples/`**: Contains example usage of the library functions
+    - Subdirectories matching the structure in `src/`
 
-### Code and Test Requirements
+!!! note "Requirements"
+    - All methods in `src/` must have a corresponding test in `test/`
+    - All methods in `src/` must have a corresponding example in `examples/`
+    - **Exception**: Functions in `src/tools/` must have tests in `test/tools/` but are not required to have examples in `examples/tools/`
 
-- All methods in `src/` must have a corresponding test in `test/`
-- All methods in `src/` must have a corresponding example in `examples/`
-- Exception: Functions in `src/tools/` must have tests in `test/tools/` but are not required to have examples in `examples/tools/`
-
-## Code Style Guidelines
-
-For detailed code style guidelines including naming conventions, code structure, test structure, and MATLAB-specific guidelines, please refer to the [Code Style Guide](code-style-guide.md).
+!!! info "Style Guidelines"
+    For detailed code style guidelines including naming conventions, code structure, test structure, and MATLAB-specific guidelines, please refer to the [Code Style Guide](code-style-guide.md).
 
 ## Contributing Process
 
@@ -34,18 +32,18 @@ For detailed code style guidelines including naming conventions, code structure,
 5. **Ensure all tests pass**
 6. **Submit a pull request** with a clear description of the changes and any relevant information
 
-## Pull Request Guidelines
+!!! tip "PR Guidelines"
+    When submitting a pull request:
 
-When submitting a pull request:
+    1. Provide a clear, descriptive title
+    2. Describe what your changes do and why they should be included
+    3. Include any relevant issue numbers in the PR description
+    4. Ensure your code follows the project's coding standards
+    5. Make sure all tests pass
 
-1. Provide a clear, descriptive title
-2. Describe what your changes do and why they should be included
-3. Include any relevant issue numbers in the PR description
-4. Ensure your code follows the project's coding standards
-5. Make sure all tests pass
+!!! question "Need Help?"
+    If you have questions or need assistance, please open an issue with a clear description of your question or problem.
 
-## Getting Help
+---
 
-If you have questions or need assistance, please open an issue with a clear description of your question or problem.
-
-Thank you for contributing to biosigmat!
+Thank you for contributing to biosigmat! :material-heart:

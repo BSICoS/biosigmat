@@ -1,4 +1,6 @@
-# `sloperange` - Compute ECG-derived respiration (EDR) using slope range method.
+# `sloperange`
+
+Compute ECG-derived respiration (EDR) using slope range method.
 
 ## Syntax
 

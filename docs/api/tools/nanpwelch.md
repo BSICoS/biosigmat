@@ -1,4 +1,6 @@
-# `nanpwelch` - Compute Welch periodogram when signal has NaN segments.
+# `nanpwelch`
+
+Compute Welch periodogram when signal has NaN segments.
 
 ## Syntax
 

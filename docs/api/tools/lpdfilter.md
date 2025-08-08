@@ -1,4 +1,6 @@
-# `lpdfilter` - Low-pass derivative filter.
+# `lpdfilter`
+
+Low-pass derivative filter.
 
 ## Syntax
 

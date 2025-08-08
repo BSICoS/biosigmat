@@ -1,4 +1,6 @@
-# `peakedness` - Computes the peakedness of power spectral density estimates.
+# `peakedness`
+
+Computes the peakedness of power spectral density estimates.
 
 ## Syntax
 

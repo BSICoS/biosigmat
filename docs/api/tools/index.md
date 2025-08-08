@@ -1,3 +1,6 @@
+---
+title: TOOLS Module Overview
+---
 # TOOLS Module
 
 ## Functions

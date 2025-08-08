@@ -1,4 +1,6 @@
-# `slider` - Creates and adds a scroll slider to a figure with time-based plots.
+# `slider`
+
+Creates and adds a scroll slider to a figure with time-based plots.
 
 ## Syntax
 

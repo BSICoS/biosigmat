@@ -1,4 +1,4 @@
-# biosigmat API Reference
+# API Reference
 
 Complete reference documentation for all functions in the biosigmat toolbox.
 

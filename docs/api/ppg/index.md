@@ -1,3 +1,6 @@
+---
+title: PPG Module Overview
+---
 # PPG Module
 
 ## Functions

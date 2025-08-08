@@ -1,4 +1,6 @@
-# `pantompkins` - Algorithm for R-wave detection in ECG signals.
+# `pantompkins`
+
+Algorithm for R-wave detection in ECG signals.
 
 ## Syntax
 

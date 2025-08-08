@@ -1,4 +1,6 @@
-# `pulsedelineation` - Plethysmography signals delineation using adaptive thresholding.
+# `pulsedelineation`
+
+Plethysmography signals delineation using adaptive thresholding.
 
 ## Syntax
 

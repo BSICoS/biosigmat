@@ -1,4 +1,6 @@
-# `nanfiltfilt` - Implements filtfilt function with support for NaN values.
+# `nanfiltfilt`
+
+Implements filtfilt function with support for NaN values.
 
 ## Syntax
 

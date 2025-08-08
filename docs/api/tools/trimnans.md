@@ -1,4 +1,6 @@
-# `trimnans` - Trim NaN values from the beginning and end of a signal.
+# `trimnans`
+
+Trim NaN values from the beginning and end of a signal.
 
 ## Syntax
 

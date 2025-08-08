@@ -1,4 +1,6 @@
-# `pulsedetection` - Pulse detection in LPD-filtered PPG signals using adaptive thresholding.
+# `pulsedetection`
+
+Pulse detection in LPD-filtered PPG signals using adaptive thresholding.
 
 ## Syntax
 

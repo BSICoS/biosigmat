@@ -1,3 +1,6 @@
+---
+title: ECG Module Overview
+---
 # ECG Module
 
 ## Functions

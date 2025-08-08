@@ -1,4 +1,6 @@
-# `medfiltThreshold` - Compute median-filtered adaptive threshold.
+# `medfiltThreshold`
+
+Compute median-filtered adaptive threshold.
 
 ## Syntax
 

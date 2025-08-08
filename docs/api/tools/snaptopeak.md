@@ -1,4 +1,6 @@
-# `snaptopeak` - Refine QRS detections by snapping to local maxima.
+# `snaptopeak`
+
+Refine QRS detections by snapping to local maxima.
 
 ## Syntax
 

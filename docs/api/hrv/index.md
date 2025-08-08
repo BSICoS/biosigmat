@@ -1,3 +1,6 @@
+---
+title: HRV Module Overview
+---
 # HRV Module
 
 ## Functions

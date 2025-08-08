@@ -1,4 +1,6 @@
-# `findsequences` - Find sequences of repeated (adjacent/consecutive) numeric values.
+# `findsequences`
+
+Find sequences of repeated (adjacent/consecutive) numeric values.
 
 ## Syntax
 

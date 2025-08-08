@@ -1,4 +1,6 @@
-# `nanfilter` - Implements filter function with support for NaN values.
+# `nanfilter`
+
+Implements filter function with support for NaN values.
 
 ## Syntax
 

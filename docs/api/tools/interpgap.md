@@ -1,4 +1,6 @@
-# `interpgap` - Interpolate small NaN gaps in a signal.
+# `interpgap`
+
+Interpolate small NaN gaps in a signal.
 
 ## Syntax
 

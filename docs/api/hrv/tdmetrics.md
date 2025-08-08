@@ -1,4 +1,6 @@
-# `tdmetrics` - Compute standard time-domain indices for heart rate variability analysis.
+# `tdmetrics`
+
+Compute standard time-domain indices for heart rate variability analysis.
 
 ## Syntax
 

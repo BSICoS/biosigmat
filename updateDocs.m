@@ -108,8 +108,8 @@ for i = 1:length(mFiles)
     functionList{end+1} = funcName; %#ok<*AGROW>
 end
 
-% Update module README
-updateModuleReadme(moduleDocsDir, module, functionList);
+% Update module index.md
+updateModuleIndex(moduleDocsDir, module, functionList);
 
 end
 
@@ -400,7 +400,8 @@ function generateFunctionDoc(moduleDocsDir, functionName, docInfo, module)
 outputPath = fullfile(moduleDocsDir, [functionName '.md']);
 
 % Create markdown content with brief description
-content = sprintf('# `%s` - %s\n\n', functionName, docInfo.briefDescription);
+content = sprintf('# `%s`\n\n', functionName);
+content = [content sprintf('%s\n\n', docInfo.briefDescription)];
 
 % Add syntax section
 content = [content sprintf('## Syntax\n\n')];
@@ -484,13 +485,14 @@ end
 
 end
 
-function updateModuleReadme(moduleDocsDir, module, functionList)
-% Update the README file for a module
+function updateModuleIndex(moduleDocsDir, module, functionList)
+% Update the index.md file for a module
 
 readmePath = fullfile(moduleDocsDir, 'index.md');
 
-% Create basic module README content
-content = sprintf('# %s Module\n\n', upper(module));
+% Create basic module index.md content
+content = sprintf('---\ntitle: %s Module Overview\n---\n', upper(module));
+content = [content sprintf('# %s Module\n\n', upper(module))];
 content = [content sprintf('## Functions\n\n')];
 
 for i = 1:length(functionList)
@@ -609,8 +611,8 @@ try
         end
     end
 
-    % Generate the complete API README
-    generateApiReadme(docsDir, functionsByModule, allFunctions, totalFunctions);
+    % Generate the complete API index.md
+    generateApiIndex(docsDir, functionsByModule, allFunctions, totalFunctions);
 
     fprintf('  ✅ Generated API index with %d total functions\n', totalFunctions);
 
@@ -620,13 +622,13 @@ end
 
 end
 
-function generateApiReadme(docsDir, functionsByModule, allFunctions, totalFunctions)
-% Generate the complete API README file
+function generateApiIndex(docsDir, functionsByModule, allFunctions, totalFunctions)
+% Generate the complete API index.md file
 
 apiReadmePath = fullfile(docsDir, 'api', 'index.md');
 
 % Create the content
-content = sprintf('# biosigmat API Reference\n\n');
+content = sprintf('# API Reference\n\n');
 content = [content sprintf('Complete reference documentation for all functions in the biosigmat toolbox.\n\n')];
 content = [content sprintf('## Modules\n\n')];
 
@@ -825,8 +827,8 @@ for i = 1:length(modulesList)
     examplesByModule.(module) = examplesList;
 end
 
-% Update examples README
-updateExamplesReadme(examplesDocsDir, examplesByModule);
+% Update examples index.md
+updateExamplesIndex(examplesDocsDir, examplesByModule);
 
 end
 
@@ -864,8 +866,8 @@ for i = 1:length(mFiles)
     workflowsList{end+1} = workflowName;
 end
 
-% Update workflows section in examples README
-updateWorkflowsReadme(workflowsDocsDir, workflowsList);
+% Update workflows section in examples index.md
+updateWorkflowsIndex(workflowsDocsDir, workflowsList);
 
 end
 
@@ -1115,12 +1117,12 @@ end
 
 end
 
-function updateExamplesReadme(examplesDocsDir, examplesByModule)
-% Update the README file for examples
+function updateExamplesIndex(examplesDocsDir, examplesByModule)
+% Update the index.md file for examples
 
 readmePath = fullfile(examplesDocsDir, 'index.md');
 
-% Create examples README content
+% Create examples index.md content
 content = sprintf('# Examples and Workflows\n\n');
 content = [content sprintf('This section contains practical examples and workflows demonstrating the usage of biosigmat functions.\n\n')];
 
@@ -1167,8 +1169,8 @@ fclose(fid);
 
 end
 
-function updateWorkflowsReadme(examplesDocsDir, workflowsList)
-% Update the workflows section in examples README
+function updateWorkflowsIndex(examplesDocsDir, workflowsList)
+% Update the workflows section in examples index.md
 
 readmePath = fullfile(examplesDocsDir, 'index.md');
 

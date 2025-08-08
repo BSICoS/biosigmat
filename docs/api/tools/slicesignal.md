@@ -1,4 +1,6 @@
-# `slicesignal` - Divide signal into overlapping segments.
+# `slicesignal`
+
+Divide signal into overlapping segments.
 
 ## Syntax
 

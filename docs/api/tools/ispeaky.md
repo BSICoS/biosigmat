@@ -1,4 +1,6 @@
-# `ispeaky` - Determines if spectra are considered peaky based on peakedness thresholds.
+# `ispeaky`
+
+Determines if spectra are considered peaky based on peakedness thresholds.
 
 ## Syntax
 

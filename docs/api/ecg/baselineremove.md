@@ -1,4 +1,6 @@
-# `baselineremove` - Removes baseline wander from biosignals using cubic spline interpolation.
+# `baselineremove`
+
+Removes baseline wander from biosignals using cubic spline interpolation.
 
 ## Syntax
 

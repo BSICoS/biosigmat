@@ -22,6 +22,6 @@ A MATLAB library for biomedical signal processing (ECG, PPG, and respiration) de
 - [Code Examples](examples/index.md) - Ready-to-use examples
 
 ### Contributing
-- [Contributing Guide](CONTRIBUTING.md) - Guidelines for contributing to the project
-- [Code Style Guide](code-style-guide.md) - Coding standards and style guidelines
-- [License](LICENSE.md) - Project license information
+- [Contributing Guide](contribute/contribution-guide.md) - Guidelines for contributing to the project
+- [Code Style Guide](contribute/code-style-guide.md) - Coding standards and style guidelines
+- [License](contribute/license.md) - Project license information

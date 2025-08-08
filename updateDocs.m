@@ -45,12 +45,12 @@ try
     % Update examples documentation
     examplesDir = fullfile(toolboxRoot, 'examples');
     fprintf('📋 Processing examples...\n');
-    updateExamplesDocs(examplesDir, docsDir);
+    updateExamplesDocs(examplesDir, strcat(docsDir, 'api'));
 
     % Update workflows documentation
     workflowsDir = fullfile(examplesDir, 'workflows');
     fprintf('⚙️ Processing workflows...\n');
-    updateWorkflowsDocs(workflowsDir, docsDir);
+    updateWorkflowsDocs(workflowsDir, strcat(docsDir, 'api'));
 
     % Update main API index
     updateApiIndex(docsDir, modules);

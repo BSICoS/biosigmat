@@ -1,6 +1,6 @@
 title: API
 arrange:
-  - index
+  - index.md
   - ecg
   - ppg
   - hrv

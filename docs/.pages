@@ -1,7 +1,7 @@
 arrange:
-  - index
-  - installation 
+  - index.md
+  - installation.md
   - api
   - examples
   - contribute
-  - changelog
+  - changelog.md

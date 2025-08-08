@@ -1,5 +1,5 @@
 title: Contribute
 arrange:
-  - contribution-guide
-  - code-style-guide
-  - license 
+  - contribution-guide.md
+  - code-style-guide.md
+  - license.md

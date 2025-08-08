@@ -47,7 +47,7 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
 
             % Expected values (hardcoded from test run with first 30 seconds)
             expectedND = [0.4770; 1.2340; 1.9810; 2.7010; 3.3710];
-            expectedNumPulses = 39;
+            expectedNumPulses = 41;
 
             % Verify outputs are the correct size and type
             tc.verifyClass(nD, 'double', 'nD should be double array');

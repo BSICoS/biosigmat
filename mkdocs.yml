@@ -1,0 +1,42 @@
+site_name: Biosigmat
+site_description: A MATLAB library for signal processing tools. Supports ECG, PPG and respiration signals.
+repo_url: https://github.com/BSICoS/biosigmat
+repo_name: biosigmat
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+  language: es
+
+plugins:
+  - search
+  - awesome-pages
+  - git-revision-date-localized:
+      type: date
+  - minify:
+      minify_html: true
+  - redirects
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.tabbed
+  - pymdownx.highlight
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - API Reference:
+      - api/index.md
+  - Changelog: changelog.md
+  - Code Style Guide: code-style-guide.md

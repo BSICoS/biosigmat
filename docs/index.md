@@ -1,39 +1,21 @@
-# biosigmat - Biomedical Signal Processing Toolbox for MATLAB
+Welcome to the documentation for the biosigmat toolbox - a MATLAB toolbox for biomedical signal processing and analysis.
 
-[![MATLAB](https://img.shields.io/badge/MATLAB-R2025a-blue)](https://www.mathworks.com/products/matlab.html)
-[![License](https://img.shields.io/badge/License-GPL-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen)](test/)
+## Quick Navigation
 
-A MATLAB toolbox for processing and analyzing biomedical signals including ECG, PPG, and HRV analysis.
+### Getting Started
+- [Installation Guide](installation.md)
 
----
+### API Reference
+- [Complete API Documentation](api/README.md)
+- [ECG Processing](api/ecg/README.md) - Electrocardiography signal analysis
+- [PPG Processing](api/ppg/README.md) - Photoplethysmography signal analysis
+- [HRV Analysis](api/hrv/README.md) - Heart Rate Variability metrics
+- [General Tools](api/tools/README.md) - Utility functions for signal processing
 
-**Developed by**: [BSICoS Research Group](https://bsicos.i3a.es/)  
-**Status**: Active Development
+### Examples & Tutorials
+- [Code Examples](examples/README.md) - Ready-to-use examples
 
-## Installation
-
-1. Download or clone the repository:
-```bash
-git clone https://github.com/BSICoS/biosigmat.git
-```
-
-2. Add the toolbox to your MATLAB path:
-```matlab
-addpath(genpath('path/to/biosigmat'));
-```
-
-## Support
-
-- 📖 Check the [documentation](docs/README.md) for detailed information
-- 💡 Browse [examples](docs/api/examples/README.md) for common use cases
-- 🐛 Report issues on [GitHub Issues](https://github.com/BSICoS/biosigmat/issues)
-- 📧 Contact the development team for additional support
-
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-## License
-
-This project is licensed - see the [LICENSE](LICENSE) file for details.
+### Contributing
+- [Contributing Guide](../CONTRIBUTING.md) - Guidelines for contributing to the project
+- [Code Style Guide](code-style-guide.md) - Coding standards and style guidelines
+- [License](../LICENSE) - Project license information

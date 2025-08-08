@@ -2,7 +2,7 @@
 title: Home
 ---
 
-:material-heart-pulse:{ .lg .middle } **A MATLAB library for biomedical signal processing**
+## :material-heart-pulse: A MATLAB library for biomedical signal processing
 
 Professional-grade tools for ECG, PPG, and respiration signal analysis developed by [BSICoS](https://bsicos.i3a.es/es/).
 
@@ -16,88 +16,5 @@ Professional-grade tools for ECG, PPG, and respiration signal analysis developed
 
 </div>
 
-## :material-rocket-launch: Getting Started
-
-New to Biosigmat? Read the [Installation Guide](getting-started/installation.md) to get up and running quickly.
-
-Discover what makes Biosigmat the ideal choice for biomedical signal processing.
-
-[:octicons-arrow-right-24: View Key Features](getting-started/key-features.md){ .md-button }
-
-!!! example "Ready-to-Use Examples"
-    Explore practical examples to learn how to use Biosigmat effectively.
-
-    [:octicons-code-16: Browse Examples](examples/index.md){ .md-button }
-
-## :material-api: API Reference
-
-<div class="grid cards" markdown>
-
--   :material-heart-pulse:{ .lg .middle } **ECG Processing**
-
-    ---
-
-    Comprehensive electrocardiography signal analysis tools
-
-    [:octicons-arrow-right-24: ECG API](api/ecg/index.md)
-
--   :material-heart:{ .lg .middle } **PPG Processing**
-
-    ---
-
-    Photoplethysmography signal processing and analysis
-
-    [:octicons-arrow-right-24: PPG API](api/ppg/index.md)
-
--   :material-chart-line:{ .lg .middle } **HRV Analysis**
-
-    ---
-
-    Heart Rate Variability metrics and calculations
-
-    [:octicons-arrow-right-24: HRV API](api/hrv/index.md)
-
--   :material-tools:{ .lg .middle } **General Tools**
-
-    ---
-
-    Utility functions for signal processing workflows
-
-    [:octicons-arrow-right-24: Tools API](api/tools/index.md)
-
-</div>
-
-[Complete API Documentation](api/index.md){ .md-button }
-
-## :material-account-group: Contributing
-
-!!! info "Join the Community"
-    Help us improve Biosigmat! We welcome contributions from the community.
-
-<div class="grid cards" markdown>
-
--   :material-file-document-edit:{ .lg .middle } **Contributing Guide**
-
-    ---
-
-    Guidelines for contributing to the project
-
-    [:octicons-arrow-right-24: Contribute](contribute/contribution-guide.md)
-
--   :material-code-tags:{ .lg .middle } **Code Style Guide**
-
-    ---
-
-    Coding standards and style guidelines
-
-    [:octicons-arrow-right-24: Style Guide](contribute/code-style-guide.md)
-
--   :material-license:{ .lg .middle } **License**
-
-    ---
-
-    Project license information
-
-    [:octicons-arrow-right-24: License](contribute/license.md)
-
-</div>
+!!! tip New to Biosigmat?
+    Read the [Installation Guide](getting-started/installation.md) to get up and running quickly.

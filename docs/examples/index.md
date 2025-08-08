@@ -1,3 +1,7 @@
+---
+title: Overview
+---
+
 # Examples and Workflows
 
 This section contains practical examples and workflows demonstrating the usage of biosigmat functions.

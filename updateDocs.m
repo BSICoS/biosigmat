@@ -1124,7 +1124,8 @@ function updateExamplesIndex(examplesDocsDir, examplesByModule)
 readmePath = fullfile(examplesDocsDir, 'index.md');
 
 % Create examples index.md content
-content = sprintf('# Examples and Workflows\n\n');
+content = sprintf('---\ntitle: Overview\n---\n\n');
+content = [content sprintf('# Examples and Workflows\n\n')];
 content = [content sprintf('This section contains practical examples and workflows demonstrating the usage of biosigmat functions.\n\n')];
 
 % Add examples by module

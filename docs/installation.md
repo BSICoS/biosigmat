@@ -23,7 +23,8 @@ The following MATLAB toolboxes are required for full functionality:
    addpath(genpath('path\to\biosigmat'));
    ```
 
-   > **Tip**: Add this line to your `startup.m` file to make the path addition persistent across MATLAB sessions.
+   !!! tip
+      Add this line to your `startup.m` file to make the path addition persistent across MATLAB sessions.
 
 ### Method 2: MATLAB Add-On Installation
 

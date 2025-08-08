@@ -16,4 +16,4 @@ This example demonstrates how to extract respiratory information from ECG signal
 
 ---
 
-**Module**: [ECG](../ecg/index.md) | **Last Updated**: 2025-08-08
+**Module**: [ECG](../api/ecg/index.md) | **Last Updated**: 2025-08-08

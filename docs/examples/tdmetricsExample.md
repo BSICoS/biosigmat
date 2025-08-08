@@ -16,4 +16,4 @@ This example demonstrates how to compute time-domain heart rate variability (HRV
 
 ---
 
-**Module**: [HRV](../hrv/index.md) | **Last Updated**: 2025-08-08
+**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2025-08-08

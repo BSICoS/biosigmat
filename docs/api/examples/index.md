@@ -26,7 +26,7 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ## See Also
 
-- [API Reference](../api/README.md)
+- [API Reference](../api/index.md)
 
 ---
 

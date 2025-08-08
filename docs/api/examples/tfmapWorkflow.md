@@ -10,8 +10,8 @@ This workflow demonstrates how to create comprehensive time-frequency maps of sy
 
 ## See Also
 
-- [API Reference](../api/README.md)
-- [Examples Overview](README.md)
+- [API Reference](../api/index.md)
+- [Examples Overview](index.md)
 
 ---
 

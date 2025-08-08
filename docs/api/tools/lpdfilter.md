@@ -50,8 +50,8 @@ signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 - FIRLS
 - FDESIGN.DIFFERENTIATOR
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 
-**Module**: [TOOLS](README.md) | **Last Updated**: 2025-08-08
+**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-08

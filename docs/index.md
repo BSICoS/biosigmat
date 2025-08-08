@@ -6,14 +6,14 @@ Welcome to the documentation for the biosigmat toolbox - a MATLAB toolbox for bi
 - [Installation Guide](installation.md)
 
 ### API Reference
-- [Complete API Documentation](api/README.md)
-- [ECG Processing](api/ecg/README.md) - Electrocardiography signal analysis
-- [PPG Processing](api/ppg/README.md) - Photoplethysmography signal analysis
-- [HRV Analysis](api/hrv/README.md) - Heart Rate Variability metrics
-- [General Tools](api/tools/README.md) - Utility functions for signal processing
+- [Complete API Documentation](api/index.md)
+- [ECG Processing](api/ecg/index.md) - Electrocardiography signal analysis
+- [PPG Processing](api/ppg/index.md) - Photoplethysmography signal analysis
+- [HRV Analysis](api/hrv/index.md) - Heart Rate Variability metrics
+- [General Tools](api/tools/index.md) - Utility functions for signal processing
 
 ### Examples & Tutorials
-- [Code Examples](api/examples/README.md) - Ready-to-use examples
+- [Code Examples](api/examples/index.md) - Ready-to-use examples
 
 ### Contributing
 - [Contributing Guide](CONTRIBUTING.md) - Guidelines for contributing to the project

@@ -75,8 +75,8 @@ fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 - PULSEDELINEATION
 - FINDPEAKS
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 
-**Module**: [PPG](README.md) | **Last Updated**: 2025-08-08
+**Module**: [PPG](index.md) | **Last Updated**: 2025-08-08

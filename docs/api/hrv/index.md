@@ -10,7 +10,7 @@
 
 ## See Also
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 

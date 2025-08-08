@@ -23,8 +23,8 @@ result = peakednessCost(input);
 
 ## See Also
 
-- [TOOLS Module](README.md)
-- [API Reference](../README.md)
+- [TOOLS Module](index.md)
+- [API Reference](../index.md)
 
 ---
 

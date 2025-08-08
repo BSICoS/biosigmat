@@ -33,8 +33,8 @@ result = pantompkins(input);
 
 ## See Also
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 
-**Module**: [ECG](README.md) | **Last Updated**: 2025-08-08
+**Module**: [ECG](index.md) | **Last Updated**: 2025-08-08

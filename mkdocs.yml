@@ -19,6 +19,7 @@ plugins:
   - awesome-pages
   - git-revision-date-localized:
       type: date
+      fallback_to_build_date: true
   - minify:
       minify_html: true
   - redirects
@@ -32,11 +33,3 @@ markdown_extensions:
   - pymdownx.tabbed
   - pymdownx.highlight
   - pymdownx.snippets
-
-nav:
-  - Home: index.md
-  - Installation: installation.md
-  - API Reference:
-      - api/index.md
-  - Changelog: changelog.md
-  - Code Style Guide: code-style-guide.md

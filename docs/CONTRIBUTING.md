@@ -23,7 +23,7 @@ The project is organized as follows:
 
 ## Code Style Guidelines
 
-For detailed code style guidelines including naming conventions, code structure, test structure, and MATLAB-specific guidelines, please refer to the [Code Style Guide](docs/code-style-guide.md).
+For detailed code style guidelines including naming conventions, code structure, test structure, and MATLAB-specific guidelines, please refer to the [Code Style Guide](code-style-guide.md).
 
 ## Contributing Process
 

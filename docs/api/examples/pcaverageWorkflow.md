@@ -10,8 +10,8 @@ This workflow demonstrates the peak-conditioned average processing technique app
 
 ## See Also
 
-- [API Reference](../api/README.md)
-- [Examples Overview](README.md)
+- [API Reference](../api/index.md)
+- [Examples Overview](index.md)
 
 ---
 

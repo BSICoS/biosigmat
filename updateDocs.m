@@ -461,10 +461,10 @@ if ~isempty(docInfo.seeAlso)
     end
     content = [content newline];
 end
-content = [content sprintf('- [API Reference](../README.md)\n\n')];
+content = [content sprintf('- [API Reference](../index.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
-content = [content sprintf('**Module**: [%s](README.md) | **Last Updated**: %s\n', ...
+content = [content sprintf('**Module**: [%s](index.md) | **Last Updated**: %s\n', ...
     upper(module), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 
 % Write file
@@ -487,7 +487,7 @@ end
 function updateModuleReadme(moduleDocsDir, module, functionList)
 % Update the README file for a module
 
-readmePath = fullfile(moduleDocsDir, 'README.md');
+readmePath = fullfile(moduleDocsDir, 'index.md');
 
 % Create basic module README content
 content = sprintf('# %s Module\n\n', upper(module));
@@ -525,7 +525,7 @@ if ~strcmp(module, 'tools')
 end
 
 content = [content sprintf('\n## See Also\n\n')];
-content = [content sprintf('- [API Reference](../README.md)\n\n')];
+content = [content sprintf('- [API Reference](../index.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
 if strcmp(module, 'tools')
@@ -623,7 +623,7 @@ end
 function generateApiReadme(docsDir, functionsByModule, allFunctions, totalFunctions)
 % Generate the complete API README file
 
-apiReadmePath = fullfile(docsDir, 'api', 'README.md');
+apiReadmePath = fullfile(docsDir, 'api', 'index.md');
 
 % Create the content
 content = sprintf('# biosigmat API Reference\n\n');
@@ -649,10 +649,10 @@ for i = 1:length(moduleNames)
 
     % Add module header
     if isfield(moduleInfo, module)
-        content = [content sprintf('### [%s](%s/README.md)\n', moduleInfo.(module).title, module)];
+        content = [content sprintf('### [%s](%s/index.md)\n', moduleInfo.(module).title, module)];
         content = [content sprintf('%s\n\n', moduleInfo.(module).desc)];
     else
-        content = [content sprintf('### [%s](%s/README.md)\n', upper(module), module)];
+        content = [content sprintf('### [%s](%s/index.md)\n', upper(module), module)];
         content = [content sprintf('Functions for %s processing.\n\n', module)];
     end
 
@@ -1081,12 +1081,12 @@ end
 
 % Add see also section
 content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [API Reference](../api/README.md)\n')];
+content = [content sprintf('- [API Reference](../api/index.md)\n')];
 if strcmp(itemType, 'workflow')
-    content = [content sprintf('- [Examples Overview](README.md)\n\n')];
+    content = [content sprintf('- [Examples Overview](index.md)\n\n')];
 else
-    content = [content sprintf('- [%s Module](../api/%s/README.md)\n', upper(module), module)];
-    content = [content sprintf('- [Examples Overview](README.md)\n\n')];
+    content = [content sprintf('- [%s Module](../api/%s/index.md)\n', upper(module), module)];
+    content = [content sprintf('- [Examples Overview](index.md)\n\n')];
 end
 
 content = [content sprintf('---\n\n')];
@@ -1094,7 +1094,7 @@ if strcmp(itemType, 'workflow')
     content = [content sprintf('**Last Updated**: %s\n', ...
         string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 else
-    content = [content sprintf('**Module**: [%s](../api/%s/README.md) | **Last Updated**: %s\n', ...
+    content = [content sprintf('**Module**: [%s](../api/%s/index.md) | **Last Updated**: %s\n', ...
         upper(module), module, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 end
 
@@ -1118,7 +1118,7 @@ end
 function updateExamplesReadme(examplesDocsDir, examplesByModule)
 % Update the README file for examples
 
-readmePath = fullfile(examplesDocsDir, 'README.md');
+readmePath = fullfile(examplesDocsDir, 'index.md');
 
 % Create examples README content
 content = sprintf('# Examples and Workflows\n\n');
@@ -1151,7 +1151,7 @@ content = [content sprintf('## Workflows\n\n')];
 content = [content sprintf('*Workflows will be listed here after processing*\n\n')];
 
 content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [API Reference](../api/README.md)\n\n')];
+content = [content sprintf('- [API Reference](../api/index.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
 content = [content sprintf('**Examples**: %d | **Last Updated**: %s\n', ...
@@ -1170,7 +1170,7 @@ end
 function updateWorkflowsReadme(examplesDocsDir, workflowsList)
 % Update the workflows section in examples README
 
-readmePath = fullfile(examplesDocsDir, 'README.md');
+readmePath = fullfile(examplesDocsDir, 'index.md');
 
 if exist(readmePath, 'file')
     % Read existing content

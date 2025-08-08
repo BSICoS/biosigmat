@@ -32,8 +32,8 @@ outliers = x > threshold;
 - MEDFILT1
 - MOVMEDIAN
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 
-**Module**: [TOOLS](README.md) | **Last Updated**: 2025-08-08
+**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-08

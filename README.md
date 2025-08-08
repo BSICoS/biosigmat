@@ -25,8 +25,8 @@ addpath(genpath('path/to/biosigmat'));
 
 ## Support
 
-- 📖 Check the [documentation](docs/README.md) for detailed information
-- 💡 Browse [examples](docs/api/examples/README.md) for common use cases
+- 📖 Check the [documentation](docs/index.md) for detailed information
+- 💡 Browse [examples](docs/api/examples/index.md) for common use cases
 - 🐛 Report issues on [GitHub Issues](https://github.com/BSICoS/biosigmat/issues)
 - 📧 Contact the development team for additional support
 

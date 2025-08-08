@@ -46,8 +46,8 @@ OUT = findsequences(A);
 - IND2SUB
 - DIFF
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 
-**Module**: [TOOLS](README.md) | **Last Updated**: 2025-08-08
+**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-08

@@ -10,10 +10,10 @@ This example demonstrates how to effectively remove baseline wander from real EC
 
 ## See Also
 
-- [API Reference](../api/README.md)
-- [ECG Module](../api/ecg/README.md)
-- [Examples Overview](README.md)
+- [API Reference](../api/index.md)
+- [ECG Module](../api/ecg/index.md)
+- [Examples Overview](index.md)
 
 ---
 
-**Module**: [ECG](../api/ecg/README.md) | **Last Updated**: 2025-08-08
+**Module**: [ECG](../api/ecg/index.md) | **Last Updated**: 2025-08-08

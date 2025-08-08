@@ -46,8 +46,8 @@ filtered = nanfiltfilt(b, a, signal, 10);
 - FILTFILT
 - BUTTER
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 
-**Module**: [TOOLS](README.md) | **Last Updated**: 2025-08-08
+**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-08

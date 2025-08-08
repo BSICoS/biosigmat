@@ -36,8 +36,8 @@ pxx = exp(-((f-0.3)/0.05).^2) + 0.1*randn(size(f));
 - NANPWELCH
 - PWELCH
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 
-**Module**: [TOOLS](README.md) | **Last Updated**: 2025-08-08
+**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-08

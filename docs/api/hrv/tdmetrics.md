@@ -44,8 +44,8 @@ fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 
 - PANTOMPKINS
 
-- [API Reference](../README.md)
+- [API Reference](../index.md)
 
 ---
 
-**Module**: [HRV](README.md) | **Last Updated**: 2025-08-08
+**Module**: [HRV](index.md) | **Last Updated**: 2025-08-08

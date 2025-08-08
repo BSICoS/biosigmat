@@ -54,4 +54,4 @@ This guide will help you install and set up the biosigmat toolbox in your MATLAB
 </div>
 
 !!! question "Need Assistance?"
-   If you encounter any issues during installation contact us through [GitHub Issues](https://github.com/BSICoS/biosigmat/issues)
+    If you encounter any issues during installation contact us through [GitHub Issues](https://github.com/BSICoS/biosigmat/issues)

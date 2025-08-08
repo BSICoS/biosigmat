@@ -2,7 +2,10 @@
 title: Home
 ---
 
-# Biosigmat
+:material-heart-pulse:{ .lg .middle } **A MATLAB library for biomedical signal processing**
+
+Professional-grade tools for ECG, PPG, and respiration signal analysis developed by [BSICoS](https://bsicos.i3a.es/es/).
+
 
 <div align="center" markdown>
 
@@ -13,61 +16,13 @@ title: Home
 
 </div>
 
-<div class="result" markdown>
-
-:material-heart-pulse:{ .lg .middle } **A MATLAB library for biomedical signal processing**
-
----
-
-Professional-grade tools for ECG, PPG, and respiration signal analysis developed by [BSICoS](https://bsicos.i3a.es/es/).
-
-</div>
-
-## :material-star: Key Features
-
-<div class="grid cards" markdown>
-
--   :material-lightning-bolt:{ .lg .middle } **High Performance**
-
-    ---
-
-    Optimized algorithms for real-time biomedical signal processing with minimal computational overhead
-
--   :material-chart-line-variant:{ .lg .middle } **Comprehensive Analysis**
-
-    ---
-
-    Complete toolset for ECG, PPG, and HRV analysis with validated clinical algorithms
-
--   :material-puzzle:{ .lg .middle } **Easy Integration**
-
-    ---
-
-    Simple MATLAB functions with consistent APIs that integrate seamlessly into existing workflows
-
--   :material-test-tube:{ .lg .middle } **Research-Grade**
-
-    ---
-
-    Peer-reviewed algorithms developed by biomedical signal processing experts at BSICoS
-
--   :material-book-open-variant:{ .lg .middle } **Well Documented**
-
-    ---
-
-    Extensive documentation with examples, tutorials, and API references
-
--   :material-scale-balance:{ .lg .middle } **Open Source**
-
-    ---
-
-    GPL licensed with active support and continuous development
-
-</div>
-
 ## :material-rocket-launch: Getting Started
 
 New to Biosigmat? Read the [Installation Guide](getting-started/installation.md) to get up and running quickly.
+
+Discover what makes Biosigmat the ideal choice for biomedical signal processing.
+
+[:octicons-arrow-right-24: View Key Features](getting-started/key-features.md){ .md-button }
 
 !!! example "Ready-to-Use Examples"
     Explore practical examples to learn how to use Biosigmat effectively.

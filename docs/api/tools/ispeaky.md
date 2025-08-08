@@ -12,7 +12,7 @@ ISPEAKY = ISPEAKY(PKL, AKL, PKLTHRESHOLD, AKLTHRESHOLD) determines if spectra ar
 
 ## Source Code
 
-[View source code](../../../src/tools/ispeaky.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/ispeaky.m)
 
 ## Examples
 

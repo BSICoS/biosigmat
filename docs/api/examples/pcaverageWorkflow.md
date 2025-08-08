@@ -6,7 +6,7 @@ This workflow demonstrates the peak-conditioned average processing technique app
 
 ## Source Code
 
-[View source code](../../examples/workflows/pcaverageWorkflow.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/workflows/pcaverageWorkflow.m)
 
 ## See Also
 

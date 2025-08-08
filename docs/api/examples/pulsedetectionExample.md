@@ -6,7 +6,7 @@ This example demonstrates how to detect individual pulses in photoplethysmograph
 
 ## Source Code
 
-[View source code](../../examples/ppg/pulsedetectionExample.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m)
 
 ## See Also
 

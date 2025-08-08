@@ -19,7 +19,7 @@ additional outputs:
 
 ## Source Code
 
-[View source code](../../../src/ecg/sloperange.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/ecg/sloperange.m)
 
 ## Examples
 
@@ -37,7 +37,7 @@ xlabel('Time (s)');
 ylabel('EDR Amplitude');
 ```
 
-[View detailed example](../../../examples/ecg/sloperangeExample.m)
+[View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/sloperangeExample.m)
 
 ## See Also
 

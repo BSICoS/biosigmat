@@ -16,7 +16,7 @@ Algorithm: 1. For each column, identify NaN sequences and classify them as long 
 
 ## Source Code
 
-[View source code](../../../src/tools/nanfilter.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/nanfilter.m)
 
 ## Examples
 

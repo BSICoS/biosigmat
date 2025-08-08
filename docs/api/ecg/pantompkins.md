@@ -20,7 +20,7 @@ cutoff frequencies in Hz. Default: [5, 12]
 
 ## Source Code
 
-[View source code](../../../src/ecg/pantompkins.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/ecg/pantompkins.m)
 
 ## Examples
 
@@ -29,7 +29,7 @@ cutoff frequencies in Hz. Default: [5, 12]
 result = pantompkins(input);
 ```
 
-[View detailed example](../../../examples/ecg/pantompkinsExample.m)
+[View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/pantompkinsExample.m)
 
 ## See Also
 

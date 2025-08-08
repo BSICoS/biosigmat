@@ -20,7 +20,7 @@ Each sequence has 4 columns where:
 
 ## Source Code
 
-[View source code](../../../src/tools/findsequences.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/findsequences.m)
 
 ## Examples
 

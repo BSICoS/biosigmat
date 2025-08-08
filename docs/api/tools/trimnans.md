@@ -14,7 +14,7 @@ This function is useful for cleaning up signals that may have NaN padding at the
 
 ## Source Code
 
-[View source code](../../../src/tools/trimnans.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/trimnans.m)
 
 ## Examples
 

@@ -21,7 +21,7 @@ For matrix input: cell array where PXXSEGMENTS{i} contains the PSD segments for 
 
 ## Source Code
 
-[View source code](../../../src/tools/nanpwelch.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/nanpwelch.m)
 
 ## Examples
 

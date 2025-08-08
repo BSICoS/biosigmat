@@ -22,7 +22,7 @@ automatically calculated based on transition band requirements.
 
 ## Source Code
 
-[View source code](../../../src/tools/lpdfilter.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/lpdfilter.m)
 
 ## Examples
 

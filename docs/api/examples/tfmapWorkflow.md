@@ -6,7 +6,7 @@ This workflow demonstrates how to create comprehensive time-frequency maps of sy
 
 ## Source Code
 
-[View source code](../../examples/workflows/tfmapWorkflow.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/workflows/tfmapWorkflow.m)
 
 ## See Also
 

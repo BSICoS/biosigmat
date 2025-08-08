@@ -7,8 +7,8 @@
 
 ## Examples
 
-- [`pulsedelineationExample`](../../../examples/ppg/pulsedelineationExample.m)
-- [`pulsedetectionExample`](../../../examples/ppg/pulsedetectionExample.m)
+- [`pulsedelineationExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m)
+- [`pulsedetectionExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m)
 
 ## See Also
 

@@ -14,7 +14,7 @@ This function is particularly useful for time-frequency analysis where you need 
 
 ## Source Code
 
-[View source code](../../../src/tools/slicesignal.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/slicesignal.m)
 
 ## Examples
 

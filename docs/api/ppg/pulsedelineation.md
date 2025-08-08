@@ -18,7 +18,7 @@ Out: nD            = Location of peaks detected in filtered signal (seconds) nA 
 
 ## Source Code
 
-[View source code](../../../src/ppg/pulsedelineation.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/ppg/pulsedelineation.m)
 
 ## Examples
 
@@ -42,7 +42,7 @@ Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
 Status: Alpha
 ```
 
-[View detailed example](../../../examples/ppg/pulsedelineationExample.m)
+[View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m)
 
 ## See Also
 

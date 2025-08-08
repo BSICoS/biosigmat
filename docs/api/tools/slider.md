@@ -20,7 +20,7 @@ The slider automatically adjusts its behavior when the view is zoomed or panned,
 
 ## Source Code
 
-[View source code](../../../src/tools/slider.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/slider.m)
 
 ## Examples
 

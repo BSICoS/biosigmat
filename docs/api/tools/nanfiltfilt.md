@@ -24,7 +24,7 @@ NANFILTFILT should not be used when the intent of a filter is to modify signal p
 
 ## Source Code
 
-[View source code](../../../src/tools/nanfiltfilt.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/nanfiltfilt.m)
 
 ## Examples
 

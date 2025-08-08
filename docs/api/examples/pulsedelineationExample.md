@@ -6,7 +6,7 @@ This example demonstrates how to perform detailed pulse delineation in photoplet
 
 ## Source Code
 
-[View source code](../../examples/ppg/pulsedelineationExample.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m)
 
 ## See Also
 

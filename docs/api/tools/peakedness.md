@@ -18,7 +18,7 @@ The peakedness measures how concentrated the power is in a narrow frequency band
 
 ## Source Code
 
-[View source code](../../../src/tools/peakedness.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/peakedness.m)
 
 ## Examples
 

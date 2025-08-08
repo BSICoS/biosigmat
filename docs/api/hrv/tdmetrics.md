@@ -19,7 +19,7 @@ containing the following time-domain metrics:
 
 ## Source Code
 
-[View source code](../../../src/hrv/tdmetrics.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/hrv/tdmetrics.m)
 
 ## Examples
 
@@ -38,7 +38,7 @@ fprintf('SDSD: %.1f ms\n', metrics.sdsd);
 fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 ```
 
-[View detailed example](../../../examples/hrv/tdmetricsExample.m)
+[View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m)
 
 ## See Also
 

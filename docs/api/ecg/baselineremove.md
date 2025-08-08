@@ -16,7 +16,7 @@ ECGDETRENDED = BASELINEREMOVE(..., WINDOW) allows specifying the number of sampl
 
 ## Source Code
 
-[View source code](../../../src/ecg/baselineremove.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/ecg/baselineremove.m)
 
 ## Examples
 
@@ -27,7 +27,7 @@ plot(1:length(ecg), ecg, 1:length(cleanEcg), cleanEcg);
 legend('Original', 'Detrended');
 ```
 
-[View detailed example](../../../examples/ecg/baselineremoveExample.m)
+[View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/baselineremoveExample.m)
 
 ## See Also
 

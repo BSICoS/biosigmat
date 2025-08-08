@@ -28,7 +28,7 @@ steeper threshold slopes
 
 ## Source Code
 
-[View source code](../../../src/ppg/pulsedetection.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/ppg/pulsedetection.m)
 
 ## Examples
 
@@ -67,7 +67,7 @@ fprintf('Detected %d pulses\n', length(nD));
 fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 ```
 
-[View detailed example](../../../examples/ppg/pulsedetectionExample.m)
+[View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m)
 
 ## See Also
 

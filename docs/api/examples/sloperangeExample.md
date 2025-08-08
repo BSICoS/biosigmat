@@ -6,7 +6,7 @@ This example demonstrates how to extract respiratory information from ECG signal
 
 ## Source Code
 
-[View source code](../../examples/ecg/sloperangeExample.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/sloperangeExample.m)
 
 ## See Also
 

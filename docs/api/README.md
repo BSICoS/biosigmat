@@ -9,22 +9,22 @@ Functions for electrocardiography signal analysis and QRS detection.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
-| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | [View code](../../examples/ecg/baselineremoveExample.m) | β Beta |
-| [`pantompkins`](ecg/pantompkins.md) | Algorithm for R-wave detection in ECG signals. | [View code](../../examples/ecg/pantompkinsExample.m) | ✅ Stable |
-| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | [View code](../../examples/ecg/sloperangeExample.m) | β Beta |
+| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/baselineremoveExample.m) | β Beta |
+| [`pantompkins`](ecg/pantompkins.md) | Algorithm for R-wave detection in ECG signals. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/pantompkinsExample.m) | ✅ Stable |
+| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/sloperangeExample.m) | β Beta |
 ### [HRV Analysis](hrv/README.md)
 Functions for heart rate variability analysis and metrics calculation.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
-| [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](../../examples/hrv/tdmetricsExample.m) | ✅ Stable |
+| [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | ✅ Stable |
 ### [PPG Processing](ppg/README.md)
 Functions for photoplethysmography signal analysis and pulse detection.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
-| [`pulsedelineation`](ppg/pulsedelineation.md) | Plethysmography signals delineation using adaptive thresholding. | [View code](../../examples/ppg/pulsedelineationExample.m) | α Alpha |
-| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using adaptive thresholding. | [View code](../../examples/ppg/pulsedetectionExample.m) | α Alpha |
+| [`pulsedelineation`](ppg/pulsedelineation.md) | Plethysmography signals delineation using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | α Alpha |
+| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | α Alpha |
 ### [General Tools](tools/README.md)
 Utility functions for signal processing and data manipulation.
 

@@ -6,7 +6,7 @@ This example demonstrates how to compute time-domain heart rate variability (HRV
 
 ## Source Code
 
-[View source code](../../examples/hrv/tdmetricsExample.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m)
 
 ## See Also
 

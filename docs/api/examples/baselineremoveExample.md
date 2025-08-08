@@ -6,7 +6,7 @@ This example demonstrates how to effectively remove baseline wander from real EC
 
 ## Source Code
 
-[View source code](../../examples/ecg/baselineremoveExample.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/baselineremoveExample.m)
 
 ## See Also
 

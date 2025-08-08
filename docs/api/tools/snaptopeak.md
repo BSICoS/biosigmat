@@ -16,7 +16,7 @@ The function searches for the maximum value within the specified window around e
 
 ## Source Code
 
-[View source code](../../../src/tools/snaptopeak.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/snaptopeak.m)
 
 ## Examples
 

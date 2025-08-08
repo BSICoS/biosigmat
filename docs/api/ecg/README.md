@@ -8,9 +8,9 @@
 
 ## Examples
 
-- [`baselineremoveExample`](../../../examples/ecg/baselineremoveExample.m)
-- [`pantompkinsExample`](../../../examples/ecg/pantompkinsExample.m)
-- [`sloperangeExample`](../../../examples/ecg/sloperangeExample.m)
+- [`baselineremoveExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/baselineremoveExample.m)
+- [`pantompkinsExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/pantompkinsExample.m)
+- [`sloperangeExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/sloperangeExample.m)
 
 ## See Also
 

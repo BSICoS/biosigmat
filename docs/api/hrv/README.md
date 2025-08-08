@@ -6,7 +6,7 @@
 
 ## Examples
 
-- [`tdmetricsExample`](../../../examples/hrv/tdmetricsExample.m)
+- [`tdmetricsExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m)
 
 ## See Also
 

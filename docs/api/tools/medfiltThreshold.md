@@ -12,7 +12,7 @@ THRESHOLD = MEDFILTTHRESHOLD(X, WINDOW, FACTOR, MAXTHRESHOLD) computes an adapti
 
 ## Source Code
 
-[View source code](../../../src/tools/medfiltThreshold.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/medfiltThreshold.m)
 
 ## Examples
 

@@ -19,7 +19,7 @@ method:
 
 ## Source Code
 
-[View source code](../../../src/tools/interpgap.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/tools/interpgap.m)
 
 ## Examples
 

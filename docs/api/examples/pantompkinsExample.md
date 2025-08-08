@@ -6,7 +6,7 @@ This example demonstrates the implementation of the Pan-Tompkins algorithm for r
 
 ## Source Code
 
-[View source code](../../examples/ecg/pantompkinsExample.m)
+[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/pantompkinsExample.m)
 
 ## See Also
 

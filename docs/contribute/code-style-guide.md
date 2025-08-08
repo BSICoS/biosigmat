@@ -46,8 +46,8 @@ This document outlines the coding standards and style guidelines for the biosigm
 </div>
 
 !!! tip "Naming Best Practices"
-  - :material-tag-text: Use descriptive names that clearly indicate the purpose of the variable or function
-  - :material-matlab: Follow MATLAB's built-in function naming style: short names in lowercase when possible
+    - :material-tag-text: Use descriptive names that clearly indicate the purpose of the variable or function
+    - :material-matlab: Follow MATLAB's built-in function naming style: short names in lowercase when possible
 
 
 
@@ -61,6 +61,16 @@ This document outlines the coding standards and style guidelines for the biosigm
 1. **Argument Validation**: Every function must begin by checking the number of input and output arguments using `narginchk` and `nargoutchk`.
 2. **Input Parsing**: After argument count checks, use `inputParser` to handle and validate all inputs.
 3. **Consistent Implementation**: This structure must be used consistently in all functions.
+
+!!! note "Required Header Format"
+    The header comment must follow this specific structure:
+
+    - :material-function: Function name in uppercase followed by brief description
+    - :material-text-long: Main usage description with parameter explanations integrated in the text
+    - :material-plus-box: Additional usage forms (if applicable) in separate paragraphs
+    - :material-code-block-tags: Example section with complete, runnable code including plotting/visualization
+    - :material-link-variant: "See also" section with related functions
+    - :material-close-circle: **No separate "Inputs" and "Outputs" sections** - integrate descriptions in the main text
 
 ### Function Template
 
@@ -107,30 +117,20 @@ windowSize = parser.Results.windowSize;
 end
 ```
 
-### Header Comment Structure
-
-!!! note "Required Header Format"
-    The header comment must follow this specific structure:
-
-    - :material-function: Function name in uppercase followed by brief description
-    - :material-text-long: Main usage description with parameter explanations integrated in the text
-    - :material-plus-box: Additional usage forms (if applicable) in separate paragraphs
-    - :material-code-block-tags: Example section with complete, runnable code including plotting/visualization
-    - :material-link-variant: "See also" section with related functions
-    - :material-close-circle: **No separate "Inputs" and "Outputs" sections** - integrate descriptions in the main text
-
-### Implementation Rules
-
-- :material-order-numeric-ascending: The argument validation and parsing block must always appear immediately after the header comment, before any other code
-- :material-format-align-left: Use the same commenting and structure style as shown above and in the files in `src/`
-
-
 ## :material-test-tube: Test Structure
+
+Test files must define a test class using MATLAB's unittest framework.
+
+Follow these requirements for all test files:
+
+- :material-file-code: Filename must be `functionNameTest.m` located under `test/` with matching subfolder
+- :material-cog: Include a `methods (TestClassSetup)` block for shared setup (e.g., addpath)
+- :material-function-variant: Define one test method per scenario inside `methods (Test)`
+- :material-check-bold: Use `tc.verify*` assertions (`verifyEqual`, `verifyTrue`, `verifyWarning`, etc.)
+- :material-tag: Name test methods starting with `test` and use descriptive comments
 
 !!! success "Testing Requirements"
     Comprehensive testing ensures code reliability and maintainability.
-
-### Header Requirements
 
 Each test file must begin with a header comment summarizing the test scenarios covered:
 
@@ -141,75 +141,17 @@ Each test file must begin with a header comment summarizing the test scenarios c
 %   - Special values (NaN, Inf)
 ```
 
-### Test Class Structure
 
-Test files must define a test class using MATLAB's unittest framework:
-
-```matlab
-% processSignalTest.m - Test class for the processSignal function
-classdef processSignalTest < matlab.unittest.TestCase
-
-  methods (TestClassSetup)
-    function addCodeToPath(tc)
-      addpath('route/to/path');
-    end
-  end
-
-  methods (Test)
-    function testBasicFunctionality(tc)
-      % define expected output
-      expected = ...;
-
-      % Execute function under test
-      actual = processSignal();
-
-      % Verify result
-      tc.verifyEqual(actual, expected, 'Basic functionality failed');
-    end
-  end
-
-end
-```
-
-!!! info "Test File Standards"
-    Follow these requirements for all test files:
-
-    - :material-file-code: Filename must be `functionNameTest.m` located under `test/` with matching subfolder
-    - :material-cog: Include a `methods (TestClassSetup)` block for shared setup (e.g., addpath)
-    - :material-function-variant: Define one test method per scenario inside `methods (Test)`
-    - :material-check-bold: Use `tc.verify*` assertions (`verifyEqual`, `verifyTrue`, `verifyWarning`, etc.)
-    - :material-tag: Name test methods starting with `test` and use descriptive comments
 
 ## :material-school: Example Structure
 
-!!! example "Documentation Through Examples"
+- :material-file-document: Filename must be `functionNameExample.m` and be located under `examples/` with a matching subfolder to the function in `src/`
+- :material-comment-text: Add comments throughout to explain each step and the purpose of the code blocks
+- :material-play: The example should be runnable as-is and produce meaningful output or plots
+
+!!! success "Documentation Through Examples"
     Each example file must demonstrate function usage in a clear, reproducible, and self-contained way.
 
-### File Guidelines
-
-<div class="grid cards" markdown>
-
--   :material-file-document:{ .lg .middle } **File Naming**
-
-    ---
-
-    Filename must be `functionNameExample.m` and be located under `examples/` with a matching subfolder to the function in `src/`
-
--   :material-comment-text:{ .lg .middle } **Documentation**
-
-    ---
-
-    Add comments throughout to explain each step and the purpose of the code blocks
-
--   :material-play:{ .lg .middle } **Execution**
-
-    ---
-
-    The example should be runnable as-is and produce meaningful output or plots
-
-</div>
-
-### Header Format
 
 Begin with a header comment summarizing what the example demonstrates:
 

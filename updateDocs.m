@@ -425,7 +425,7 @@ end
 
 % Add source code link
 content = [content sprintf('## Source Code\n\n')];
-content = [content sprintf('[View source code](../../../src/%s/%s.m)\n\n', module, functionName)];
+content = [content sprintf('[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/%s/%s.m)\n\n', module, functionName)];
 
 % Add examples section
 content = [content sprintf('## Examples\n\n')];
@@ -446,7 +446,7 @@ if ~strcmp(module, 'tools')
     toolboxRoot = fileparts(fileparts(fileparts(moduleDocsDir))); % Go up 3 levels: api/module -> api -> docs -> root
     examplePath = fullfile(toolboxRoot, 'examples', module, [functionName 'Example.m']);
     if exist(examplePath, 'file')
-        content = [content sprintf('[View detailed example](../../../examples/%s/%sExample.m)\n\n', module, functionName)];
+        content = [content sprintf('[View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/%s/%sExample.m)\n\n', module, functionName)];
     end
 end
 
@@ -517,7 +517,7 @@ if ~strcmp(module, 'tools')
     if ~isempty(examplesList)
         for i = 1:length(examplesList)
             funcName = examplesList{i};
-            content = [content sprintf('- [`%sExample`](../../../examples/%s/%sExample.m)\n', funcName, module, funcName)];
+            content = [content sprintf('- [`%sExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/%s/%sExample.m)\n', funcName, module, funcName)];
         end
     else
         content = [content sprintf('*No examples available for this module*\n')];
@@ -681,7 +681,7 @@ for i = 1:length(moduleNames)
             % Check if example file exists
             examplePath = fullfile(toolboxRoot, 'examples', module, [func.name 'Example.m']);
             if exist(examplePath, 'file')
-                exampleLink = sprintf('[View code](../../examples/%s/%sExample.m)', module, func.name);
+                exampleLink = sprintf('[View code](https://github.com/BSICoS/biosigmat/tree/main/examples/%s/%sExample.m)', module, func.name);
             else
                 exampleLink = '-';
             end
@@ -1074,9 +1074,9 @@ end
 % Add source code link
 content = [content sprintf('## Source Code\n\n')];
 if strcmp(itemType, 'workflow')
-    content = [content sprintf('[View source code](../../examples/workflows/%s.m)\n\n', itemName)];
+    content = [content sprintf('[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/workflows/%s.m)\n\n', itemName)];
 else
-    content = [content sprintf('[View source code](../../examples/%s/%s.m)\n\n', module, itemName)];
+    content = [content sprintf('[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/%s/%s.m)\n\n', module, itemName)];
 end
 
 % Add see also section

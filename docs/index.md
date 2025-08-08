@@ -1,4 +1,10 @@
-Welcome to the documentation for the biosigmat toolbox - a MATLAB toolbox for biomedical signal processing and analysis.
+---
+title: Welcome to Biosigmat
+---
+
+# Biosigmat
+
+A MATLAB library for biomedical signal processing (ECG, PPG, and respiration) developed by [BSICoS](https://bsicos.i3a.es/es/).
 
 ## Quick Navigation
 

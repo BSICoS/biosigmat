@@ -1,25 +1,68 @@
 # Code Style Guide
 
+<div class="result" markdown>
+
+:material-code-tags:{ .lg .middle } **Coding standards and style guidelines**
+
+---
+
 This document outlines the coding standards and style guidelines for the biosigmat project.
 
-## Language
+!!! tip "MATLAB Best Practices"
+    Follow these MATLAB-specific conventions for optimal code quality:
 
-- All code comments must be written in English
-- All variable, function, and file names must be in English
-- Documentation must be written in English
+    - :material-arrow-down: Use column vectors consistently
+    - :material-shield-check: Include appropriate error checking for function inputs
+    - :material-alphabetical-variant: Use meaningful variable names instead of single letters when possible (except for common math notation)
+    - :material-group: Group related code blocks with comments
 
-## Naming Conventions
 
-- Use lowercase for short variable and function names (e.g., `signal`, `fs`, `pwelch`, `filtfilt`)
-- Use camelCase only for longer or compound names (e.g., `filteredSignal`, `inputParser`, `medfiltThreshold`)
-- Use descriptive names that clearly indicate the purpose of the variable or function
-- Follow MATLAB's built-in function naming style: short names in lowercase when possible
+</div>
 
-## Code Structure
+## :material-translate: Language Requirements
 
-- Every function must begin by checking the number of input and output arguments using `narginchk` and `nargoutchk`.
-- After argument count checks, use `inputParser` to handle and validate all inputs.
-- This structure must be used consistently in all functions. Example:
+- :material-comment-text: All code comments must be written in English
+- :material-function-variant: All variable, function, and file names must be in English  
+- :material-book-open: Documentation must be written in English
+
+<div class="grid cards" markdown>
+
+-   :material-format-text:{ .lg .middle } **Short Names**
+
+    ---
+
+    Use **lowercase** for short variable and function names
+
+    **Examples**: `signal`, `fs`, `pwelch`, `filtfilt`
+
+-   :material-format-letter-case:{ .lg .middle } **Compound Names**
+
+    ---
+
+    Use **camelCase** only for longer or compound names
+
+    **Examples**: `filteredSignal`, `inputParser`, `medfiltThreshold`
+
+</div>
+
+!!! tip "Naming Best Practices"
+  - :material-tag-text: Use descriptive names that clearly indicate the purpose of the variable or function
+  - :material-matlab: Follow MATLAB's built-in function naming style: short names in lowercase when possible
+
+
+
+## :material-code-braces: Code Structure
+
+!!! warning "Mandatory Structure"
+    Every function must follow this exact structure for consistency and reliability.
+
+### Required Elements
+
+1. **Argument Validation**: Every function must begin by checking the number of input and output arguments using `narginchk` and `nargoutchk`.
+2. **Input Parsing**: After argument count checks, use `inputParser` to handle and validate all inputs.
+3. **Consistent Implementation**: This structure must be used consistently in all functions.
+
+### Function Template
 
 ```matlab
 function outputSignal = processSignal(inputSignal, windowSize)
@@ -64,19 +107,32 @@ windowSize = parser.Results.windowSize;
 end
 ```
 
-- The header comment must follow a specific structure:
-  - Function name in uppercase followed by brief description
-  - Main usage description with parameter explanations integrated in the text
-  - Additional usage forms (if applicable) in separate paragraphs
-  - Example section with complete, runnable code including plotting/visualization
-  - "See also" section with related functions
-  - No separate "Inputs" and "Outputs" sections - integrate descriptions in the main text
-- The argument validation and parsing block must always appear immediately after the header comment, before any other code.
-- Use the same commenting and structure style as shown above and in the files in `src/`.
+### Header Comment Structure
 
-## Test Structure
+!!! note "Required Header Format"
+    The header comment must follow this specific structure:
 
-- Each test file must begin with a header comment summarizing the test scenarios covered. For example:
+    - :material-function: Function name in uppercase followed by brief description
+    - :material-text-long: Main usage description with parameter explanations integrated in the text
+    - :material-plus-box: Additional usage forms (if applicable) in separate paragraphs
+    - :material-code-block-tags: Example section with complete, runnable code including plotting/visualization
+    - :material-link-variant: "See also" section with related functions
+    - :material-close-circle: **No separate "Inputs" and "Outputs" sections** - integrate descriptions in the main text
+
+### Implementation Rules
+
+- :material-order-numeric-ascending: The argument validation and parsing block must always appear immediately after the header comment, before any other code
+- :material-format-align-left: Use the same commenting and structure style as shown above and in the files in `src/`
+
+
+## :material-test-tube: Test Structure
+
+!!! success "Testing Requirements"
+    Comprehensive testing ensures code reliability and maintainability.
+
+### Header Requirements
+
+Each test file must begin with a header comment summarizing the test scenarios covered:
 
 ```matlab
 % Tests covering:
@@ -84,6 +140,8 @@ end
 %   - Edge-case handling
 %   - Special values (NaN, Inf)
 ```
+
+### Test Class Structure
 
 Test files must define a test class using MATLAB's unittest framework:
 
@@ -113,23 +171,47 @@ classdef processSignalTest < matlab.unittest.TestCase
 end
 ```
 
-Key requirements for each test file:
+!!! info "Test File Standards"
+    Follow these requirements for all test files:
 
-- Filename must be `functionNameTest.m` located under `test/` with matching subfolder
-- Include a `methods (TestClassSetup)` block for shared setup (e.g., addpath)
-- Define one test method per scenario inside `methods (Test)`
-- Use `tc.verify*` assertions (`verifyEqual`, `verifyTrue`, `verifyWarning`, etc.)
-- Name test methods starting with `test` and use descriptive comments
+    - :material-file-code: Filename must be `functionNameTest.m` located under `test/` with matching subfolder
+    - :material-cog: Include a `methods (TestClassSetup)` block for shared setup (e.g., addpath)
+    - :material-function-variant: Define one test method per scenario inside `methods (Test)`
+    - :material-check-bold: Use `tc.verify*` assertions (`verifyEqual`, `verifyTrue`, `verifyWarning`, etc.)
+    - :material-tag: Name test methods starting with `test` and use descriptive comments
 
+## :material-school: Example Structure
 
-## Example Structure
+!!! example "Documentation Through Examples"
+    Each example file must demonstrate function usage in a clear, reproducible, and self-contained way.
 
-Each example file must demonstrate the usage of a function in a clear, reproducible, and self-contained way. Example files must follow these guidelines:
+### File Guidelines
 
-- Filename must be `functionNameExample.m` and be located under `examples/` with a matching subfolder to the function in `src/`.
-- Add comments throughout to explain each step and the purpose of the code blocks.
-- The example should be runnable as-is and produce meaningful output or plots.
-- Begin with a header comment summarizing what the example demonstrates with proper format. For example:
+<div class="grid cards" markdown>
+
+-   :material-file-document:{ .lg .middle } **File Naming**
+
+    ---
+
+    Filename must be `functionNameExample.m` and be located under `examples/` with a matching subfolder to the function in `src/`
+
+-   :material-comment-text:{ .lg .middle } **Documentation**
+
+    ---
+
+    Add comments throughout to explain each step and the purpose of the code blocks
+
+-   :material-play:{ .lg .middle } **Execution**
+
+    ---
+
+    The example should be runnable as-is and produce meaningful output or plots
+
+</div>
+
+### Header Format
+
+Begin with a header comment summarizing what the example demonstrates:
 
 ```matlab
 % BASELINEREMOVEEXAMPLE Example demonstrating baseline wander removal from ECG signals.
@@ -145,10 +227,3 @@ Each example file must demonstrate the usage of a function in a clear, reproduci
 
 % ...function implementation...
 ```
-
-## MATLAB-Specific Guidelines
-
-- Use column vectors consistently
-- Include appropriate error checking for function inputs
-- Use meaningful variable names instead of single letters when possible (except for common math notation)
-- Group related code blocks with comments

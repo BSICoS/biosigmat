@@ -67,10 +67,12 @@ Professional-grade tools for ECG, PPG, and respiration signal analysis developed
 
 ## :material-rocket-launch: Getting Started
 
-!!! tip "Quick Start"
-    New to Biosigmat? Start here to get up and running quickly.
+New to Biosigmat? Read the [Installation Guide](getting-started/installation.md) to get up and running quickly.
 
-    [:octicons-download-16: Installation Guide](getting-started/installation.md){ .md-button .md-button--primary }
+!!! example "Ready-to-Use Examples"
+    Explore practical examples to learn how to use Biosigmat effectively.
+
+    [:octicons-code-16: Browse Examples](examples/index.md){ .md-button }
 
 ## :material-api: API Reference
 
@@ -111,13 +113,6 @@ Professional-grade tools for ECG, PPG, and respiration signal analysis developed
 </div>
 
 [Complete API Documentation](api/index.md){ .md-button }
-
-## :material-code-braces: Examples & Tutorials
-
-!!! example "Ready-to-Use Examples"
-    Explore practical examples to learn how to use Biosigmat effectively.
-
-    [:octicons-code-16: Browse Examples](examples/index.md){ .md-button }
 
 ## :material-account-group: Contributing
 

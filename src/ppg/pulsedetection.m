@@ -1,8 +1,8 @@
 function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 % PULSEDETECTION Pulse detection in LPD-filtered PPG signals using adaptive thresholding.
 %
-%   ND = PULSEDETECTION(DPPG, FS) detects pulse peaks ND in PPG signals
-%   using an adaptive threshold algorithm. DPPG is the LPD-filtered PPG
+%   ND = PULSEDETECTION(DPPG, FS) detects pulse maximum upslopes ND in PPG derivative
+%   (DPPG) using an adaptive threshold algorithm. DPPG is the LPD-filtered PPG
 %   signal (column vector) and FS is the sampling rate in Hz.
 %
 %   The algorithm uses adaptive thresholding with refractory periods and
@@ -88,28 +88,17 @@ dppg = dppg(:);
 
 refractPeriod = round(refractPeriod*fs);
 
-% Segmentize the signals (this is JUST for FASTER COMPUTATION)
+% Segmentize the signals to avoid memory issues
+signalLength = length(dppg);
+segmentLength = 10000;
 
-signal_length = length(dppg);
-
-% Set the segment size to 100000 SPS and compute the amount of minutes in the signal
-segmentLength = 100000; % in SPS. If fs = 1000 Hz -> 1.5 mins
-%                                   If fs = 200 Hz -> 8.33 mins
-
-nSegmentsOriginal = floor(signal_length/segmentLength);
-
-% Add zeros if the signal does not contain a round number of minutes
-if nSegmentsOriginal > 1
-    newSignal = [dppg; NaN(segmentLength-(signal_length-nSegmentsOriginal*segmentLength), 1)];
-    % Get the new length and amount of segments
-    newSignalLength = length(newSignal);
-
-    nSegments = floor(newSignalLength/segmentLength);
-    segmentedSignal = (double(reshape(newSignal, segmentLength, nSegments)));
+if segmentLength < signalLength
+    segments = slicesignal(dppg, segmentLength, 0, 'Uselast', true);
 else
-    nSegments = 1;
-    segmentedSignal = dppg;
+    segments = dppg;
 end
+
+nSegments = size(segments, 2);
 
 nD = [];
 threshold = [];
@@ -123,26 +112,26 @@ for ii = 1:nSegments
     if nSegments > 1
         if ii == 1
             % End the segment 10 seconds later
-            segment = [segmentedSignal(:, 1); segmentedSignal(1:tAdd, 2)];
+            segment = [segments(:, 1); segments(1:tAdd, 2)];
         elseif ii == nSegments
             % Start the segment 10 seconds earlier
-            segment = [segmentedSignal(end-(tAdd)+1:end, end-1); segmentedSignal(:, end)];
+            segment = [segments(end-(tAdd)+1:end, end-1); segments(:, end)];
         else
             % Start the segment 10 seconds earlier and end 10 seconds later
-            segment = [segmentedSignal(end-(tAdd)+1:end, ii-1); segmentedSignal(:, ii); segmentedSignal(1:tAdd, ii+1)];
+            segment = [segments(end-(tAdd)+1:end, ii-1); segments(:, ii); segments(1:tAdd, ii+1)];
         end
     else
         % Take the whole segment
-        segment = segmentedSignal;
+        segment = segments;
     end
 
     time = (0:1:length(segment)-1)./fs;
 
-    %% Detect peaks in the LPD signal by adaptive thresholding
+    % Detect peaks in the LPD signal by adaptive thresholding
 
     [nD_segment, thresholdSegment] = adaptiveThresholding(segment(:), fs, alfa, refractPeriod, tauRR);
 
-    %% Remove added signal on both sides
+    % Remove added signal on both sides
     if nSegments > 1
         if ii == 1
             % Remove the last five seconds
@@ -168,7 +157,7 @@ for ii = 1:nSegments
 
 end
 
-%% Arrange Outputs
+% Arrange Outputs
 t = (0:1:length(dppg)-1)./fs;
 nD = (unique(nD)-1) ./ fs;
 threshold(length(t)+1:end) = [];

@@ -9,6 +9,7 @@
 
 function runTests(varargin)
 % Get project root directory and change to it (navigate up from scripts/local/ to project root)
+initialPath = pwd;
 projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 cd(projectRoot);
 
@@ -145,6 +146,8 @@ fprintf('Incomplete: %d\n', sum([results.Incomplete]));
 % Display total execution time
 totalTime = sum([results.Duration]);
 fprintf('\nTotal execution time: %.4f seconds\n', totalTime);
+
+cd(initialPath); % Change back to the initial directory
 
 % Exit with an error code if any test fails (important for the pre-push hook)
 if any([results.Failed])

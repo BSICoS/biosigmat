@@ -6,6 +6,10 @@ function runTestsCI()
 % This version generates JUnit XML reports and coverage data for GitHub Actions
 
 try
+    % Get project root directory and change to it (navigate up from scripts/ci/ to project root)
+    projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+    cd(projectRoot);
+
     % Add necessary paths
     addpath('test/common');
     addpath(genpath('src'));

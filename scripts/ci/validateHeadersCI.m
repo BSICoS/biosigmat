@@ -6,8 +6,8 @@ function validateHeadersCI()
 % This version generates reports and exits with appropriate error codes for GitHub Actions
 
 try
-    % Get toolbox root directory
-    toolboxRoot = fileparts(mfilename('fullpath'));
+    % Get toolbox root directory (navigate up from scripts/ci/ to project root)
+    toolboxRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
     srcDir = fullfile(toolboxRoot, 'src');
     examplesDir = fullfile(toolboxRoot, 'examples');
 

@@ -9,6 +9,10 @@
 
 function runExamplesTest()
 
+% Get project root directory and change to it (navigate up from scripts/local/ to project root)
+projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+cd(projectRoot);
+
 fprintf('Running examples test...\n');
 fprintf('========================\n\n');
 

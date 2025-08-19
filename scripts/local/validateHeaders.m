@@ -22,7 +22,7 @@ fprintf('🔍 Starting automatic header validation for biosigmat toolbox...\n');
 fprintf('📋 Validating against biosigmat coding guidelines...\n');
 
 % Get toolbox root directory
-toolboxRoot = fileparts(mfilename('fullpath'));
+toolboxRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 srcDir = fullfile(toolboxRoot, 'src');
 examplesDir = fullfile(toolboxRoot, 'examples');
 

@@ -17,8 +17,8 @@ function updateDocs()
 fprintf('🔄 Starting documentation update...\n');
 
 try
-    % Get toolbox root directory
-    toolboxRoot = fileparts(mfilename('fullpath'));
+    % Get toolbox root directory (navigate up from scripts/local/ to project root)
+    toolboxRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
     srcDir = fullfile(toolboxRoot, 'src');
     docsDir = fullfile(toolboxRoot, 'docs');
 

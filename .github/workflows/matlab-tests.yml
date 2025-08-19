@@ -50,7 +50,7 @@ jobs:
       with:
         command: |
           try
-            validateHeadersCI;
+            run('scripts/ci/validateHeadersCI.m');
             fprintf('All headers comply with biosigmat guidelines!\n');
           catch ME
             fprintf('::warning title=Header Validation::Header validation found issues: %s\n', ME.message);
@@ -62,7 +62,7 @@ jobs:
       with:
         command: |
           try
-            runTestsCI;
+            run('scripts/ci/runTestsCI.m');
             fprintf('All tests passed successfully!\n');
           catch ME
             fprintf('Test execution failed: %s\n', ME.message);

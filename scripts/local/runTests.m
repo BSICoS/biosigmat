@@ -8,6 +8,10 @@
 %   runTests('tools/nanfiltfilt') - Run specific test class
 
 function runTests(varargin)
+% Get project root directory and change to it (navigate up from scripts/local/ to project root)
+projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+cd(projectRoot);
+
 % Parse input arguments
 if nargin == 0
     % Run all tests

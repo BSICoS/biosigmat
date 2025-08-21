@@ -130,6 +130,44 @@ classdef slicesignalTest < matlab.unittest.TestCase
             tc.verifyEqual(length(tcenter), size(sliced, 2), 'Time vector length should match number of slices');
         end
 
+        function testMissingFsForTcenter(tc)
+            function testFunc()
+                [~, tcenter] = slicesignal(tc.x, 256, 128); %#ok<ASGLU>
+            end
+            tc.verifyError(@testFunc, ...
+                'slicesignal:missingFs', 'Should error when requesting tcenter without fs');
+        end
+
+        function testUselastParameter(tc)
+            xShort = randn(500, 1);
+
+            % Without uselast (default)
+            [sliced1, ~] = slicesignal(xShort, 256, 128, tc.fs);
+
+            % With uselast = true
+            [sliced2, ~] = slicesignal(xShort, 256, 128, tc.fs, true);
+
+            % Should have more slices with uselast
+            tc.verifyTrue(size(sliced2, 2) >= size(sliced1, 2), 'Uselast should produce more or equal slices');
+
+            % Last slice should contain NaNs when uselast is true
+            lastSlice = sliced2(:, end);
+            tc.verifyTrue(any(isnan(lastSlice)), 'Last slice should contain NaN padding when uselast is true');
+        end
+
+        function testUselastWithShortSignal(tc)
+            xVeryShort = randn(200, 1);
+
+            % Should error without uselast
+            tc.verifyError(@() slicesignal(xVeryShort, 256, 128, tc.fs), ...
+                'sliceSignal:signalTooShort', 'Should error with short signal when uselast is false');
+
+            % Should work with uselast = true
+            [sliced, ~] = slicesignal(xVeryShort, 256, 128, tc.fs, true);
+            tc.verifyEqual(size(sliced, 1), 256, 'Should return proper slice length');
+            tc.verifyTrue(any(isnan(sliced(:))), 'Should contain NaN padding');
+        end
+
     end
 
 end

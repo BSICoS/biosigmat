@@ -4,11 +4,6 @@
 %   - Basic functionality with numeric time vector
 %   - Basic functionality with datetime time vector
 %   - Auto-detection of time vector
-%   - UI element positioning and properties
-%   - Reset button functionality
-%   - Pan/Zoom out-of-range handling
-%   - Error handling with invalid inputs
-%   - Input argument parsing
 
 classdef sliderTest < matlab.unittest.TestCase
 

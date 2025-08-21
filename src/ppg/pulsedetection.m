@@ -99,148 +99,63 @@ else
 end
 
 nSegments = size(segments, 2);
-
 nD = [];
 threshold = [];
+tAdd = 5*fs;
 
 % Go through each segment
-for ii = 1:nSegments
+for iSegments = 1:nSegments
     % Make the segments tAdd seconds longer on each side
-
-    tAdd = 5*fs;
-
     if nSegments > 1
-        if ii == 1
-            % End the segment 10 seconds later
+        if iSegments == 1
+            % End the segment tAdd seconds later
             segment = [segments(:, 1); segments(1:tAdd, 2)];
-        elseif ii == nSegments
-            % Start the segment 10 seconds earlier
+        elseif iSegments == nSegments
+            % Start the segment tAdd seconds earlier
             segment = [segments(end-(tAdd)+1:end, end-1); segments(:, end)];
         else
-            % Start the segment 10 seconds earlier and end 10 seconds later
-            segment = [segments(end-(tAdd)+1:end, ii-1); segments(:, ii); segments(1:tAdd, ii+1)];
+            % Start the segment tAdd seconds earlier and end tAdd seconds later
+            segment = [segments(end-(tAdd)+1:end, iSegments-1); segments(:, iSegments); segments(1:tAdd, iSegments+1)];
         end
     else
         % Take the whole segment
         segment = segments;
     end
 
-    time = (0:1:length(segment)-1)./fs;
+    time = (0:length(segment)-1)/fs;
 
     % Detect peaks in the LPD signal by adaptive thresholding
 
-    [nD_segment, thresholdSegment] = adaptiveThresholding(segment(:), fs, alfa, refractPeriod, tauRR);
+    [nDSegment, thresholdSegment] = adaptiveThreshold(segment(:), fs, alfa, refractPeriod, tauRR);
 
     % Remove added signal on both sides
     if nSegments > 1
-        if ii == 1
-            % Remove the last five seconds
-            nD_segment = nD_segment(nD_segment <= segmentLength);
+        if iSegments == 1
+            % Remove the last tAdd seconds
+            nDSegment = nDSegment(nDSegment <= segmentLength);
             thresholdSegment = thresholdSegment(time*fs < segmentLength);
-        elseif ii == nSegments
-            % Remove the first five seconds
-            nD_segment = nD_segment(nD_segment > tAdd) - (tAdd);
+        elseif iSegments == nSegments
+            % Remove the first tAdd seconds
+            nDSegment = nDSegment(nDSegment > tAdd) - (tAdd);
             thresholdSegment = thresholdSegment(time*fs >= tAdd);
         else
-            % Remove the first and last five seconds
-            nD_segment = nD_segment(nD_segment >= tAdd) - tAdd;
-            nD_segment = nD_segment(nD_segment < segmentLength);
+            % Remove the first and last tAdd seconds
+            nDSegment = nDSegment(nDSegment >= tAdd) - tAdd;
+            nDSegment = nDSegment(nDSegment < segmentLength);
 
             thresholdSegment = thresholdSegment(time*fs >= tAdd);
             thresholdSegment = thresholdSegment(time*fs < segmentLength);
         end
     end
 
-    % Store the signals in a cell
-    nD = [nD; nD_segment(:) + segmentLength*(ii-1)];
+    % Store the signals
+    nD = [nD; nDSegment(:) + segmentLength*(iSegments-1)]; %#ok<*AGROW>
     threshold = [threshold; thresholdSegment(:)];
 
 end
 
-% Arrange Outputs
-t = (0:1:length(dppg)-1)./fs;
-nD = (unique(nD)-1) ./ fs;
-threshold(length(t)+1:end) = [];
-
-end
-
-
-function [nD, thres] = adaptiveThresholding(sig_filt, fs, alfa, refractPeriod, tauRR)
-
-nD = [];
-peaks_added = [];
-thres_ini_w_ini = find(~isnan(sig_filt), 1, 'first');
-thres_ini_w_end = thres_ini_w_ini + round(10*fs); thres_ini_w_end(thres_ini_w_end>=length(sig_filt)) = [];
-aux = sig_filt(thres_ini_w_ini:thres_ini_w_end);
-thres_ini = 3*mean(aux(aux>=0), 'omitnan');
-thres = nan(size(sig_filt));
-t = 1:length(sig_filt);
-RR = round(60/80*fs);
-
-if (1+RR)<length(sig_filt)
-    thres(1:1+RR) = thres_ini - (thres_ini*(1-alfa)/RR)*(t(1:RR+1)-1);
-    thres(1+RR:end) = alfa*thres_ini;
-else
-    thres(1:end) = thres_ini - (thres_ini*(1-alfa)/RR)*(t(1:end)-1);
-end
-
-kk = 1;
-while true
-    cross_u = kk-1 + find(sig_filt(kk:end)>thres(kk:end), 1, 'first'); %Next point to cross the actual threshold (down->up)
-    if isempty(cross_u)
-        % No more pulses -> end
-        break;
-    end
-
-    cross_d = cross_u-1 + find(sig_filt(cross_u:end)<thres(cross_u:end), 1, 'first'); %Next point to cross the actual threshold (up->down)
-    if isempty(cross_d)
-        % No more pulses -> end
-        break;
-    end
-
-    % Pulse detected:
-    [~, imax] = max(sig_filt(cross_u:cross_d));
-    p = cross_u-1+imax;
-
-    if length(nD) <= 4
-        [vmax] = max(sig_filt(cross_u:cross_d));
-    else
-        [vmax] = median([sig_filt(nD(end-3:end)); max(sig_filt(cross_u:cross_d))]);
-    end
-
-    nD = [nD, p];
-    Npeaks = length(nD);
-
-    % Update threshold
-    N_RR_estimation = 3;
-    N_ampli_est = 3;
-    if Npeaks >= N_RR_estimation+1
-        RR = round(median(diff(nD(end-N_RR_estimation:end))));
-    elseif Npeaks >= 2
-        RR = round(mean(diff(nD)));
-    end
-    kk = min(p+refractPeriod, length(sig_filt));
-    thres(p:kk) = vmax;
-
-    vfall = vmax*alfa;
-    if Npeaks >= (N_ampli_est+1)
-        ampli_est = median(sig_filt(nD(end-N_ampli_est:end-1)));
-        if vmax >= (2*ampli_est)
-            vfall = alfa*ampli_est;
-            vmax = ampli_est;
-        end
-    end
-
-    fall_end = round(tauRR*RR);
-    if (kk+fall_end) < length(sig_filt)
-        thres(kk:kk+fall_end) = vmax - (vmax-vfall)/fall_end*(t(kk:kk+fall_end)-kk);
-        thres(kk+fall_end:end) = vfall;
-    else
-        thres(kk:end) = vmax - (vmax-vfall)/fall_end*(t(kk:end)-kk);
-    end
-
-end
-
-nD = unique([nD peaks_added]);
+% Arrange Outputs (nD in seconds and NaNs removed from threshold)
+nD = (unique(nD)-1)/fs;
+threshold(signalLength+1:end) = [];
 
 end

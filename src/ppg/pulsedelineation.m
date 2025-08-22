@@ -11,11 +11,11 @@ function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Se
 %         fs            = sampling rate (Hz)
 %         Setup         = Structure with optional parameters:
 %           .nD         = Pre-computed pulse detection points [Default: []]
-%           .alfa       = Multiplies previous amplitude of detected maximum in
+%           .alphaAmp   = Multiplies previous amplitude of detected maximum in
 %                         filtered signal for updating the threshold [Default: 0.2]
 %           .refractPeriod = Refractory period for threshold (s) [Default: 150e-3]
 %           .tauRR      = Fraction of estimated RR where threshold reaches its
-%                         minimum value (alfa*amplitude of previous SSF peak)
+%                         minimum value (alphaAmp*amplitude of previous SSF peak)
 %                         [Default: 1]. If tauRR increases, steeper slope
 %           .wdw_nA     = Window width for searching pulse onset [Default: 250e-3]
 %           .wdw_nB     = Window width for searching pulse offset [Default: 150e-3]
@@ -37,7 +37,7 @@ function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Se
 %
 %   % Set up pulse delineation parameters
 %   Setup = struct();
-%   Setup.alfa = 0.2;                   % Threshold adaptation factor
+%   Setup.alphaAmp = 0.2;                   % Threshold adaptation factor
 %   Setup.refractPeriod = 150e-3;       % Refractory period (s)
 %   Setup.wdw_nA = 250e-3;              % Window for onset detection (s)
 %   Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
@@ -57,7 +57,7 @@ if ~isfield(Setup,'nD'),                        Setup.nD =	[];                  
 
 if ~isfield(Setup,'Lenvelope'),                 Setup.Lenvelope = 300;                end
 
-if ~isfield(Setup,'alfa'),                      Setup.alfa = 0.2;                               end
+if ~isfield(Setup,'alphaAmp'),                      Setup.alphaAmp = 0.2;                               end
 if ~isfield(Setup,'tauRR'),                     Setup.tauRR = 1;                                end
 if ~isfield(Setup,'refractPeriod'),             Setup.refractPeriod = 150e-03;                  end
 
@@ -82,11 +82,12 @@ signal = signal(:);
 %% Compute threshold and nD detection
 threshold = NaN(length(signal),1);
 if isempty (nD) %#ok
-    detectionSetup.alfa            = alfa;
-    detectionSetup.tauRR           = tauRR;
-    detectionSetup.refractPeriod   = refractPeriod;
+    detectionSetup.alphaAmp = alphaAmp;
+    detectionSetup.tauRR = tauRR;
+    detectionSetup.refractPeriod = refractPeriod;
 
-    [ nD , threshold ] = pulsedetection ( signal, fs, detectionSetup );
+    [ nD , threshold ] = pulsedetection(signal, fs, ...
+        'alphaAmp', detectionSetup.alphaAmp, 'refractPeriod', detectionSetup.refractPeriod, 'tauRR', detectionSetup.tauRR);
 end
 
 

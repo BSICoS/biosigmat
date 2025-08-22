@@ -37,7 +37,7 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
 
             % Set up pulse delineation parameters
             tc.Setup = struct();
-            tc.Setup.alfa = 0.2;                   % Threshold adaptation factor
+            tc.Setup.alphaAmp = 0.2;                   % Threshold adaptation factor
             tc.Setup.refractPeriod = 150e-3;       % Refractory period (s)
             tc.Setup.thrIncidences = 1.5;          % Threshold for incidences
             tc.Setup.wdw_nA = 250e-3;              % Window for onset detection (s)

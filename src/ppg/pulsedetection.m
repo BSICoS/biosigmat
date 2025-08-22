@@ -13,7 +13,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %
 %   ND = PULSEDETECTION(..., 'Name', Value) specifies additional parameters
 %   using name-value pairs:
-%     'alfa'          - Multiplier for previous amplitude of detected maximum
+%     'alphaAmp'      - Multiplier for previous amplitude of detected maximum
 %                       when updating the threshold (default: 0.2)
 %     'refractPeriod' - Refractory period for threshold in seconds
 %                       (default: 0.15)
@@ -39,7 +39,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %
 %     % Detect pulses with custom parameters
 %     [nD2, threshold2] = pulsedetection(signalFiltered, fs, ...
-%         'alfa', 0.3, 'refractPeriod', 0.2);
+%         'alphaAmp', 0.3, 'refractPeriod', 0.2);
 %
 %     % Visualize results
 %     t = (0:length(signalFiltered)-1) / fs;
@@ -72,7 +72,7 @@ parser = inputParser;
 parser.FunctionName = 'pulsedetection';
 addRequired(parser, 'dppg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'alfa', 0.2, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'alphaAmp', 0.2, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'refractPeriod', 150e-03, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'tauRR', 1, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
@@ -80,13 +80,11 @@ parse(parser, dppg, fs, varargin{:});
 
 dppg = parser.Results.dppg;
 fs = parser.Results.fs;
-alfa = parser.Results.alfa;
+alphaAmp = parser.Results.alphaAmp;
 refractPeriod = parser.Results.refractPeriod;
 tauRR = parser.Results.tauRR;
 
 dppg = dppg(:);
-
-refractPeriod = round(refractPeriod*fs);
 
 % Segmentize the signals to avoid memory issues
 signalLength = length(dppg);
@@ -115,7 +113,8 @@ for iSegments = 1:nSegments
             segment = [segments(end-(tAdd)+1:end, end-1); segments(:, end)];
         else
             % Start the segment tAdd seconds earlier and end tAdd seconds later
-            segment = [segments(end-(tAdd)+1:end, iSegments-1); segments(:, iSegments); segments(1:tAdd, iSegments+1)];
+            segment = [segments(end-(tAdd)+1:end, iSegments-1);...
+                segments(:, iSegments); segments(1:tAdd, iSegments+1)];
         end
     else
         % Take the whole segment
@@ -125,8 +124,8 @@ for iSegments = 1:nSegments
     time = (0:length(segment)-1)/fs;
 
     % Detect peaks in the LPD signal by adaptive thresholding
-
-    [nDSegment, thresholdSegment] = adaptiveThreshold(segment(:), fs, alfa, refractPeriod, tauRR);
+    [nDSegment, thresholdSegment] = adaptiveThreshold(segment(:), fs,...
+        'alphaAmp', alphaAmp, 'refractPeriod', refractPeriod, 'tauRR', tauRR);
 
     % Remove added signal on both sides
     if nSegments > 1

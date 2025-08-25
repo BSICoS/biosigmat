@@ -92,52 +92,88 @@ if isempty(nD)
     return;
 end
 
-% Remove NaN values from nD and convert to interpolated indices
+% Remove NaN values from nD
 nDClean = nD(~isnan(nD(:)));
-nDIndices = 1 + round(nDClean * fsi);
+if isempty(nDClean)
+    nA = NaN;
+    nB = NaN;
+    nM = NaN;
+    return;
+end
 
-% Create time vectors for interpolation
-t = 0:1/fs:(length(dppg)-1)/fs;
-tInterp = 0:1/fsi:((length(dppg)*(fsi/fs)-1)/fsi);
+% Create high-resolution interpolated signal for delineation
+t = (0:length(dppg)-1) / fs;
+tInterp = (0:((length(dppg)*fsi/fs)-1)) / fsi;
 signalInterp = interp1(t, dppg, tInterp, 'spline');
+
+% Convert nD to interpolated indices for window-based search
+nDIndices = 1 + round(nDClean * fsi);
 
 % Initialize output variables
 nA = NaN(length(nDClean), 1);
 nB = NaN(length(nDClean), 1);
 nM = NaN(length(nDClean), 1);
 
-% nA - Find maximum after nD within window
-mtx_nA = repmat(0:round(wdw_nA*fsi), length(nDIndices), 1) + nDIndices;
-mtx_nA(mtx_nA < 1) = 1;
-mtx_nA(mtx_nA > length(signalInterp)) = length(signalInterp);
-[~, i_nA] = max(signalInterp(mtx_nA), [], 2);
-i_nA = i_nA + nDIndices;
-i_nA(i_nA < 1 | i_nA > length(signalInterp)) = NaN;
-nA(~isnan(i_nA)) = tInterp(i_nA(~isnan(i_nA)));
+% nA - Find maximum after nD within window using vectorized approach
+windowSamplesA = round(wdw_nA * fsi);
+for ii = 1:length(nDIndices)
+    searchStart = nDIndices(ii);
+    searchEnd = min(length(signalInterp), nDIndices(ii) + windowSamplesA);
+    searchIndices = searchStart:searchEnd;
 
-% nB - Find minimum before nD within window
-mtx_nB = repmat(-round(wdw_nB*fsi):0, length(nDIndices), 1) + nDIndices;
-mtx_nB(mtx_nB < 1) = 1;
-mtx_nB(mtx_nB > length(signalInterp)) = length(signalInterp);
-[~, i_nB] = min(signalInterp(mtx_nB), [], 2);
-i_nB = i_nB + (nDIndices - round(wdw_nB*fsi));
-i_nB(i_nB < 1 | i_nB > length(signalInterp)) = NaN;
-nB(~isnan(i_nB)) = tInterp(i_nB(~isnan(i_nB)));
+    [~, localMaxIdx] = max(signalInterp(searchIndices));
+    refinedIdx = searchStart + localMaxIdx - 1;
+
+    if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
+        nA(ii) = tInterp(refinedIdx);
+    end
+end
+
+% nB - Find minimum before nD within window using vectorized approach
+windowSamplesB = round(wdw_nB * fsi);
+for ii = 1:length(nDIndices)
+    searchStart = max(1, nDIndices(ii) - windowSamplesB);
+    searchEnd = nDIndices(ii);
+    searchIndices = searchStart:searchEnd;
+
+    [~, localMinIdx] = min(signalInterp(searchIndices));
+    refinedIdx = searchStart + localMinIdx - 1;
+
+    if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
+        nB(ii) = tInterp(refinedIdx);
+    end
+end
 
 % nM - Find midpoint between nA and nB
-for ii = 1:length(nDIndices)
-    if isnan(i_nB(ii)) || isnan(i_nA(ii))
+for ii = 1:length(nDClean)
+    % Get corresponding interpolated indices for nA and nB
+    if isnan(nA(ii)) || isnan(nB(ii))
         continue;
     end
-    pulseAmplitude = (signalInterp(i_nB(ii)) + signalInterp(i_nA(ii))) / 2;
-    mtx_nM = i_nB(ii):i_nA(ii);
-    mtx_nM(mtx_nM < 1) = 1;
-    mtx_nM(mtx_nM > length(signalInterp)) = length(signalInterp);
-    [~, i_nM] = max(-abs(signalInterp(mtx_nM) - pulseAmplitude), [], 2);
-    i_nM = i_nM + i_nB(ii);
-    i_nM(i_nM < 1 | i_nM > length(signalInterp)) = NaN;
-    if ~isnan(i_nM) && ~isempty(i_nM)
-        nM(ii) = tInterp(i_nM);
+
+    idxA = round(nA(ii) * fsi) + 1;
+    idxB = round(nB(ii) * fsi) + 1;
+
+    % Ensure valid indices
+    idxA = max(1, min(length(signalInterp), idxA));
+    idxB = max(1, min(length(signalInterp), idxB));
+
+    if idxB >= idxA
+        continue; % Invalid order
+    end
+
+    % Calculate target amplitude (midpoint between nA and nB amplitudes)
+    targetAmplitude = (signalInterp(idxB) + signalInterp(idxA)) / 2;
+
+    % Search between nB and nA for point closest to target amplitude
+    searchIndices = idxB:idxA;
+    if ~isempty(searchIndices)
+        [~, closestIdx] = min(abs(signalInterp(searchIndices) - targetAmplitude));
+        refinedIdx = idxB + closestIdx - 1;
+
+        if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
+            nM(ii) = tInterp(refinedIdx);
+        end
     end
 end
 

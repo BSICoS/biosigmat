@@ -166,36 +166,15 @@ end
 % Remove duplicates and refine nD positions using interpolation for improved precision
 nD = unique(nD);
 if ~isempty(nD)
-    fsInterp = 2 * fs; % Higher sampling rate for interpolation
-    wdw_nD = round(0.030 * fsInterp); % 30ms window for refinement
+    % Convert indices back to time positions for refinement
+    nDTimePositions = (nD - 1) / fs;
 
-    % Create time vectors for interpolation
-    t = (0:length(dppg)-1) / fs;
-    tInterp = (0:((length(dppg)*fsInterp/fs)-1)) / fsInterp;
-    signalInterp = interp1(t, dppg, tInterp, 'spline');
+    % Refine positions using high-resolution interpolation
+    refinedPositions = refinePeakPositions(dppg, fs, nDTimePositions, ...
+        'InterpFactor', 2, 'WindowWidth', 0.030, 'SearchType', 'max');
 
-    % Convert nD to interpolated indices
-    nDInterpIndices = 1 + round((nD-1) * fsInterp / fs);
-    nDRefined = nan(size(nD));
-
-    % Refine each detection point
-    for ii = 1:length(nDInterpIndices)
-        searchStart = max(1, nDInterpIndices(ii) - wdw_nD);
-        searchEnd = min(length(signalInterp), nDInterpIndices(ii) + wdw_nD);
-        searchIndices = searchStart:searchEnd;
-
-        [~, localMaxIdx] = max(signalInterp(searchIndices));
-        refinedIdx = searchStart + localMaxIdx - 1;
-
-        if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
-            nDRefined(ii) = tInterp(refinedIdx);
-        else
-            nDRefined(ii) = (nD(ii) - 1) / fs; % Fallback to original
-        end
-    end
-
-    % Convert refined positions back to sample indices (at original fs)
-    nD = 1 + round(nDRefined * fs);
+    % Convert refined positions back to sample indices
+    nD = 1 + round(refinedPositions * fs);
 end
 
 % Arrange Outputs (nD in seconds and NaNs removed from threshold)

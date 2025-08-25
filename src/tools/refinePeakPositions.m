@@ -12,7 +12,6 @@ function refinedPositions = refinePeakPositions(signal, fs, candidatePositions, 
 %   additional parameters using name-value pairs:
 %     'FsInterp'        - Interpolation sampling frequency in Hz (default: 1000)
 %     'WindowWidth'     - Refinement window width in seconds (default: 0.030)
-%     'SearchType'      - Type of extremum to search: 'max' or 'min' (default: 'max')
 %
 %   Example:
 %     % Refine peak positions in a synthetic signal
@@ -42,7 +41,7 @@ function refinedPositions = refinePeakPositions(signal, fs, candidatePositions, 
 %   See also INTERP1, FINDPEAKS
 
 % Check number of input and output arguments
-narginchk(3, 9);
+narginchk(3, 7);
 nargoutchk(0, 1);
 
 % Parse and validate inputs
@@ -53,7 +52,6 @@ addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addRequired(parser, 'candidatePositions', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
 addParameter(parser, 'FsInterp', 1000, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'WindowWidth', 0.030, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'SearchType', 'max', @(x) ismember(lower(x), {'max', 'min'}));
 
 parse(parser, signal, fs, candidatePositions, varargin{:});
 
@@ -62,7 +60,6 @@ fs = parser.Results.fs;
 candidatePositions = parser.Results.candidatePositions;
 fsInterp = parser.Results.FsInterp;
 windowWidth = parser.Results.WindowWidth;
-searchType = parser.Results.SearchType;
 
 % Ensure signal is a column vector
 signal = signal(:);
@@ -83,23 +80,14 @@ end
 % Calculate interpolation parameters
 windowSamples = round(windowWidth * fsInterp);
 
-% Create time vectors for interpolation
+% Interpolate
 t = (0:length(signal)-1) / fs;
 tInterp = (0:((length(signal)*fsInterp/fs)-1)) / fsInterp;
-
-% Interpolate signal using spline interpolation
 signalInterp = interp1(t, signal, tInterp, 'spline');
 
 % Convert candidate positions to interpolated indices
 candidateIndices = 1 + round(candidatePositions * fsInterp);
 refinedPositions = nan(size(candidatePositions));
-
-% Choose the appropriate search function
-if strcmpi(searchType, 'max')
-    searchFunc = @max;
-else
-    searchFunc = @min;
-end
 
 % Refine each candidate position
 for ii = 1:length(candidateIndices)
@@ -109,7 +97,7 @@ for ii = 1:length(candidateIndices)
     searchIndices = searchStart:searchEnd;
 
     % Find local extremum within the window
-    [~, localExtremumIdx] = searchFunc(signalInterp(searchIndices));
+    [~, localExtremumIdx] = max(signalInterp(searchIndices));
     refinedIdx = searchStart + localExtremumIdx - 1;
 
     % Validate refined index and convert back to time

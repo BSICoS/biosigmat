@@ -1,7 +1,6 @@
 classdef refinePeakPositionsTest < matlab.unittest.TestCase
     % Tests covering:
     %   - Basic functionality with maximum search
-    %   - Minimum search capability
     %   - Empty input handling
     %   - Edge cases with interpolation parameters
 
@@ -28,28 +27,6 @@ classdef refinePeakPositionsTest < matlab.unittest.TestCase
             refinedPositions = refinePeakPositions(signal, fs, candidatePositions);
 
             % Verify basic properties
-            tc.verifyClass(refinedPositions, 'double', 'Refined positions should be double');
-            tc.verifySize(refinedPositions, size(candidatePositions), 'Size should match input');
-            tc.verifyTrue(all(~isnan(refinedPositions)), 'No NaN values expected for valid input');
-        end
-
-        function testMinimumSearch(tc)
-            % Test minimum search functionality
-            fs = 1000;
-            t = (0:1/fs:0.5-1/fs)';
-
-            % Create inverted signal for minimum testing
-            signal = -sin(2*pi*5*t);
-
-            % Find coarse minima (peaks in inverted signal)
-            [~, peaks] = findpeaks(-signal, 'MinPeakHeight', 0.5);
-            candidatePositions = (peaks - 1) / fs;
-
-            % Refine using minimum search
-            refinedPositions = refinePeakPositions(signal, fs, candidatePositions, ...
-                'SearchType', 'min');
-
-            % Verify results
             tc.verifyClass(refinedPositions, 'double', 'Refined positions should be double');
             tc.verifySize(refinedPositions, size(candidatePositions), 'Size should match input');
             tc.verifyTrue(all(~isnan(refinedPositions)), 'No NaN values expected for valid input');

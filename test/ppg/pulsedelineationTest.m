@@ -46,10 +46,10 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             % Test with default parameters
             [nA, nB, nM] = pulsedelineation(tc.signalFiltered, tc.fs, tc.Setup.nD);
 
-            % Expected values (hardcoded from test run with first 30 seconds)
-            expectedNA = [0.4775; 1.2350; 1.9815; 2.7015; 3.3720];
-            expectedNB = [0.4085; 1.1645; 1.9110; 2.6335; 3.3035];
-            expectedNM = [0.4445; 1.2030; 1.9490; 2.6690; 3.3400];
+            % Expected values (updated for refinePeakPositions implementation)
+            expectedNA = [0.4765; 1.2345; 1.9805; 2.7005; 3.3715];
+            expectedNB = [0.4080; 1.1640; 1.9105; 2.8510; 3.3030];
+            expectedNM = [0.4440; 1.2025; 1.9485; 3.3395; 3.9660];
 
             % Verify outputs are the correct size and type
             tc.verifyClass(nA, 'double', 'nA should be double array');

@@ -57,7 +57,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %     fprintf('Detected %d pulses\n', length(nD));
 %     fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 %
-%   See also LPDFILTER, PULSEDELINEATION, FINDPEAKS
+%   See also LPDFILTER, PULSEDELINEATION, REFINEPEAKPOSITIONS, FINDPEAKS
 %
 %   Status: Alpha
 
@@ -169,7 +169,7 @@ if ~isempty(nD)
 
     % Refine positions using high-resolution interpolation
     refinedPositions = refinePeakPositions(dppg, fs, nDTimePositions, ...
-        'FsInterp', fsInterp, 'WindowWidth', 0.030, 'SearchType', 'max');
+        'FsInterp', fsInterp, 'WindowWidth', 0.030);
 
     % Convert refined positions back to sample indices
     nD = 1 + round(refinedPositions * fs);

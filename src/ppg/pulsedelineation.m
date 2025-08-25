@@ -48,7 +48,7 @@ function [nA, nB, nM] = pulsedelineation(dppg, fs, nD, varargin)
 %     ylabel('Amplitude');
 %     title('PPG Pulse Delineation');
 %
-%   See also PULSEDETECTION, LPDFILTER
+%   See also PULSEDETECTION, LPDFILTER, REFINEPEAKPOSITIONS
 %
 %   Status: Alpha
 
@@ -106,45 +106,14 @@ t = (0:length(dppg)-1) / fs;
 tInterp = (0:((length(dppg)*fsInterp/fs)-1)) / fsInterp;
 signalInterp = interp1(t, dppg, tInterp, 'spline');
 
-% Convert nD to interpolated indices for window-based search
-nDIndices = 1 + round(nDClean * fsInterp);
+% nA - Find maximum after nD within window using refinePeakPositions
+nA = refinePeakPositions(dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', wdw_nA);
 
-% Initialize output variables
-nA = NaN(length(nDClean), 1);
-nB = NaN(length(nDClean), 1);
-nM = NaN(length(nDClean), 1);
-
-% nA - Find maximum after nD within window using vectorized approach
-windowSamplesA = round(wdw_nA * fsInterp);
-for ii = 1:length(nDIndices)
-    searchStart = nDIndices(ii);
-    searchEnd = min(length(signalInterp), nDIndices(ii) + windowSamplesA);
-    searchIndices = searchStart:searchEnd;
-
-    [~, localMaxIdx] = max(signalInterp(searchIndices));
-    refinedIdx = searchStart + localMaxIdx - 1;
-
-    if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
-        nA(ii) = tInterp(refinedIdx);
-    end
-end
-
-% nB - Find minimum before nD within window using vectorized approach
-windowSamplesB = round(wdw_nB * fsInterp);
-for ii = 1:length(nDIndices)
-    searchStart = max(1, nDIndices(ii) - windowSamplesB);
-    searchEnd = nDIndices(ii);
-    searchIndices = searchStart:searchEnd;
-
-    [~, localMinIdx] = min(signalInterp(searchIndices));
-    refinedIdx = searchStart + localMinIdx - 1;
-
-    if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
-        nB(ii) = tInterp(refinedIdx);
-    end
-end
+% nB - Find minimum before nD within window using refinePeakPositions with inverted signal
+nB = refinePeakPositions(-dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', wdw_nB);
 
 % nM - Find midpoint between nA and nB
+nM = NaN(length(nDClean), 1);
 for ii = 1:length(nDClean)
     % Get corresponding interpolated indices for nA and nB
     if isnan(nA(ii)) || isnan(nB(ii))

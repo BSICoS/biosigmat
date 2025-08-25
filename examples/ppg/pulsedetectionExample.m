@@ -58,6 +58,7 @@ plot(nD(~isnan(nD)), signal(1+round(nD(~isnan(nD))*fs)), 'o','LineWidth',1,'colo
 title('PPG Detection');
 xlabel('Time (s)');
 ylabel('Amplitude');
+grid on;
 
 ax(2) = subplot(2,1,2); hold on; box on;legend;
 plot(t, signalFiltered, 'k','LineWidth',1,'DisplayName','LPD-Filtered PPG');
@@ -65,7 +66,6 @@ plot(t, threshold ,'LineWidth',1,'DisplayName','Adaptive Threshold');
 plot(nD(~isnan(nD)), signalFiltered(1+round(nD(~isnan(nD))*fs)), 'o','LineWidth',1,'color',[0.47,0.67,0.19],'MarkerFaceColor',[0.47,0.67,0.19],'DisplayName','n_D' );
 xlabel('Time (s)');
 ylabel('Amplitude');
+grid on;
 
 linkaxes(ax, 'x');
-set(ax,'XminorGrid','on','YminorGrid','on','xminortick','on','yminortick','on');
-zoom on

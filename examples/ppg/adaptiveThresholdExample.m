@@ -1,1 +1,0 @@
-% TODO: Implement example usage of adaptiveThreshold function

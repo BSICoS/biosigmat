@@ -1,5 +1,7 @@
 % Tests covering:
-%   - Basic functionality with PPG signal from fixtures
+%   - Basic functionality with default adaptive algorithm
+%   - Algorithm parameter validation
+%   - Future: Multiple algorithm support
 
 classdef pulsedetectionTest < matlab.unittest.TestCase
     properties
@@ -68,5 +70,39 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
             tc.verifyEqual(actualND(1:5), expectedND, 'AbsTol', tolerance, ...
                 'First 5 nD values do not match expected values');
         end
+
+        function testAdaptiveMethodExplicit(tc)
+            % Test explicit specification of adaptive method
+            [nD1, threshold1] = pulsedetection(tc.signalFiltered, tc.fs);
+            [nD2, threshold2] = pulsedetection(tc.signalFiltered, tc.fs, 'Method', 'adaptive');
+
+            % Results should be identical
+            tc.verifyEqual(nD1, nD2, 'Results with implicit and explicit adaptive method should match');
+            tc.verifyEqual(threshold1, threshold2, 'Thresholds with implicit and explicit adaptive method should match');
+        end
+
+        function testAdaptiveParameters(tc)
+            % Test with custom adaptive parameters
+            [nD, threshold] = pulsedetection(tc.signalFiltered, tc.fs, ...
+                'AdaptiveAlphaAmp', 0.3, 'AdaptiveRefractPeriod', 0.2, 'AdaptiveTauRR', 1.5);
+
+            % Verify outputs are valid
+            tc.verifyClass(nD, 'double', 'nD should be double array');
+            tc.verifyClass(threshold, 'double', 'threshold should be double array');
+            tc.verifySize(threshold, size(tc.signalFiltered), 'Threshold size mismatch');
+
+            % Should detect some pulses
+            numDetectedPulses = sum(~isnan(nD));
+            tc.verifyGreaterThan(numDetectedPulses, 0, 'Should detect at least one pulse');
+        end
+
+        function testInvalidMethod(tc)
+            % Test error handling for invalid method
+            tc.verifyError(@() pulsedetection(tc.signalFiltered, tc.fs, 'Method', 'invalid'), ...
+                'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Should error with invalid method');
+        end
+
+        % TODO: Add tests for future algorithms
     end
 end

@@ -1,28 +1,29 @@
 function [nD, threshold] = pulsedetection(dppg, fs, varargin)
-% PULSEDETECTION Pulse detection in LPD-filtered PPG signals using adaptive thresholding.
+% PULSEDETECTION Pulse detection in LPD-filtered PPG signals using configurable algorithms.
 %
 %   ND = PULSEDETECTION(DPPG, FS) detects pulse maximum upslopes ND in PPG derivative
-%   (DPPG) using an adaptive threshold algorithm. DPPG is the LPD-filtered PPG
+%   (DPPG) using the default adaptive threshold algorithm. DPPG is the LPD-filtered PPG
 %   signal (column vector) and FS is the sampling rate in Hz.
 %
-%   The algorithm uses adaptive thresholding with refractory periods and
-%   beat pattern analysis to handle irregular rhythms. It processes long
-%   signals in segments for computational efficiency and includes correction
-%   mechanisms for missed or false detections based on pulse-to-pulse
-%   interval regularity.
+%   The function supports multiple detection algorithms and processes long
+%   signals in segments for computational efficiency. Each algorithm includes
+%   specialized mechanisms for missed or false detection correction.
 %
 %   ND = PULSEDETECTION(..., 'Name', Value) specifies additional parameters
 %   using name-value pairs:
-%     'alphaAmp'      - Multiplier for previous amplitude of detected maximum
-%                       when updating the threshold (default: 0.2)
-%     'refractPeriod' - Refractory period for threshold in seconds
-%                       (default: 0.15)
-%     'tauRR'         - Fraction of estimated RR interval where threshold reaches
-%                       its minimum value (default: 1.0). Larger values create
-%                       steeper threshold slopes
+%     'Method'        - Detection algorithm: 'adaptive' (default)
+%
+%   Adaptive algorithm parameters:
+%     'AdaptiveAlphaAmp'      - Multiplier for previous amplitude of detected maximum
+%                               when updating the threshold (default: 0.2)
+%     'AdaptiveRefractPeriod' - Refractory period for threshold in seconds
+%                               (default: 0.15)
+%     'AdaptiveTauRR'         - Fraction of estimated RR interval where threshold reaches
+%                               its minimum value (default: 1.0). Larger values create
+%                               steeper threshold slopes
 %
 %   [ND, THRESHOLD] = PULSEDETECTION(...) also returns the computed
-%   time-varying THRESHOLD.
+%   time-varying THRESHOLD for the selected algorithm.
 %
 %   Example:
 %     % Load PPG signal and apply LPD filtering
@@ -34,12 +35,12 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %     signalFiltered = filter(b, 1, ppg);
 %     signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 %
-%     % Detect pulses with default parameters
+%     % Detect pulses with default adaptive algorithm
 %     [nD, threshold] = pulsedetection(signalFiltered, fs);
 %
-%     % Detect pulses with custom parameters
+%     % Detect pulses with custom adaptive parameters
 %     [nD2, threshold2] = pulsedetection(signalFiltered, fs, ...
-%         'alphaAmp', 0.3, 'refractPeriod', 0.2);
+%         'Method', 'adaptive', 'AdaptiveAlphaAmp', 0.3, 'AdaptiveRefractPeriod', 0.2);
 %
 %     % Visualize results
 %     t = (0:length(signalFiltered)-1) / fs;
@@ -50,7 +51,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %     plot(nD, signalFiltered(round(nD*fs)+1), 'go', 'MarkerSize', 8);
 %     xlabel('Time (s)');
 %     ylabel('Amplitude');
-%     title('PPG Pulse Detection with Adaptive Threshold');
+%     title('PPG Pulse Detection');
 %     legend('Filtered PPG', 'Threshold', 'Detected Pulses');
 %
 %     % Calculate heart rate
@@ -64,7 +65,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 
 
 % Check number of input and output arguments
-narginchk(2, 10);
+narginchk(2, 16);
 nargoutchk(0, 2);
 
 % Parse and validate inputs
@@ -72,17 +73,27 @@ parser = inputParser;
 parser.FunctionName = 'pulsedetection';
 addRequired(parser, 'dppg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'alphaAmp', 0.2, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'refractPeriod', 150e-03, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'tauRR', 1, @(x) isnumeric(x) && isscalar(x) && x > 0);
+
+% Method selection
+addParameter(parser, 'Method', 'adaptive', @(x) ismember(lower(x), {'adaptive'}));
+
+% TODO: Add future methods
+
+% Adaptive algorithm parameters
+addParameter(parser, 'AdaptiveAlphaAmp', 0.2, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'AdaptiveRefractPeriod', 150e-03, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'AdaptiveTauRR', 1, @(x) isnumeric(x) && isscalar(x) && x > 0);
+
+% TODO: Future algorithm parameters
 
 parse(parser, dppg, fs, varargin{:});
 
 dppg = parser.Results.dppg;
 fs = parser.Results.fs;
-alphaAmp = parser.Results.alphaAmp;
-refractPeriod = parser.Results.refractPeriod;
-tauRR = parser.Results.tauRR;
+method = lower(parser.Results.Method);
+
+% Extract algorithm-specific parameters
+algorithmParams = extractAlgorithmParams(parser.Results, method);
 
 dppg = dppg(:);
 
@@ -123,9 +134,8 @@ for iSegments = 1:nSegments
 
     time = (0:length(segment)-1)/fs;
 
-    % Detect peaks in the LPD signal by adaptive thresholding
-    [nDSegment, thresholdSegment] = adaptiveThreshold(segment(:), fs,...
-        'alphaAmp', alphaAmp, 'refractPeriod', refractPeriod, 'tauRR', tauRR);
+    % Detect peaks in the LPD signal using the selected algorithm
+    [nDSegment, thresholdSegment] = detectionAlgorithm(segment(:), fs, method, algorithmParams);
 
     % Remove added signal on both sides
     if nSegments > 1
@@ -157,4 +167,40 @@ end
 nD = (unique(nD)-1)/fs;
 threshold(signalLength+1:end) = [];
 
+end
+
+function params = extractAlgorithmParams(allParams, method)
+% EXTRACTALGORITHMPARAMS Extract algorithm-specific parameters from parsed inputs.
+%
+%   PARAMS = EXTRACTALGORITHMPARAMS(ALLPARAMS, METHOD) filters the parsed
+%   parameters to include only those relevant to the specified detection method.
+
+switch method
+    case 'adaptive'
+        params.alphaAmp = allParams.AdaptiveAlphaAmp;
+        params.refractPeriod = allParams.AdaptiveRefractPeriod;
+        params.tauRR = allParams.AdaptiveTauRR;
+
+        % TODO: Add cases for future algorithms
+
+    otherwise
+        error('pulsedetection:unknownMethod', 'Unknown detection method: %s', method);
+end
+end
+
+function [nD, threshold] = detectionAlgorithm(signal, fs, method, params)
+% DETECTPULSESALGORITHM Dispatch function for pulse detection algorithms.
+%
+%   [ND, THRESHOLD] = DETECTPULSESALGORITHM(SIGNAL, FS, METHOD, PARAMS)
+%   calls the appropriate algorithm implementation based on the specified method.
+
+switch method
+    case 'adaptive'
+        [nD, threshold] = adaptiveThreshold(signal, fs, params);
+
+        % TODO: Add cases for future algorithms
+
+    otherwise
+        error('pulsedetection:unknownMethod', 'Unknown detection method: %s', method);
+end
 end

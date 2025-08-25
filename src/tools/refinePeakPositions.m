@@ -10,7 +10,7 @@ function refinedPositions = refinePeakPositions(signal, fs, candidatePositions, 
 %
 %   REFINEDPOSITIONS = REFINEPEAKPOSITIONS(..., 'Name', Value) specifies
 %   additional parameters using name-value pairs:
-%     'InterpFactor'    - Interpolation factor (default: 2)
+%     'FsInterp'        - Interpolation sampling frequency in Hz (default: 1000)
 %     'WindowWidth'     - Refinement window width in seconds (default: 0.030)
 %     'SearchType'      - Type of extremum to search: 'max' or 'min' (default: 'max')
 %
@@ -26,6 +26,10 @@ function refinedPositions = refinePeakPositions(signal, fs, candidatePositions, 
 %
 %     % Refine positions using interpolation
 %     refinedPositions = refinePeakPositions(signal, fs, candidatePositions);
+%
+%     % Refine with custom interpolation frequency
+%     refinedPositions2 = refinePeakPositions(signal, fs, candidatePositions, ...
+%         'FsInterp', 2000, 'WindowWidth', 0.050);
 %
 %     % Plot results
 %     figure;
@@ -47,7 +51,7 @@ parser.FunctionName = 'refinePeakPositions';
 addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addRequired(parser, 'candidatePositions', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
-addParameter(parser, 'InterpFactor', 2, @(x) isnumeric(x) && isscalar(x) && x >= 1);
+addParameter(parser, 'FsInterp', 1000, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'WindowWidth', 0.030, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'SearchType', 'max', @(x) ismember(lower(x), {'max', 'min'}));
 
@@ -56,7 +60,7 @@ parse(parser, signal, fs, candidatePositions, varargin{:});
 signal = parser.Results.signal;
 fs = parser.Results.fs;
 candidatePositions = parser.Results.candidatePositions;
-interpFactor = parser.Results.InterpFactor;
+fsInterp = parser.Results.FsInterp;
 windowWidth = parser.Results.WindowWidth;
 searchType = parser.Results.SearchType;
 
@@ -77,12 +81,11 @@ if isempty(candidatePositions)
 end
 
 % Calculate interpolation parameters
-fsInterp = interpFactor * fs;
 windowSamples = round(windowWidth * fsInterp);
 
 % Create time vectors for interpolation
 t = (0:length(signal)-1) / fs;
-tInterp = (0:((length(signal)*interpFactor)-1)) / fsInterp;
+tInterp = (0:((length(signal)*fsInterp/fs)-1)) / fsInterp;
 
 % Interpolate signal using spline interpolation
 signalInterp = interp1(t, signal, tInterp, 'spline');

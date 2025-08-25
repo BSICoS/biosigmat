@@ -15,7 +15,7 @@ function [nA, nB, nM] = pulsedelineation(dppg, fs, nD, varargin)
 %                  (default: 250e-3)
 %     'WindowB'  - Window width for searching pulse offset in seconds
 %                  (default: 150e-3)
-%     'InterpFS' - Sampling frequency for interpolation in Hz
+%     'FsInterp' - Sampling frequency for interpolation in Hz
 %                  (default: 2*FS)
 %
 %   Example:
@@ -64,7 +64,7 @@ addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addRequired(parser, 'nD', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
 addParameter(parser, 'WindowA', 250e-3, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'WindowB', 150e-3, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'InterpFS', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
+addParameter(parser, 'FsInterp', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
 
 parse(parser, dppg, fs, nD, varargin{:});
 
@@ -73,11 +73,11 @@ fs = parser.Results.fs;
 nD = parser.Results.nD;
 wdw_nA = parser.Results.WindowA;
 wdw_nB = parser.Results.WindowB;
-fsi = parser.Results.InterpFS;
+fsInterp = parser.Results.FsInterp;
 
 % Set default interpolation frequency if not provided
-if isempty(fsi)
-    fsi = 2 * fs;
+if isempty(fsInterp)
+    fsInterp = 2 * fs;
 end
 
 
@@ -103,11 +103,11 @@ end
 
 % Create high-resolution interpolated signal for delineation
 t = (0:length(dppg)-1) / fs;
-tInterp = (0:((length(dppg)*fsi/fs)-1)) / fsi;
+tInterp = (0:((length(dppg)*fsInterp/fs)-1)) / fsInterp;
 signalInterp = interp1(t, dppg, tInterp, 'spline');
 
 % Convert nD to interpolated indices for window-based search
-nDIndices = 1 + round(nDClean * fsi);
+nDIndices = 1 + round(nDClean * fsInterp);
 
 % Initialize output variables
 nA = NaN(length(nDClean), 1);
@@ -115,7 +115,7 @@ nB = NaN(length(nDClean), 1);
 nM = NaN(length(nDClean), 1);
 
 % nA - Find maximum after nD within window using vectorized approach
-windowSamplesA = round(wdw_nA * fsi);
+windowSamplesA = round(wdw_nA * fsInterp);
 for ii = 1:length(nDIndices)
     searchStart = nDIndices(ii);
     searchEnd = min(length(signalInterp), nDIndices(ii) + windowSamplesA);
@@ -130,7 +130,7 @@ for ii = 1:length(nDIndices)
 end
 
 % nB - Find minimum before nD within window using vectorized approach
-windowSamplesB = round(wdw_nB * fsi);
+windowSamplesB = round(wdw_nB * fsInterp);
 for ii = 1:length(nDIndices)
     searchStart = max(1, nDIndices(ii) - windowSamplesB);
     searchEnd = nDIndices(ii);
@@ -151,8 +151,8 @@ for ii = 1:length(nDClean)
         continue;
     end
 
-    idxA = round(nA(ii) * fsi) + 1;
-    idxB = round(nB(ii) * fsi) + 1;
+    idxA = round(nA(ii) * fsInterp) + 1;
+    idxB = round(nB(ii) * fsInterp) + 1;
 
     % Ensure valid indices
     idxA = max(1, min(length(signalInterp), idxA));

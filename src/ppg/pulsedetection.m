@@ -12,6 +12,8 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %   ND = PULSEDETECTION(..., 'Name', Value) specifies additional parameters
 %   using name-value pairs:
 %     'Method'        - Detection algorithm: 'adaptive' (default)
+%     'FsInterp'      - Interpolation sampling frequency for peak refinement in Hz
+%                       (default: 2000)
 %
 %   Adaptive algorithm parameters:
 %     'AdaptiveAlphaAmp'      - Multiplier for previous amplitude of detected maximum
@@ -38,10 +40,6 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %     % Detect pulses with default adaptive algorithm
 %     [nD, threshold] = pulsedetection(signalFiltered, fs);
 %
-%     % Detect pulses with custom adaptive parameters
-%     [nD2, threshold2] = pulsedetection(signalFiltered, fs, ...
-%         'Method', 'adaptive', 'AdaptiveAlphaAmp', 0.3, 'AdaptiveRefractPeriod', 0.2);
-%
 %     % Visualize results
 %     t = (0:length(signalFiltered)-1) / fs;
 %     figure;
@@ -65,7 +63,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 
 
 % Check number of input and output arguments
-narginchk(2, 16);
+narginchk(2, 18);
 nargoutchk(0, 2);
 
 % Parse and validate inputs
@@ -73,9 +71,8 @@ parser = inputParser;
 parser.FunctionName = 'pulsedetection';
 addRequired(parser, 'dppg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-
-% Method selection
 addParameter(parser, 'Method', 'adaptive', @(x) ismember(lower(x), {'adaptive'}));
+addParameter(parser, 'FsInterp', 2000, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
 % TODO: Add future methods
 
@@ -91,6 +88,7 @@ parse(parser, dppg, fs, varargin{:});
 dppg = parser.Results.dppg;
 fs = parser.Results.fs;
 method = lower(parser.Results.Method);
+fsInterp = parser.Results.FsInterp;
 
 % Extract algorithm-specific parameters
 algorithmParams = extractAlgorithmParams(parser.Results, method);
@@ -171,7 +169,7 @@ if ~isempty(nD)
 
     % Refine positions using high-resolution interpolation
     refinedPositions = refinePeakPositions(dppg, fs, nDTimePositions, ...
-        'InterpFactor', 2, 'WindowWidth', 0.030, 'SearchType', 'max');
+        'FsInterp', fsInterp, 'WindowWidth', 0.030, 'SearchType', 'max');
 
     % Convert refined positions back to sample indices
     nD = 1 + round(refinedPositions * fs);

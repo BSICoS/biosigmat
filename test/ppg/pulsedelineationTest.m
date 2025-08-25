@@ -79,7 +79,7 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             customInterpFS = 3 * tc.fs;
 
             [nA, nB, nM] = pulsedelineation(tc.signalFiltered, tc.fs, tc.Setup.nD, ...
-                'WindowA', customWindowA, 'WindowB', customWindowB, 'InterpFS', customInterpFS);
+                'WindowA', customWindowA, 'WindowB', customWindowB, 'FsInterp', customInterpFS);
 
             % Verify outputs are valid
             tc.verifyClass(nA, 'double', 'nA should be double array');

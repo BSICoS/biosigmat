@@ -85,9 +85,9 @@ classdef refinePeakPositionsTest < matlab.unittest.TestCase
             signal = sin(2*pi*5*(0:1/fs:1-1/fs))';
             candidatePositions = [0.2; 0.4; 0.6];
 
-            % Test with custom interpolation factor and window width
+            % Test with custom interpolation frequency and window width
             refinedPositions = refinePeakPositions(signal, fs, candidatePositions, ...
-                'InterpFactor', 4, 'WindowWidth', 0.050);
+                'FsInterp', 4000, 'WindowWidth', 0.050);
 
             % Verify basic properties
             tc.verifyClass(refinedPositions, 'double', 'Refined positions should be double');

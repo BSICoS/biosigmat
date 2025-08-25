@@ -1,33 +1,23 @@
-function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
+function [ nA , nB , nM ] = pulsedelineation ( signal , fs , Setup )
 % PULSEDELINEATION Plethysmography signals delineation using adaptive thresholding.
-% [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
+% [ nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
 %
 % This function performs pulse delineation in PPG signals, detecting pulse
-% features (nA, nB, nM) based on pulse detection points (nD). If nD points
-% are not provided, they are computed using the pulsedetection function.
+% features (nA, nB, nM) based on pulse detection points (nD).
 %
 %   In:
 %         signal        = Filtered LPD-filtered PPG signal
 %         fs            = sampling rate (Hz)
 %         Setup         = Structure with optional parameters:
 %           .nD         = Pre-computed pulse detection points [Default: []]
-%           .alphaAmp   = Multiplies previous amplitude of detected maximum in
-%                         filtered signal for updating the threshold [Default: 0.2]
-%           .refractPeriod = Refractory period for threshold (s) [Default: 150e-3]
-%           .tauRR      = Fraction of estimated RR where threshold reaches its
-%                         minimum value (alphaAmp*amplitude of previous SSF peak)
-%                         [Default: 1]. If tauRR increases, steeper slope
 %           .wdw_nA     = Window width for searching pulse onset [Default: 250e-3]
 %           .wdw_nB     = Window width for searching pulse offset [Default: 150e-3]
 %           .fsi        = Sampling frequency for interpolation [Default: 2*fs]
-%           .computePeakDelineation = Enable peak delineation [Default: true]
 %
 %   Out:
-%         nD            = Location of peaks detected in filtered signal (seconds)
 %         nA            = Location of pulse onsets (seconds)
 %         nB            = Location of pulse offsets (seconds)
 %         nM            = Location of pulse midpoints (seconds)
-%         threshold     = Computed time varying threshold
 %
 % EXAMPLE:
 %   % LPD-filter PPG signal
@@ -35,15 +25,14 @@ function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Se
 %   signalFiltered = filter(b, 1, signal);
 %   signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 %
-%   % Set up pulse delineation parameters
-%   Setup = struct();
-%   Setup.alphaAmp = 0.2;                   % Threshold adaptation factor
-%   Setup.refractPeriod = 150e-3;       % Refractory period (s)
-%   Setup.wdw_nA = 250e-3;              % Window for onset detection (s)
-%   Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
+%   % Compute pulse detection points
+%   nD = pulsedetection(signalFiltered, fs, Setup);
+%
+%   % Create setup
+%   Setup.nD = nD;
 %
 %   % Run pulse delineation on filtered signal
-%   [nD, nA, nB, nM, threshold] = pulsedelineation(signalFiltered, fs, Setup);
+%   [nA, nB, nM] = pulsedelineation(signalFiltered, fs, Setup);
 %
 %   Status: Alpha
 
@@ -55,20 +44,9 @@ if nargin <  2,   error('Not enough input arguments.');   end
 % Default Values
 if ~isfield(Setup,'nD'),                        Setup.nD =	[];                                 end
 
-if ~isfield(Setup,'Lenvelope'),                 Setup.Lenvelope = 300;                end
-
-if ~isfield(Setup,'alphaAmp'),                      Setup.alphaAmp = 0.2;                               end
-if ~isfield(Setup,'tauRR'),                     Setup.tauRR = 1;                                end
-if ~isfield(Setup,'refractPeriod'),             Setup.refractPeriod = 150e-03;                  end
-
 if ~isfield(Setup,'wdw_nA'),                    Setup.wdw_nA = 250e-3;                          end
 if ~isfield(Setup,'wdw_nB'),                    Setup.wdw_nB = 150e-3;                          end
 if ~isfield(Setup,'fsi'),                       Setup.fsi = 2*fs;                                 end
-
-if ~isfield(Setup,'computeAdaptiveThreshold'),  Setup.computeAdaptiveThreshold = true;          end
-if ~isfield(Setup,'computeEnvelopesThreshold'), Setup.computeEnvelopesThreshold = false;       end
-if ~isfield(Setup,'computePeakDelineation'),	Setup.computePeakDelineation	=	true;       end
-
 
 % Get, assign and store the variable names
 data_names = fieldnames(Setup);
@@ -79,35 +57,20 @@ clear Setup data_names ii
 signal = signal(:);
 
 
-%% Compute threshold and nD detection
-threshold = NaN(length(signal),1);
-if isempty (nD) %#ok
-    detectionSetup.alphaAmp = alphaAmp;
-    detectionSetup.tauRR = tauRR;
-    detectionSetup.refractPeriod = refractPeriod;
+% Compute delineation
+peakSetup.wdw_nB        =   wdw_nB;
+peakSetup.wdw_nA        =   wdw_nA;
+peakSetup.fsi           =   fsi;
 
-    [ nD , threshold ] = pulsedetection(signal, fs, ...
-        'alphaAmp', detectionSetup.alphaAmp, 'refractPeriod', detectionSetup.refractPeriod, 'tauRR', detectionSetup.tauRR);
-end
+[ nA , nB , nM ] = delineationAlgorithm ( signal , fs , nD , peakSetup ) ;
 
-
-%% Compute delineation
-nA = []; nB = []; nM = [];
-if computePeakDelineation
-    peakSetup.wdw_nB        =   wdw_nB;
-    peakSetup.wdw_nA        =   wdw_nA;
-    peakSetup.fsi           =   fsi;
-    peakSetup.diffSignal    =   signal;
-
-    [ nA , nB , nM ] = fastPeakDelineation ( signal , fs , nD , peakSetup ) ;
-end
 
 
 end
 
-function varargout = fastPeakDelineation ( signal , fs , nD , Setup )
+function varargout = delineationAlgorithm ( signal , fs , nD , Setup )
 %
-% Peak delineation for plethysmography signals, given nD_in (=nD) as anchor point
+% Delineation for plethysmography signals, given nD_in (=nD) as anchor point
 %
 % Inputs
 %         signal           signal
@@ -116,18 +79,13 @@ function varargout = fastPeakDelineation ( signal , fs , nD , Setup )
 %         wdw_nB        window width for searching the minimum before nD [seconds] (default = 150e-03)
 %         wdw_nA        window width for searching the maximum after  nD [seconds] (default = 200e-03)
 %         fsi           sampling frequency for interpolation. Fine search of the peaks [Hertz]
-%         diffPPG     derivative of the PPG signal for searching nD
 %
 %
 % Outputs all (detected at fsi) [seconds]
 %         nA            Maximum of the PPG pulse
 %         nB            Minimum of the PPG pulse
 %         nM            Medium  of the PPG pulse
-%         nD            Maximum of the first derivative of the PPG
 %
-%
-% Created               by Jes�s L�zaro  <jlazarop@unizar.es> in 2014
-% Fixed and Optimized   by Pablo Arma�ac <parmanac@unizar.es> in 2019
 %
 % Esto se tiene que optimizar.
 %       1) findpeaks.

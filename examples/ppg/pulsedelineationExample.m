@@ -45,25 +45,26 @@ fprintf('  Filter order: %d samples\n', orderLPD);
 signalFiltered = filter(b, 1, signal);
 signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
+% Pulse detection
+nD = pulsedetection(signalFiltered, fs);
+
 % Set up pulse delineation parameters
 Setup = struct();
 
-% Adaptive threshold parameters
-Setup.alfa = 0.2;                   % Threshold adaptation factor
-Setup.refractPeriod = 150e-3;       % Refractory period (s)
-Setup.thrIncidences = 1.5;          % Threshold for incidences
+% Pulse detection input
+Setup.nD = nD;
 
 % Peak delineation windows
 Setup.wdw_nA = 250e-3;              % Window for onset detection (s)
 Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
 
 fprintf('\nPulse delineation parameters:\n');
-fprintf('  Threshold adaptation factor: %.1f\n', Setup.alfa);
-fprintf('  Refractory period: %.0f ms\n', Setup.refractPeriod * 1000);
+fprintf('  Window for onset detection: %.0f ms\n', Setup.wdw_nA * 1000);
+fprintf('  Window for offset detection: %.0f ms\n', Setup.wdw_nB * 1000);
 
 % Run pulse delineation on filtered signal
 fprintf('\nRunning pulse delineation...\n');
-[nD, nA, nB, nM, threshold] = pulsedelineation(signalFiltered, fs, Setup);
+[nA, nB, nM] = pulsedelineation(signalFiltered, fs, Setup);
 
 %% Plot results
 fprintf('\nPlotting results...\n');
@@ -78,6 +79,7 @@ plot(nB(~isnan(nB)), signal(1+round(nB(~isnan(nB))*fs)), '^','LineWidth',1,'colo
 title('PPG Delineation');
 xlabel('Time (s)');
 ylabel('Amplitude');
+grid on;
 
 ax(2) = subplot(2,1,2); hold on; box on;legend;
 plot(t, signalFiltered, 'k','LineWidth',1,'DisplayName','LPD-Filtered PPG');
@@ -88,7 +90,7 @@ plot(nB(~isnan(nB)), signalFiltered(1+round(nB(~isnan(nB))*fs)), '^','LineWidth'
 xline(0,'k:','HandleVisibility','off');
 xlabel('Time (s)');
 ylabel('Amplitude');
+grid on;
 
 linkaxes(ax, 'x');
-set(ax,'XminorGrid','on','YminorGrid','on','xminortick','on','yminortick','on');
 zoom on

@@ -71,8 +71,8 @@ parse(parser, dppg, fs, nD, varargin{:});
 dppg = parser.Results.signal;
 fs = parser.Results.fs;
 nD = parser.Results.nD;
-wdw_nA = parser.Results.WindowA;
-wdw_nB = parser.Results.WindowB;
+windowA = parser.Results.WindowA;
+windowB = parser.Results.WindowB;
 fsInterp = parser.Results.FsInterp;
 
 % Set default interpolation frequency if not provided
@@ -107,10 +107,10 @@ tInterp = (0:((length(dppg)*fsInterp/fs)-1)) / fsInterp;
 signalInterp = interp1(t, dppg, tInterp, 'spline');
 
 % nA - Find maximum after nD within window using refinePeakPositions
-nA = refinePeakPositions(dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', wdw_nA);
+nA = refinePeakPositions(dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', windowA);
 
 % nB - Find minimum before nD within window using refinePeakPositions with inverted signal
-nB = refinePeakPositions(-dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', wdw_nB);
+nB = refinePeakPositions(-dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', windowB);
 
 % nM - Find midpoint between nA and nB
 nM = NaN(length(nDClean), 1);

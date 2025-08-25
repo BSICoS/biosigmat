@@ -49,6 +49,8 @@ function [nA, nB, nM] = pulsedelineation(dppg, fs, nD, varargin)
 %     title('PPG Pulse Delineation');
 %
 %   See also PULSEDETECTION, LPDFILTER
+%
+%   Status: Alpha
 
 % Check number of input and output arguments
 narginchk(3, 9);

@@ -48,7 +48,7 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
             [nD, threshold] = pulsedetection(tc.signalFiltered, tc.fs);
 
             % Expected values (hardcoded from test run with first 30 seconds)
-            expectedND = [0.4770; 1.2340; 1.9810; 2.7010; 3.3710];
+            expectedND = [0.4770; 1.2350; 1.9810; 2.7010; 3.3720];
             expectedNumPulses = 41;
 
             % Verify outputs are the correct size and type

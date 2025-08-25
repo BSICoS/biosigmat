@@ -84,154 +84,61 @@ end
 % Ensure signal is a column vector
 dppg = dppg(:);
 
-% Compute delineation
-peakSetup.wdw_nB = wdw_nB;
-peakSetup.wdw_nA = wdw_nA;
-peakSetup.fsi = fsi;
-
-[nA, nB, nM] = delineationAlgorithm(dppg, fs, nD, peakSetup);
-
-end
-
-function varargout = delineationAlgorithm ( dppg , fs , nD , Setup )
-%
-% Delineation for plethysmography signals, given nD_in (=nD) as anchor point
-%
-% Inputs
-%         dppg           signal
-%         fs            sampling frequency [Hertz]
-%         nD	detections in the maximum of the first derivative of the PPG [seconds] (detected at fs)
-%         wdw_nB        window width for searching the minimum before nD [seconds] (default = 150e-03)
-%         wdw_nA        window width for searching the maximum after  nD [seconds] (default = 200e-03)
-%         fsi           sampling frequency for interpolation. Fine search of the peaks [Hertz]
-%
-%
-% Outputs all (detected at fsi) [seconds]
-%         nA            Maximum of the PPG pulse
-%         nB            Minimum of the PPG pulse
-%         nM            Medium  of the PPG pulse
-%
-%
-% Esto se tiene que optimizar.
-%       1) findpeaks.
-%       2) interp1 lo hace or vectores, pues se hace directamente en vez de en el for
-%
-%
-
-%% Check Inputs
-if nargin <= 3,   Setup = struct();                       end
-if nargin <  3,   error('Not enough input arguments.');   end
-
-% Default Values
-if ~isfield(Setup,'wdw_nA'),	Setup.wdw_nA    = 250e-3;	end
-if ~isfield(Setup,'wdw_nB'),	Setup.wdw_nB    = 150e-3;	end
-if ~isfield(Setup,'fsi'),       Setup.fsi       = fs;       end
-
-% Get, assign and store the variable names
-data_names = fieldnames(Setup);
-for ii = 1:length(data_names), eval([ data_names{ii} ' = Setup.' data_names{ii} ';']); end
-clear Setup data_names ii bb aa
-
-% Check inputs
+% Check if nD is empty
 if isempty(nD)
-    varargout{1} = NaN;
-    varargout{2} = NaN;
-    varargout{3} = NaN;
-    varargout{4} = NaN;
+    nA = NaN;
+    nB = NaN;
+    nM = NaN;
     return;
 end
 
-% Delineation
-warning off
+% Remove NaN values from nD and convert to interpolated indices
+nDClean = nD(~isnan(nD(:)));
+nDIndices = 1 + round(nDClean * fsi);
 
-nD = nD( ~isnan(nD(:)) );
-nD = 1 + round ( nD*fsi );
+% Create time vectors for interpolation
+t = 0:1/fs:(length(dppg)-1)/fs;
+tInterp = 0:1/fsi:((length(dppg)*(fsi/fs)-1)/fsi);
+signalInterp = interp1(t, dppg, tInterp, 'spline');
 
-t           =	0:1/fs:  (length(dppg)-1)/fs;
-t_i         =	0:1/fsi:((length(dppg)*(fsi/fs)-1)/fsi);
-signal_i	=   interp1( t , dppg , t_i , 'spline' );
+% Initialize output variables
+nA = NaN(length(nDClean), 1);
+nB = NaN(length(nDClean), 1);
+nM = NaN(length(nDClean), 1);
 
+% nA - Find maximum after nD within window
+mtx_nA = repmat(0:round(wdw_nA*fsi), length(nDIndices), 1) + nDIndices;
+mtx_nA(mtx_nA < 1) = 1;
+mtx_nA(mtx_nA > length(signalInterp)) = length(signalInterp);
+[~, i_nA] = max(signalInterp(mtx_nA), [], 2);
+i_nA = i_nA + nDIndices;
+i_nA(i_nA < 1 | i_nA > length(signalInterp)) = NaN;
+nA(~isnan(i_nA)) = tInterp(i_nA(~isnan(i_nA)));
 
-if nargout>=1
+% nB - Find minimum before nD within window
+mtx_nB = repmat(-round(wdw_nB*fsi):0, length(nDIndices), 1) + nDIndices;
+mtx_nB(mtx_nB < 1) = 1;
+mtx_nB(mtx_nB > length(signalInterp)) = length(signalInterp);
+[~, i_nB] = min(signalInterp(mtx_nB), [], 2);
+i_nB = i_nB + (nDIndices - round(wdw_nB*fsi));
+i_nB(i_nB < 1 | i_nB > length(signalInterp)) = NaN;
+nB(~isnan(i_nB)) = tInterp(i_nB(~isnan(i_nB)));
 
-    % nA
-    mtx_nA = repmat( 0:round(wdw_nA*fsi) ,	length(nD) , 1 ) + nD;
-    mtx_nA(mtx_nA<1)=1; mtx_nA(mtx_nA>length(signal_i))=length(signal_i);
-    [~,i_nA] = max ( signal_i(mtx_nA),[],2 ); i_nA = i_nA + nD;
-    i_nA(i_nA<1 | i_nA>length(signal_i)) = NaN;
-
-    nA = NaN(length(i_nA),1);
-    nA(~isnan(i_nA)) = t_i(i_nA(~isnan(i_nA)));
-
-    varargout{1} = nA;
-
-end
-
-
-if nargout>=2
-
-    % nB
-    mtx_nB = repmat( -round(wdw_nB*fsi):0 ,	length(nD) , 1 ) + nD;
-    mtx_nB(mtx_nB<1)=1; mtx_nB(mtx_nB>length(signal_i))=length(signal_i);
-    [~,i_nB] = min ( signal_i(mtx_nB),[],2 ); i_nB = i_nB +(nD-round(wdw_nB*fsi));
-    i_nB(i_nB<1 | i_nB>length(signal_i)) = NaN;
-
-    nB = NaN(length(i_nB),1);
-    nB(~isnan(i_nB)) = t_i(i_nB(~isnan(i_nB)));
-
-    varargout{2} = nB;
-
-end
-
-
-if nargout>=3
-    % nM
-
-    nM = NaN(length(nD),1);
-    for ii = 1:length(nD)
-
-        if (isnan(i_nB(ii)) || isnan(i_nA(ii))), continue; end
-        pulseAmplitude = (signal_i(i_nB(ii))+signal_i(i_nA(ii)))/2;
-        mtx_nM = i_nB(ii):i_nA(ii); mtx_nM(mtx_nM<1)=1; mtx_nM(mtx_nM>length(signal_i))=length(signal_i);
-        [~,i_nM] = max ( - abs( signal_i(mtx_nM) - pulseAmplitude' ) ,[],2 ); i_nM = i_nM + i_nB(ii) ;
-        i_nM(i_nM<1 | i_nM>length(signal_i)) = NaN;
-        if ~isnan(i_nM) || ~isempty(i_nM), nM(ii) = t_i(i_nM); end
-
+% nM - Find midpoint between nA and nB
+for ii = 1:length(nDIndices)
+    if isnan(i_nB(ii)) || isnan(i_nA(ii))
+        continue;
     end
-
-    varargout{3} = nM;
-end
-
-
-if nargout>=4
-
-    fc = 25;
-    nD = NaN(length(nD),1);
-
-    if fc<fs/2
-
-        % nD
-        [bb,aa] = butter(5,fc*2/fs,'low');
-        diffSignal = nanfiltfilt(bb,aa,diffSignal); %#ok
-
-        wdw_nD	=   round(0.030*fsi);
-        mtx_nD = repmat( -wdw_nD:wdw_nD , length(nD) , 1 ) + nD;
-        mtx_nD(mtx_nD<1)=1; mtx_nD(mtx_nD>length(signal_i))=length(signal_i);
-
-        diffSignal_i	=   interp1( t , diffSignal , t_i , 'spline' );
-        [~,i_nDi] = max ( diffSignal_i(mtx_nD),[],2 ); i_nDi = i_nDi + (nD-wdw_nD);
-        i_nDi(i_nDi<1 | i_nDi>length(signal_i)) = NaN;
-
-        nD = NaN(length(i_nDi),1);
-        nD(~isnan(i_nDi)) = t_i(i_nDi(~isnan(i_nDi)));
-
-
+    pulseAmplitude = (signalInterp(i_nB(ii)) + signalInterp(i_nA(ii))) / 2;
+    mtx_nM = i_nB(ii):i_nA(ii);
+    mtx_nM(mtx_nM < 1) = 1;
+    mtx_nM(mtx_nM > length(signalInterp)) = length(signalInterp);
+    [~, i_nM] = max(-abs(signalInterp(mtx_nM) - pulseAmplitude), [], 2);
+    i_nM = i_nM + i_nB(ii);
+    i_nM(i_nM < 1 | i_nM > length(signalInterp)) = NaN;
+    if ~isnan(i_nM) && ~isempty(i_nM)
+        nM(ii) = tInterp(i_nM);
     end
-
-    varargout{4} = nD;
 end
-
-
-warning on
 
 end

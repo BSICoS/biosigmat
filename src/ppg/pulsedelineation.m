@@ -1,79 +1,102 @@
-function [ nA , nB , nM ] = pulsedelineation ( signal , fs , Setup )
-% PULSEDELINEATION Plethysmography signals delineation using adaptive thresholding.
-% [ nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
+function [nA, nB, nM] = pulsedelineation(dppg, fs, nD, varargin)
+% PULSEDELINEATION Performs pulse delineation in PPG signals using adaptive thresholding.
 %
-% This function performs pulse delineation in PPG signals, detecting pulse
-% features (nA, nB, nM) based on pulse detection points (nD).
+%   [NA, NB, NM] = PULSEDELINEATION(DPPG, FS, ND) performs pulse delineation
+%   in photoplethysmographic (PPG) signals, detecting pulse features (nA, nB, nM)
+%   based on pulse detection points (nD). DPPG is the filtered LPD-filtered PPG
+%   signal (numeric vector), FS is the sampling rate in Hz (positive scalar), and
+%   ND contains pre-computed pulse detection points in seconds (numeric vector).
+%   NA returns pulse onset locations in seconds, NB returns pulse offset locations
+%   in seconds, and NM returns pulse midpoint locations in seconds.
 %
-%   In:
-%         signal        = Filtered LPD-filtered PPG signal
-%         fs            = sampling rate (Hz)
-%         Setup         = Structure with optional parameters:
-%           .nD         = Pre-computed pulse detection points [Default: []]
-%           .wdw_nA     = Window width for searching pulse onset [Default: 250e-3]
-%           .wdw_nB     = Window width for searching pulse offset [Default: 150e-3]
-%           .fsi        = Sampling frequency for interpolation [Default: 2*fs]
+%   [NA, NB, NM] = PULSEDELINEATION(..., 'Name', Value) specifies additional
+%   parameters using name-value pairs:
+%     'WindowA'  - Window width for searching pulse onset in seconds
+%                  (default: 250e-3)
+%     'WindowB'  - Window width for searching pulse offset in seconds
+%                  (default: 150e-3)
+%     'InterpFS' - Sampling frequency for interpolation in Hz
+%                  (default: 2*FS)
 %
-%   Out:
-%         nA            = Location of pulse onsets (seconds)
-%         nB            = Location of pulse offsets (seconds)
-%         nM            = Location of pulse midpoints (seconds)
+%   Example:
+%     % Load PPG signal and apply LPD filtering
+%     ppgData = readtable('ppg_signals.csv');
+%     signal = ppgData.sig(1:30000);
+%     fs = 1000;
 %
-% EXAMPLE:
-%   % LPD-filter PPG signal
-%   [b, delay] = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
-%   signalFiltered = filter(b, 1, signal);
-%   signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
+%     % Apply LPD filter
+%     [b, delay] = lpdfilter(fs, 8, 'PassFreq', 7.8, 'Order', 100);
+%     signalFiltered = filter(b, 1, signal);
+%     signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 %
-%   % Compute pulse detection points
-%   nD = pulsedetection(signalFiltered, fs, Setup);
+%     % Compute pulse detection points
+%     nD = pulsedetection(signalFiltered, fs);
 %
-%   % Create setup
-%   Setup.nD = nD;
+%     % Perform pulse delineation
+%     [nA, nB, nM] = pulsedelineation(signalFiltered, fs, nD);
 %
-%   % Run pulse delineation on filtered signal
-%   [nA, nB, nM] = pulsedelineation(signalFiltered, fs, Setup);
+%     % Plot results
+%     t = (0:length(signal)-1)/fs;
+%     figure;
+%     plot(t, signal, 'k');
+%     hold on;
+%     plot(nA, signal(1+round(nA*fs)), 'ro', 'MarkerFaceColor', 'r');
+%     plot(nB, signal(1+round(nB*fs)), 'go', 'MarkerFaceColor', 'g');
+%     plot(nM, signal(1+round(nM*fs)), 'bo', 'MarkerFaceColor', 'b');
+%     legend('PPG Signal', 'Onset (nA)', 'Offset (nB)', 'Midpoint (nM)');
+%     xlabel('Time (s)');
+%     ylabel('Amplitude');
+%     title('PPG Pulse Delineation');
 %
-%   Status: Alpha
+%   See also PULSEDETECTION, LPDFILTER
+
+% Check number of input and output arguments
+narginchk(3, 9);
+nargoutchk(0, 3);
+
+% Parse and validate inputs
+parser = inputParser;
+parser.FunctionName = 'pulsedelineation';
+addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
+addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'nD', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
+addParameter(parser, 'WindowA', 250e-3, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'WindowB', 150e-3, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'InterpFS', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
+
+parse(parser, dppg, fs, nD, varargin{:});
+
+dppg = parser.Results.signal;
+fs = parser.Results.fs;
+nD = parser.Results.nD;
+wdw_nA = parser.Results.WindowA;
+wdw_nB = parser.Results.WindowB;
+fsi = parser.Results.InterpFS;
+
+% Set default interpolation frequency if not provided
+if isempty(fsi)
+    fsi = 2 * fs;
+end
 
 
-% Check Inputs
-if nargin <= 2,   Setup = struct();                       end
-if nargin <  2,   error('Not enough input arguments.');   end
-
-% Default Values
-if ~isfield(Setup,'nD'),                        Setup.nD =	[];                                 end
-
-if ~isfield(Setup,'wdw_nA'),                    Setup.wdw_nA = 250e-3;                          end
-if ~isfield(Setup,'wdw_nB'),                    Setup.wdw_nB = 150e-3;                          end
-if ~isfield(Setup,'fsi'),                       Setup.fsi = 2*fs;                                 end
-
-% Get, assign and store the variable names
-data_names = fieldnames(Setup);
-for ii = 1:length(data_names), eval([ data_names{ii} ' = Setup.' data_names{ii} ';']); end
-clear Setup data_names ii
-
-
-signal = signal(:);
-
+% Ensure signal is a column vector
+dppg = dppg(:);
 
 % Compute delineation
-peakSetup.wdw_nB        =   wdw_nB;
-peakSetup.wdw_nA        =   wdw_nA;
-peakSetup.fsi           =   fsi;
+peakSetup.wdw_nB = wdw_nB;
+peakSetup.wdw_nA = wdw_nA;
+peakSetup.fsi = fsi;
 
-[ nA , nB , nM ] = delineationAlgorithm ( signal , fs , nD , peakSetup ) ;
-
-
+[nA, nB, nM] = delineationAlgorithm(dppg, fs, nD, peakSetup);
 
 end
 
-function varargout = delineationAlgorithm ( signal , fs , nD , Setup )
+function varargout = delineationAlgorithm ( dppg , fs , nD , Setup )
 %
 % Delineation for plethysmography signals, given nD_in (=nD) as anchor point
 %
 % Inputs
-%         signal           signal
+%         dppg           signal
 %         fs            sampling frequency [Hertz]
 %         nD	detections in the maximum of the first derivative of the PPG [seconds] (detected at fs)
 %         wdw_nB        window width for searching the minimum before nD [seconds] (default = 150e-03)
@@ -101,7 +124,6 @@ if nargin <  3,   error('Not enough input arguments.');   end
 if ~isfield(Setup,'wdw_nA'),	Setup.wdw_nA    = 250e-3;	end
 if ~isfield(Setup,'wdw_nB'),	Setup.wdw_nB    = 150e-3;	end
 if ~isfield(Setup,'fsi'),       Setup.fsi       = fs;       end
-if ~isfield(Setup,'diffSignal'),Setup.diffSignal = diff(fillmissing(signal(:),'linear'));	end
 
 % Get, assign and store the variable names
 data_names = fieldnames(Setup);
@@ -123,9 +145,9 @@ warning off
 nD = nD( ~isnan(nD(:)) );
 nD = 1 + round ( nD*fsi );
 
-t           =	0:1/fs:  (length(signal)-1)/fs;
-t_i         =	0:1/fsi:((length(signal)*(fsi/fs)-1)/fsi);
-signal_i	=   interp1( t , signal , t_i , 'spline' );
+t           =	0:1/fs:  (length(dppg)-1)/fs;
+t_i         =	0:1/fsi:((length(dppg)*(fsi/fs)-1)/fsi);
+signal_i	=   interp1( t , dppg , t_i , 'spline' );
 
 
 if nargout>=1

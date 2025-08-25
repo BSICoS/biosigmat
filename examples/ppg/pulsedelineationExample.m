@@ -48,23 +48,10 @@ signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 % Pulse detection
 nD = pulsedetection(signalFiltered, fs);
 
-% Set up pulse delineation parameters
-Setup = struct();
-
-% Pulse detection input
-Setup.nD = nD;
-
-% Peak delineation windows
-Setup.wdw_nA = 250e-3;              % Window for onset detection (s)
-Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
-
-fprintf('\nPulse delineation parameters:\n');
-fprintf('  Window for onset detection: %.0f ms\n', Setup.wdw_nA * 1000);
-fprintf('  Window for offset detection: %.0f ms\n', Setup.wdw_nB * 1000);
-
-% Run pulse delineation on filtered signal
+% Run pulse delineation on filtered signal with default parameters
 fprintf('\nRunning pulse delineation...\n');
-[nA, nB, nM] = pulsedelineation(signalFiltered, fs, Setup);
+[nA, nB, nM] = pulsedelineation(signalFiltered, fs, nD);
+
 
 %% Plot results
 fprintf('\nPlotting results...\n');
@@ -83,7 +70,6 @@ grid on;
 
 ax(2) = subplot(2,1,2); hold on; box on;legend;
 plot(t, signalFiltered, 'k','LineWidth',1,'DisplayName','LPD-Filtered PPG');
-plot(t, threshold ,'LineWidth',1,'DisplayName','Adaptive Threshold');
 plot(nD(~isnan(nD)), signalFiltered(1+round(nD(~isnan(nD))*fs)), 'o','LineWidth',1,'color',[0.47,0.67,0.19],'MarkerFaceColor',[0.47,0.67,0.19],'DisplayName','n_D' );
 plot(nA(~isnan(nA)), signalFiltered(1+round(nA(~isnan(nA))*fs)), 'v','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','n_A');
 plot(nB(~isnan(nB)), signalFiltered(1+round(nB(~isnan(nB))*fs)), '^','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','n_B');

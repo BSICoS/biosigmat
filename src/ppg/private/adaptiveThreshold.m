@@ -17,84 +17,138 @@ function [nD, threshold] = adaptiveThreshold(dppg, fs, params)
 %
 %   See also PULSEDETECTION
 
+% Algorithm constants
+initialWindowDuration = 10; % seconds
+initialHREstimate = 80; % bpm
+amplitudeMultiplier = 3;
+minPeaksForRREstimation = 4;
+nRREstimation = 3;
+nAmplitudeEstimation = 3;
+
+% Prepare input signal
 dppg = dppg(:);
-refractPeriod = round(params.refractPeriod * fs);
+signalLength = length(dppg);
+refractPeriodSamples = round(params.refractPeriod * fs);
 
-thresIniWIni = find(~isnan(dppg), 1, 'first');
-thresIniWEnd = thresIniWIni + round(10*fs);
-thresIniWEnd(thresIniWEnd>=length(dppg)) = [];
-aux = dppg(thresIniWIni:thresIniWEnd);
+% Initialize threshold using initial signal window
+initWindowStart = find(~isnan(dppg), 1, 'first');
+initWindowEnd = initWindowStart + round(initialWindowDuration * fs);
+initWindowEnd = min(initWindowEnd, signalLength);
+initialWindow = dppg(initWindowStart:initWindowEnd);
 
-t = 1:length(dppg);
-RR = round(60/80*fs);
+% Calculate initial RR interval estimate (samples) and threshold
+initialRRSamples = round(60/initialHREstimate * fs);
 threshold = nan(size(dppg));
-thresIni = 3*mean(aux(aux>=0), 'omitnan');
-if (1+RR)<length(dppg)
-    threshold(1:1+RR) = thresIni - (thresIni*(1-params.alphaAmp)/RR)*(t(1:RR+1)-1);
-    threshold(1+RR:end) = params.alphaAmp*thresIni;
+initialThreshold = amplitudeMultiplier * mean(initialWindow(initialWindow >= 0), 'omitnan');
+
+% Set up initial threshold profile
+timeIndices = 1:signalLength;
+currentRRSamples = initialRRSamples;
+
+if (1 + currentRRSamples) < signalLength
+    % Linear decay from initial threshold to alpha*threshold over first RR interval
+    decayIndices = 1:(currentRRSamples + 1);
+    threshold(decayIndices) = initialThreshold - (initialThreshold * (1 - params.alphaAmp) / currentRRSamples) * (decayIndices - 1);
+    threshold((currentRRSamples + 1):end) = params.alphaAmp * initialThreshold;
 else
-    threshold(1:end) = thresIni - (thresIni*(1-params.alphaAmp)/RR)*(t(1:end)-1);
+    % Signal shorter than one RR interval - use linear decay for entire signal
+    threshold(:) = initialThreshold - (initialThreshold * (1 - params.alphaAmp) / currentRRSamples) * (timeIndices - 1);
 end
 
-kk = 1;
+% Initialize pulse detection variables
 nD = [];
-peaksAdded = [];
+% Main pulse detection loop
+currentIndex = 1;
 while true
-    crossUp = kk-1 + find(dppg(kk:end)>threshold(kk:end), 1, 'first'); % Next point to cross the actual threshold (down->up)
-    if isempty(crossUp)
-        % No more pulses -> end
+    % Find next threshold crossing (signal rises above threshold)
+    searchStart = currentIndex;
+    relativeUpCrossing = find(dppg(searchStart:end) > threshold(searchStart:end), 1, 'first');
+
+    if isempty(relativeUpCrossing)
+        % No more upward crossings - end detection
         break;
     end
+    upCrossing = searchStart + relativeUpCrossing - 1;
 
-    crossDown = crossUp-1 + find(dppg(crossUp:end)<threshold(crossUp:end), 1, 'first'); % Next point to cross the actual threshold (up->down)
-    if isempty(crossDown)
-        % No more pulses -> end
+    % Find where signal drops back below threshold
+    relativeDownCrossing = find(dppg(upCrossing:end) < threshold(upCrossing:end), 1, 'first');
+
+    if isempty(relativeDownCrossing)
+        % No downward crossing found - end detection
         break;
     end
+    downCrossing = upCrossing + relativeDownCrossing - 1;
 
-    % Pulse detected:
-    [~, imax] = max(dppg(crossUp:crossDown));
-    p = crossUp-1+imax;
+    % Find peak within the crossing region
+    [~, relativePeakIndex] = max(dppg(upCrossing:downCrossing));
+    peakIndex = upCrossing + relativePeakIndex - 1;
 
-    if length(nD) <= 4
-        [vmax] = max(dppg(crossUp:crossDown));
+    % Calculate peak amplitude using adaptive estimation
+    if length(nD) <= minPeaksForRREstimation
+        currentAmplitude = max(dppg(upCrossing:downCrossing));
     else
-        [vmax] = median([dppg(nD(end-3:end)); max(dppg(crossUp:crossDown))]);
+        % Use median of recent peaks for more robust estimation
+        recentPeaks = dppg(nD(end-nAmplitudeEstimation:end));
+        currentPeak = max(dppg(upCrossing:downCrossing));
+        currentAmplitude = median([recentPeaks; currentPeak]);
     end
 
-    nD = [nD, p]; %#ok<*AGROW>
-    npeaks = length(nD);
+    % Store detected pulse
+    nD = [nD, peakIndex]; %#ok<AGROW>
+    numDetectedPulses = length(nD);
 
-    % Update threshold
-    nRREstimation = 3;
-    nAmpliEst = 3;
-    if npeaks >= nRREstimation+1
-        RR = round(median(diff(nD(end-nRREstimation:end))));
-    elseif npeaks >= 2
-        RR = round(mean(diff(nD)));
+    % Update RR interval estimate based on detected pulses
+    if numDetectedPulses >= (nRREstimation + 1)
+        % Use median of recent RR intervals for robust estimation
+        recentRRIntervals = diff(nD(end-nRREstimation:end));
+        currentRRSamples = round(median(recentRRIntervals));
+    elseif numDetectedPulses >= 2
+        % Use mean when insufficient data for robust median
+        currentRRSamples = round(mean(diff(nD)));
     end
-    kk = min(p+refractPeriod, length(dppg));
-    threshold(p:kk) = vmax;
 
-    vfall = vmax*params.alphaAmp;
-    if npeaks >= (nAmpliEst+1)
-        ampliEst = median(dppg(nD(end-nAmpliEst:end-1)));
-        if vmax >= (2*ampliEst)
-            vfall = params.alphaAmp*ampliEst;
-            vmax = ampliEst;
+    % Set refractory period after pulse detection
+    refractoryEnd = min(peakIndex + refractPeriodSamples, signalLength);
+    currentIndex = refractoryEnd;
+
+    % Set threshold to peak amplitude during refractory period
+    threshold(peakIndex:refractoryEnd) = currentAmplitude;
+
+    % Calculate threshold fall-off parameters
+    fallThreshold = currentAmplitude * params.alphaAmp;
+
+    % Apply amplitude-based correction if we have sufficient pulse history
+    if numDetectedPulses >= (nAmplitudeEstimation + 1)
+        recentAmplitudes = dppg(nD(end-nAmplitudeEstimation:end-1));
+        estimatedAmplitude = median(recentAmplitudes);
+
+        % Correct for amplitude outliers (peaks that are too high)
+        if currentAmplitude >= (2 * estimatedAmplitude)
+            fallThreshold = params.alphaAmp * estimatedAmplitude;
+            currentAmplitude = estimatedAmplitude;
         end
     end
 
-    fallEnd = round(params.tauRR*RR);
-    if (kk+fallEnd) < length(dppg)
-        threshold(kk:kk+fallEnd) = vmax - (vmax-vfall)/fallEnd*(t(kk:kk+fallEnd)-kk);
-        threshold(kk+fallEnd:end) = vfall;
+    % Calculate threshold decay profile after refractory period
+    fallDuration = round(params.tauRR * currentRRSamples);
+    fallEndIndex = refractoryEnd + fallDuration;
+
+    if fallEndIndex < signalLength
+        % Linear decay from current amplitude to fall threshold
+        decayIndices = refractoryEnd:fallEndIndex;
+        decayProfile = currentAmplitude - (currentAmplitude - fallThreshold) / fallDuration * (decayIndices - refractoryEnd);
+        threshold(decayIndices) = decayProfile;
+        threshold((fallEndIndex + 1):end) = fallThreshold;
     else
-        threshold(kk:end) = vmax - (vmax-vfall)/fallEnd*(t(kk:end)-kk);
+        % Decay extends beyond signal - apply to remaining samples
+        decayIndices = refractoryEnd:signalLength;
+        decayProfile = currentAmplitude - (currentAmplitude - fallThreshold) / fallDuration * (decayIndices - refractoryEnd);
+        threshold(decayIndices) = decayProfile;
     end
 
 end
 
-nD = unique([nD peaksAdded]);
+% Remove any duplicate indices and sort
+nD = unique(nD);
 
 end

@@ -17,6 +17,7 @@ function [nD, threshold] = adaptiveThreshold(dppg, fs, params)
 %
 %   See also PULSEDETECTION
 
+
 % Algorithm constants
 initialWindowDuration = 10; % seconds
 initialHREstimate = 80; % bpm

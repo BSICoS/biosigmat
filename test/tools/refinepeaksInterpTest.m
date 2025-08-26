@@ -1,4 +1,4 @@
-classdef refinepeaksTest < matlab.unittest.TestCase
+classdef refinepeaksInterpTest < matlab.unittest.TestCase
     % Tests covering:
     %   - Basic functionality with maximum search
     %   - Empty input handling
@@ -24,7 +24,7 @@ classdef refinepeaksTest < matlab.unittest.TestCase
             candidatePositions = (peaks - 1) / fs;
 
             % Refine positions
-            refinedPositions = refinepeaks(signal, fs, candidatePositions);
+            refinedPositions = refinepeaksInterp(signal, fs, candidatePositions);
 
             % Verify basic properties
             tc.verifyClass(refinedPositions, 'double', 'Refined positions should be double');
@@ -38,7 +38,7 @@ classdef refinepeaksTest < matlab.unittest.TestCase
             signal = sin(2*pi*5*(0:1/fs:1-1/fs))';
 
             % Test empty candidate positions
-            refinedPositions = refinepeaks(signal, fs, []);
+            refinedPositions = refinepeaksInterp(signal, fs, []);
             tc.verifyEmpty(refinedPositions, 'Empty input should return empty output');
         end
 
@@ -49,7 +49,7 @@ classdef refinepeaksTest < matlab.unittest.TestCase
             candidatePositions = [0.1; NaN; 0.3; NaN; 0.5];
 
             % Refine positions (should ignore NaN values)
-            refinedPositions = refinepeaks(signal, fs, candidatePositions);
+            refinedPositions = refinepeaksInterp(signal, fs, candidatePositions);
 
             % Should return empty since only valid positions are processed
             tc.verifyTrue(length(refinedPositions) <= length(candidatePositions), ...
@@ -63,7 +63,7 @@ classdef refinepeaksTest < matlab.unittest.TestCase
             candidatePositions = [0.2; 0.4; 0.6];
 
             % Test with custom interpolation frequency and window width
-            refinedPositions = refinepeaks(signal, fs, candidatePositions, ...
+            refinedPositions = refinepeaksInterp(signal, fs, candidatePositions, ...
                 'FsInterp', 4000, 'WindowWidth', 0.050);
 
             % Verify basic properties

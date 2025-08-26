@@ -1,11 +1,9 @@
-function [nA, nB, nM] = pulsedelineation(dppg, fs, nD, varargin)
+function [nA, nB, nM] = pulsedelineation(ppg, fs, nD, varargin)
 % PULSEDELINEATION Performs pulse delineation in PPG signals using adaptive thresholding.
 %
-%   [NA, NB, NM] = PULSEDELINEATION(DPPG, FS, ND) performs pulse delineation
+%   [NA, NB, NM] = PULSEDELINEATION(PPG, FS, ND) performs pulse delineation
 %   in photoplethysmographic (PPG) signals, detecting pulse features (nA, nB, nM)
-%   based on pulse detection points (nD). DPPG is the filtered LPD-filtered PPG
-%   signal (numeric vector), FS is the sampling rate in Hz (positive scalar), and
-%   ND contains pre-computed pulse detection points in seconds (numeric vector).
+%   based on pulse detection points (nD). FS is the sampling rate in Hz (positive scalar).
 %   NA returns pulse onset locations in seconds, NB returns pulse offset locations
 %   in seconds, and NM returns pulse midpoint locations in seconds.
 %
@@ -15,40 +13,38 @@ function [nA, nB, nM] = pulsedelineation(dppg, fs, nD, varargin)
 %                  (default: 250e-3)
 %     'WindowB'  - Window width for searching pulse offset in seconds
 %                  (default: 150e-3)
-%     'FsInterp' - Sampling frequency for interpolation in Hz
-%                  (default: 2*FS)
 %
 %   Example:
 %     % Load PPG signal and apply LPD filtering
 %     ppgData = readtable('ppg_signals.csv');
-%     signal = ppgData.sig(1:30000);
+%     ppg = ppgData.sig(1:30000);
 %     fs = 1000;
 %
 %     % Apply LPD filter
 %     [b, delay] = lpdfilter(fs, 8, 'PassFreq', 7.8, 'Order', 100);
-%     signalFiltered = filter(b, 1, signal);
-%     signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
+%     dppg = filter(b, 1, ppg);
+%     dppg = [dppg(delay+1:end); zeros(delay, 1)];
 %
 %     % Compute pulse detection points
-%     nD = pulsedetection(signalFiltered, fs);
+%     nD = pulsedetection(dppg, fs);
 %
 %     % Perform pulse delineation
-%     [nA, nB, nM] = pulsedelineation(signalFiltered, fs, nD);
+%     [nA, nB, nM] = pulsedelineation(ppg, fs, nD);
 %
 %     % Plot results
-%     t = (0:length(signal)-1)/fs;
+%     t = (0:length(ppg)-1)/fs;
 %     figure;
-%     plot(t, signal, 'k');
+%     plot(t, ppg, 'k');
 %     hold on;
-%     plot(nA, signal(1+round(nA*fs)), 'ro', 'MarkerFaceColor', 'r');
-%     plot(nB, signal(1+round(nB*fs)), 'go', 'MarkerFaceColor', 'g');
-%     plot(nM, signal(1+round(nM*fs)), 'bo', 'MarkerFaceColor', 'b');
+%     plot(nA, ppg(1+round(nA*fs)), 'ro', 'MarkerFaceColor', 'r');
+%     plot(nB, ppg(1+round(nB*fs)), 'go', 'MarkerFaceColor', 'g');
+%     plot(nM, ppg(1+round(nM*fs)), 'bo', 'MarkerFaceColor', 'b');
 %     legend('PPG Signal', 'Onset (nA)', 'Offset (nB)', 'Midpoint (nM)');
 %     xlabel('Time (s)');
 %     ylabel('Amplitude');
 %     title('PPG Pulse Delineation');
 %
-%   See also PULSEDETECTION, LPDFILTER, REFINEPEAKSINTERP
+%   See also PULSEDETECTION, LPDFILTER
 %
 %   Status: Alpha
 
@@ -60,29 +56,22 @@ nargoutchk(0, 3);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'pulsedelineation';
-addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
+addRequired(parser, 'ppg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addRequired(parser, 'nD', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
 addParameter(parser, 'WindowA', 250e-3, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'WindowB', 150e-3, @(x) isnumeric(x) && isscalar(x) && x > 0);
-addParameter(parser, 'FsInterp', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x > 0));
 
-parse(parser, dppg, fs, nD, varargin{:});
+parse(parser, ppg, fs, nD, varargin{:});
 
-dppg = parser.Results.signal;
+ppg = parser.Results.ppg;
 fs = parser.Results.fs;
 nD = parser.Results.nD;
 windowA = parser.Results.WindowA;
 windowB = parser.Results.WindowB;
-fsInterp = parser.Results.FsInterp;
 
-% Set default interpolation frequency if not provided
-if isempty(fsInterp)
-    fsInterp = 2 * fs;
-end
-
-% Ensure signal is a column vector
-dppg = dppg(:);
+% Ensure ppg is a column vector
+ppg = ppg(:);
 
 % Handle empty input
 nD = nD(~isnan(nD(:)));
@@ -93,49 +82,93 @@ if isempty(nD)
     return;
 end
 
-% Create high-resolution interpolated signal for delineation
-t = (0:length(dppg)-1) / fs;
-tInterp = (0:((length(dppg)*fsInterp/fs)-1)) / fsInterp;
-signalInterp = interp1(t, dppg, tInterp, 'spline');
+npulses = length(nD);
+ppgLength = length(ppg);
 
-% nA - Find maximum after nD within window using refinepeaksInterp
-nA = refinepeaksInterp(dppg, fs, nD, 'FsInterp', fsInterp, 'WindowWidth', windowA);
+% Time vector
+t = (0:ppgLength-1) / fs;
 
-% nB - Find minimum before nD within window using refinepeaksInterp with inverted signal
-nB = refinepeaksInterp(-dppg, fs, nD, 'FsInterp', fsInterp, 'WindowWidth', windowB);
+% Convert nD to sample indices
+nDSamples = 1 +  round(nD * fs);
 
-% nM - Find midpoint between nA and nB
-nM = NaN(length(nD), 1);
-for ii = 1:length(nD)
-    % Get corresponding interpolated indices for nA and nB
-    if isnan(nA(ii)) || isnan(nB(ii))
-        continue;
-    end
+%% nA - Pulse onset: find local max after nD within windowA
 
-    idxA = round(nA(ii) * fsInterp) + 1;
-    idxB = round(nB(ii) * fsInterp) + 1;
+% Create search matrix
+matrixA = repmat(0:round(windowA*fs), npulses , 1 ) + nDSamples;
+matrixA(matrixA < 1) = 1;
+matrixA(matrixA > ppgLength) = ppgLength;
 
-    % Ensure valid indices
-    idxA = max(1, min(length(signalInterp), idxA));
-    idxB = max(1, min(length(signalInterp), idxB));
+% Find local maxima
+[~,nALocs] = findlocalmaxima(ppg(matrixA));
+nALocs = nALocs + nDSamples - 1;
+nALocs(nALocs<1 | nALocs>ppgLength) = NaN;
 
-    if idxB >= idxA
-        continue; % Invalid order
-    end
+% Refine maxima
+nA = nALocs;
+[~, nA(~isnan(nA))] = refinepeaks(ppg, nALocs(~isnan(nALocs)), t);
 
-    % Calculate target amplitude (midpoint between nA and nB amplitudes)
-    targetAmplitude = (signalInterp(idxB) + signalInterp(idxA)) / 2;
 
-    % Search between nB and nA for point closest to target amplitude
-    searchIndices = idxB:idxA;
-    if ~isempty(searchIndices)
-        [~, closestIdx] = min(abs(signalInterp(searchIndices) - targetAmplitude));
-        refinedIdx = idxB + closestIdx - 1;
+%% nB - Pulse offset: find min before nD within windowB
 
-        if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
-            nM(ii) = tInterp(refinedIdx);
-        end
-    end
+% Create search matrix
+matrixB = repmat(-round(windowB*fs):0, npulses, 1 ) + nDSamples;
+matrixB(matrixB < 1) = 1;
+matrixB(matrixB > ppgLength) = ppgLength;
+
+% Find local minima
+[~,nBLocs] = findlocalmaxima(-ppg(matrixB));
+nBLocs = nBLocs + (nDSamples - round(windowB*fs)) - 1;
+nBLocs(nBLocs<1 | nBLocs>ppgLength) = NaN;
+
+% Refine minima
+nB = nBLocs;
+[~, nB(~isnan(nB))] = refinepeaks(-ppg, nBLocs(~isnan(nBLocs)), t);
+
+
+%% nM - Find midpoint between nA and nB
+nM = NaN(npulses,1);
+% for kpulse = 1:npulses
+%     if (isnan(nBLocs(kpulse)) || isnan(nALocs(kpulse)))
+%         % If either position is NaN, skip this pulse
+%         continue;
+%     end
+
+%     pulseAmplitude = (ppg(nBLocs(kpulse)) + ppg(nALocs(kpulse)))/2;
+%     matrixM = nBLocs(kpulse):nALocs(kpulse);
+%     matrixM(matrixM < 1) = 1;
+%     matrixM(matrixM > ppgLength) = ppgLength;
+
+%     [~,nMLocs] = max(-abs(ppg(matrixM) - pulseAmplitude'), [], 2);
+%     nMLocs = nMLocs + nBLocs(kpulse) - 1;
+%     nMLocs(nMLocs<1 | nMLocs>ppgLength) = NaN;
+
+%     if ~any(isnan(nMLocs)) && ~isempty(nMLocs)
+%         nM(kpulse) = t(nMLocs);
+%     end
+% end
+
 end
+
+function [maxValue, maxLoc] = findlocalmaxima(X)
+% X: matrix MxN (each row is a signal segment)
+
+minProm = 0; % > 0 to ignore plateaus/noise
+minSep  = 1; % minimum separation between peaks (in samples)
+
+% 1) Peak candidates per row (dim=2)
+L = islocalmax(X, 2, 'MinProminence', minProm, ...
+    'MinSeparation',  minSep, ...
+    'FlatSelection', 'center');
+
+% 2) Force to -Inf where NOT a peak and take maximum per row
+Xmask = X;
+Xmask(~L) = -inf;
+
+[maxValue, maxLoc] = max(Xmask, [], 2, 'omitnan');  % values and positions (column)
+
+% 3) Rows without peaks -> NaN
+hasPeak = any(L, 2);
+maxLoc(~hasPeak) = NaN;           % column index of peak (NaN if none)
+maxValue(~hasPeak) = NaN;           % peak value (NaN if none)
 
 end

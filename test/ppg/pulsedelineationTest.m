@@ -3,10 +3,10 @@
 
 classdef pulsedelineationTest < matlab.unittest.TestCase
     properties
-        signal
-        signalFiltered
+        ppg
+        dppg
         fs
-        Setup
+        nD
     end
 
     methods (TestClassSetup)
@@ -24,7 +24,7 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
 
             rawSignal = rawSignal(1:30*tc.fs);
             [b, a] = butter(4, 0.5 / (tc.fs/2), 'high');
-            tc.signal = filtfilt(b, a, rawSignal);
+            tc.ppg = filtfilt(b, a, rawSignal);
 
             % Apply LPD (Low-Pass Differentiator) filter
             fpLPD = 7.8;        % Pass-band frequency (Hz)
@@ -32,19 +32,18 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             orderLPD = 100;     % Filter order (samples)
 
             [b, delay] = lpdfilter(tc.fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
-            filteredSignal = filter(b, 1, tc.signal);
-            tc.signalFiltered = [filteredSignal(delay+1:end); zeros(delay, 1)];
+            tc.dppg = filter(b, 1, tc.ppg);
+            tc.dppg = [tc.dppg(delay+1:end); zeros(delay, 1)];
 
             % Compute pulse detection points for use in tests
-            tc.Setup = struct();
-            tc.Setup.nD = pulsedetection(tc.signalFiltered, tc.fs);
+            tc.nD = pulsedetection(tc.dppg, tc.fs);
         end
     end
 
     methods (Test)
         function testBasicFunctionality(tc)
             % Test with default parameters
-            [nA, nB, nM] = pulsedelineation(tc.signalFiltered, tc.fs, tc.Setup.nD);
+            [nA, nB, nM] = pulsedelineation(tc.ppg, tc.fs, tc.nD);
 
             % Expected values
             expectedNA = [0.4765; 1.2345; 1.9805; 2.7005; 3.3715];
@@ -76,10 +75,9 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             % Test with custom window parameters
             customWindowA = 300e-3;
             customWindowB = 200e-3;
-            customInterpFS = 3 * tc.fs;
 
-            [nA, nB, nM] = pulsedelineation(tc.signalFiltered, tc.fs, tc.Setup.nD, ...
-                'WindowA', customWindowA, 'WindowB', customWindowB, 'FsInterp', customInterpFS);
+            [nA, nB, nM] = pulsedelineation(tc.ppg, tc.fs, tc.nD, ...
+                'WindowA', customWindowA, 'WindowB', customWindowB);
 
             % Verify outputs are valid
             tc.verifyClass(nA, 'double', 'nA should be double array');
@@ -94,7 +92,7 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
 
         function testEmptyDetectionPoints(tc)
             % Test with empty nD array
-            [nA, nB, nM] = pulsedelineation(tc.signalFiltered, tc.fs, []);
+            [nA, nB, nM] = pulsedelineation(tc.dppg, tc.fs, []);
 
             % Should return NaN arrays when no detection points provided
             tc.verifyTrue(isnan(nA), 'nA should be NaN when nD is empty');

@@ -100,7 +100,7 @@ searchA(searchA < 1) = 1;
 searchA(searchA > ppgLength) = ppgLength;
 
 % Find local maxima
-[~, nALocs] = findlocalmaxima(ppg(searchA));
+[~, nALocs] = localmax(ppg(searchA), 2);
 nALocs = nALocs + nDSamples - 1;
 nALocs(nALocs<1 | nALocs>ppgLength) = NaN;
 
@@ -117,7 +117,7 @@ searchB(searchB < 1) = 1;
 searchB(searchB > ppgLength) = ppgLength;
 
 % Find local minima
-[~, nBLocs] = findlocalmaxima(-ppg(searchB));
+[~, nBLocs] = localmax(-ppg(searchB), 2);
 nBLocs = nBLocs + (nDSamples - round(windowB*fs)) - 1;
 nBLocs(nBLocs<1 | nBLocs>ppgLength) = NaN;
 
@@ -153,35 +153,5 @@ for kpulse = 1:npulses
         nM(kpulse) = t(nMLoc);
     end
 end
-
-end
-
-function [maxValue, maxLoc] = findlocalmaxima(X)
-% X: matrix MxN (each row is a signal segment)
-
-if ismatrix(X)
-    dim = 2;
-else
-    dim = 1;
-end
-
-minProm = 0; % > 0 to ignore plateaus/noise
-minSep  = 1; % minimum separation between peaks (in samples)
-
-% 1) Peak candidates per row (dim=2)
-L = islocalmax(X, dim, 'MinProminence', minProm, ...
-    'MinSeparation',  minSep, ...
-    'FlatSelection', 'center');
-
-% 2) Force to -Inf where NOT a peak and take maximum per row
-Xmask = X;
-Xmask(~L) = -inf;
-
-[maxValue, maxLoc] = max(Xmask, [], dim, 'omitnan');  % values and positions (column)
-
-% 3) Rows without peaks -> NaN
-hasPeak = any(L, dim);
-maxLoc(~hasPeak) = NaN;           % column index of peak (NaN if none)
-maxValue(~hasPeak) = NaN;           % peak value (NaN if none)
 
 end

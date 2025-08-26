@@ -55,7 +55,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %     fprintf('Detected %d pulses\n', length(nD));
 %     fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 %
-%   See also LPDFILTER, PULSEDELINEATION, REFINEPEAKSINTERP, FINDPEAKS
+%   See also LPDFILTER, PULSEDELINEATION, FINDPEAKS
 %
 %   Status: Alpha
 

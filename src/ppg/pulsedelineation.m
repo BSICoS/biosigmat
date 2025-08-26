@@ -1,11 +1,12 @@
 function [nA, nB, nM] = pulsedelineation(ppg, fs, nD, varargin)
 % PULSEDELINEATION Performs pulse delineation in PPG signals using adaptive thresholding.
 %
-%   [NA, NB, NM] = PULSEDELINEATION(PPG, FS, ND) performs pulse delineation
-%   in photoplethysmographic (PPG) signals, detecting pulse features (nA, nB, nM)
-%   based on pulse detection points (nD). FS is the sampling rate in Hz (positive scalar).
-%   NA returns pulse onset locations in seconds, NB returns pulse offset locations
-%   in seconds, and NM returns pulse midpoint locations in seconds.
+%   [NA, NB, NM] = PULSEDELINEATION(PPG, FS, ND) performs pulse
+%   delineation in photoplethysmographic (PPG) signals, detecting
+%   pulse features (nA, nB, nM) based on pulse detection points (nD).
+%   FS is the sampling rate in Hz (positive scalar). NA returns pulse
+%   onset locations in seconds, NB returns pulse offset locations in
+%   seconds, and NM returns pulse midpoint locations in seconds.
 %
 %   [NA, NB, NM] = PULSEDELINEATION(..., 'Name', Value) specifies additional
 %   parameters using name-value pairs:

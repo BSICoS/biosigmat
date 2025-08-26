@@ -1,6 +1,6 @@
 # `pulsedetection`
 
-Pulse detection in LPD-filtered PPG signals using adaptive thresholding.
+Pulse detection in LPD-filtered PPG signals using configurable algorithms.
 
 ## Syntax
 
@@ -10,23 +10,24 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 
 ## Description
 
-ND = PULSEDETECTION(DPPG, FS) detects pulse peaks ND in PPG signals using an adaptive threshold algorithm. DPPG is the LPD-filtered PPG signal (column vector) and FS is the sampling rate in Hz.
+ND = PULSEDETECTION(DPPG, FS) detects pulse maximum upslopes ND in PPG derivative (DPPG) using the default adaptive threshold algorithm. DPPG is the LPD-filtered PPG signal (column vector) and FS is the sampling rate in Hz.
 
-The algorithm uses adaptive thresholding with refractory periods and beat pattern analysis to handle irregular rhythms. It processes long signals in segments for computational efficiency and includes correction mechanisms for missed or false detections based on pulse-to-pulse interval regularity.
+The function supports multiple detection algorithms and processes long signals in segments for computational efficiency. Each algorithm includes specialized mechanisms for missed or false detection correction.
 
 ND = PULSEDETECTION(..., 'Name', Value) specifies additional parameters
 using name-value pairs:
-- 'alfa'          - Multiplier for previous amplitude of detected maximum
+- 'Method'        - Detection algorithm: 'adaptive' (default)
+
+Adaptive algorithm parameters:
+- 'AdaptiveAlphaAmp'      - Multiplier for previous amplitude of detected maximum
 when updating the threshold (default: 0.2)
-- 'refractPeriod' - Refractory period for threshold in seconds
+- 'AdaptiveRefractPeriod' - Refractory period for threshold in seconds
 (default: 0.15)
-- 'tauRR'         - Fraction of estimated RR interval where threshold reaches
+- 'AdaptiveTauRR'         - Fraction of estimated RR interval where threshold reaches
 its minimum value (default: 1.0). Larger values create
 steeper threshold slopes
-- 'thrIncidences' - Threshold for detecting irregular beat patterns
-(default: 1.5)
 
-[ND, THRESHOLD] = PULSEDETECTION(...) also returns the computed time-varying THRESHOLD.
+[ND, THRESHOLD] = PULSEDETECTION(...) also returns the computed time-varying THRESHOLD for the selected algorithm.
 
 ## Source Code
 
@@ -44,12 +45,8 @@ fcLPD = 8; fpLPD = 0.9; orderLPD = 4;
 signalFiltered = filter(b, 1, ppg);
 signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
-% Detect pulses with default parameters
+% Detect pulses with default adaptive algorithm
 [nD, threshold] = pulsedetection(signalFiltered, fs);
-
-% Detect pulses with custom parameters
-[nD2, threshold2] = pulsedetection(signalFiltered, fs, ...
-   'alfa', 0.3, 'refractPeriod', 0.2, 'thrIncidences', 2.0);
 
 % Visualize results
 t = (0:length(signalFiltered)-1) / fs;
@@ -60,7 +57,7 @@ plot(t, threshold, 'r--', 'LineWidth', 1.5);
 plot(nD, signalFiltered(round(nD*fs)+1), 'go', 'MarkerSize', 8);
 xlabel('Time (s)');
 ylabel('Amplitude');
-title('PPG Pulse Detection with Adaptive Threshold');
+title('PPG Pulse Detection');
 legend('Filtered PPG', 'Threshold', 'Detected Pulses');
 
 % Calculate heart rate
@@ -81,4 +78,4 @@ fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 
 ---
 
-**Module**: [PPG](index.md) | **Last Updated**: 2025-08-08
+**Module**: [PPG](index.md) | **Last Updated**: 2025-08-26

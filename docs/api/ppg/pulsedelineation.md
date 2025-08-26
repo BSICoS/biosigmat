@@ -1,22 +1,23 @@
 # `pulsedelineation`
 
-Plethysmography signals delineation using adaptive thresholding.
+Performs pulse delineation in PPG signals using adaptive thresholding.
 
 ## Syntax
 
 ```matlab
-function [ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
+function [nA, nB, nM] = pulsedelineation(ppg, fs, nD, varargin)
 ```
 
 ## Description
 
-[ nD , nA , nB , nM , threshold ] = pulsedelineation ( signal , fs , Setup )
+[NA, NB, NM] = PULSEDELINEATION(PPG, FS, ND) performs pulse delineation in photoplethysmographic (PPG) signals, detecting pulse features (nA, nB, nM) based on pulse detection points (nD). FS is the sampling rate in Hz (positive scalar). NA returns pulse onset locations in seconds, NB returns pulse offset locations in seconds, and NM returns pulse midpoint locations in seconds.
 
-This function performs pulse delineation in PPG signals, detecting pulse features (nA, nB, nM) based on pulse detection points (nD). If nD points are not provided, they are computed using the pulsedetection function.
-
-In: signal        = Filtered LPD-filtered PPG signal fs            = sampling rate (Hz) Setup         = Structure with optional parameters: .nD         = Pre-computed pulse detection points [Default: []] .alfa       = Multiplies previous amplitude of detected maximum in filtered signal for updating the threshold [Default: 0.2] .refractPeriod = Refractory period for threshold (s) [Default: 150e-3] .tauRR      = Fraction of estimated RR where threshold reaches its minimum value (alfa*amplitude of previous SSF peak) [Default: 1]. If tauRR increases, steeper slope .thrIncidences = Threshold for incidences [Default: 1.5] .wdw_nA     = Window width for searching pulse onset [Default: 250e-3] .wdw_nB     = Window width for searching pulse offset [Default: 150e-3] .fsi        = Sampling frequency for interpolation [Default: 2*fs] .computePeakDelineation = Enable peak delineation [Default: true]
-
-Out: nD            = Location of peaks detected in filtered signal (seconds) nA            = Location of pulse onsets (seconds) nB            = Location of pulse offsets (seconds) nM            = Location of pulse midpoints (seconds) threshold     = Computed time varying threshold
+[NA, NB, NM] = PULSEDELINEATION(..., 'Name', Value) specifies additional
+parameters using name-value pairs:
+- 'WindowA'  - Window width for searching pulse onset in seconds
+(default: 250e-3)
+- 'WindowB'  - Window width for searching pulse offset in seconds
+(default: 150e-3)
 
 ## Source Code
 
@@ -25,31 +26,45 @@ Out: nD            = Location of peaks detected in filtered signal (seconds) nA 
 ## Examples
 
 ```matlab
-% LPD-filter PPG signal
-[b, delay] = lpdfilter(fs, fcLPD, 'PassFreq', fpLPD, 'Order', orderLPD);
-signalFiltered = filter(b, 1, signal);
-signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
+% Load PPG signal and apply LPD filtering
+ppgData = readtable('ppg_signals.csv');
+ppg = ppgData.sig(1:30000);
+fs = 1000;
 
-% Set up pulse delineation parameters
-Setup = struct();
-Setup.alfa = 0.2;                   % Threshold adaptation factor
-Setup.refractPeriod = 150e-3;       % Refractory period (s)
-Setup.thrIncidences = 1.5;          % Threshold for incidences
-Setup.wdw_nA = 250e-3;              % Window for onset detection (s)
-Setup.wdw_nB = 150e-3;              % Window for offset detection (s)
+% Apply LPD filter
+[b, delay] = lpdfilter(fs, 8, 'PassFreq', 7.8, 'Order', 100);
+dppg = filter(b, 1, ppg);
+dppg = [dppg(delay+1:end); zeros(delay, 1)];
 
-% Run pulse delineation on filtered signal
-[nD, nA, nB, nM, threshold] = pulsedelineation(signalFiltered, fs, Setup);
+% Compute pulse detection points
+nD = pulsedetection(dppg, fs);
 
-Status: Alpha
+% Perform pulse delineation
+[nA, nB, nM] = pulsedelineation(ppg, fs, nD);
+
+% Plot results
+t = (0:length(ppg)-1)/fs;
+figure;
+plot(t, ppg, 'k');
+hold on;
+plot(nA, ppg(1+round(nA*fs)), 'ro', 'MarkerFaceColor', 'r');
+plot(nB, ppg(1+round(nB*fs)), 'go', 'MarkerFaceColor', 'g');
+plot(nM, ppg(1+round(nM*fs)), 'bo', 'MarkerFaceColor', 'b');
+legend('PPG Signal', 'Onset (nA)', 'Offset (nB)', 'Midpoint (nM)');
+xlabel('Time (s)');
+ylabel('Amplitude');
+title('PPG Pulse Delineation');
 ```
 
 [View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m)
 
 ## See Also
 
+- PULSEDETECTION
+- LPDFILTER
+
 - [API Reference](../index.md)
 
 ---
 
-**Module**: [PPG](index.md) | **Last Updated**: 2025-08-08
+**Module**: [PPG](index.md) | **Last Updated**: 2025-08-26

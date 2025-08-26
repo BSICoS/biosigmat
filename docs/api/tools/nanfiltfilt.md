@@ -52,4 +52,4 @@ filtered = nanfiltfilt(b, a, signal, 10);
 
 ---
 
-**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-08
+**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-26

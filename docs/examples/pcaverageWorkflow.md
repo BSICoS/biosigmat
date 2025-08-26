@@ -17,4 +17,4 @@ This workflow demonstrates the peak-conditioned average processing technique app
 
 ---
 
-**Last Updated**: 2025-08-08
+**Last Updated**: 2025-08-26

@@ -17,4 +17,4 @@ title: HRV Module Overview
 
 ---
 
-**Functions**: 1 | **Examples**: 1 | **Last Updated**: 2025-08-08
+**Functions**: 1 | **Examples**: 1 | **Last Updated**: 2025-08-26

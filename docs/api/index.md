@@ -28,8 +28,8 @@ Functions for photoplethysmography signal analysis and pulse detection.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
-| [`pulsedelineation`](ppg/pulsedelineation.md) | Plethysmography signals delineation using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :material-alpha: Alpha |
-| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :material-alpha: Alpha |
+| [`pulsedelineation`](ppg/pulsedelineation.md) | Performs pulse delineation in PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :material-alpha: Alpha |
+| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using configurable algorithms. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :material-alpha: Alpha |
 
 ### [General Tools](tools/index.md)
 
@@ -87,4 +87,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2025-08-08 | Total functions: 19*
+*Last updated: 2025-08-26 | Total functions: 19*

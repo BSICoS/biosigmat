@@ -94,12 +94,12 @@ nDSamples = 1 +  round(nD * fs);
 %% nA - Pulse onset: find local max after nD within windowA
 
 % Create search matrix
-matrixA = repmat(0:round(windowA*fs), npulses , 1 ) + nDSamples;
-matrixA(matrixA < 1) = 1;
-matrixA(matrixA > ppgLength) = ppgLength;
+searchA = repmat(0:round(windowA*fs), npulses , 1 ) + nDSamples;
+searchA(searchA < 1) = 1;
+searchA(searchA > ppgLength) = ppgLength;
 
 % Find local maxima
-[~,nALocs] = findlocalmaxima(ppg(matrixA));
+[~, nALocs] = findlocalmaxima(ppg(searchA));
 nALocs = nALocs + nDSamples - 1;
 nALocs(nALocs<1 | nALocs>ppgLength) = NaN;
 
@@ -111,12 +111,12 @@ nA = nALocs;
 %% nB - Pulse offset: find min before nD within windowB
 
 % Create search matrix
-matrixB = repmat(-round(windowB*fs):0, npulses, 1 ) + nDSamples;
-matrixB(matrixB < 1) = 1;
-matrixB(matrixB > ppgLength) = ppgLength;
+searchB = repmat(-round(windowB*fs):0, npulses, 1 ) + nDSamples;
+searchB(searchB < 1) = 1;
+searchB(searchB > ppgLength) = ppgLength;
 
 % Find local minima
-[~,nBLocs] = findlocalmaxima(-ppg(matrixB));
+[~, nBLocs] = findlocalmaxima(-ppg(searchB));
 nBLocs = nBLocs + (nDSamples - round(windowB*fs)) - 1;
 nBLocs(nBLocs<1 | nBLocs>ppgLength) = NaN;
 
@@ -127,36 +127,48 @@ nB = nBLocs;
 
 %% nM - Find midpoint between nA and nB
 nM = NaN(npulses,1);
-% for kpulse = 1:npulses
-%     if (isnan(nBLocs(kpulse)) || isnan(nALocs(kpulse)))
-%         % If either position is NaN, skip this pulse
-%         continue;
-%     end
+for kpulse = 1:npulses
+    nBpulse = nBLocs(kpulse);
+    nApulse = nALocs(kpulse);
 
-%     pulseAmplitude = (ppg(nBLocs(kpulse)) + ppg(nALocs(kpulse)))/2;
-%     matrixM = nBLocs(kpulse):nALocs(kpulse);
-%     matrixM(matrixM < 1) = 1;
-%     matrixM(matrixM > ppgLength) = ppgLength;
+    if (isnan(nBpulse) || isnan(nApulse))
+        % If either position is NaN, skip this pulse
+        continue;
+    end
 
-%     [~,nMLocs] = max(-abs(ppg(matrixM) - pulseAmplitude'), [], 2);
-%     nMLocs = nMLocs + nBLocs(kpulse) - 1;
-%     nMLocs(nMLocs<1 | nMLocs>ppgLength) = NaN;
+    % Create search vector
+    searchM = nBpulse:nApulse;
+    searchM(searchM < 1) = 1;
+    searchM(searchM > ppgLength) = ppgLength;
+    pulseAmplitude = (ppg(nBpulse) + ppg(nApulse))/2;
+    pulseSegment = abs(ppg(searchM) - pulseAmplitude');
 
-%     if ~any(isnan(nMLocs)) && ~isempty(nMLocs)
-%         nM(kpulse) = t(nMLocs);
-%     end
-% end
+    % Find local maxima
+    [~, nMLoc] = max(-pulseSegment);
+    nMLoc = nMLoc + nBpulse - 1;
+    nMLoc(nMLoc<1 | nMLoc>ppgLength) = NaN;
+
+    if ~any(isnan(nMLoc)) && ~isempty(nMLoc)
+        nM(kpulse) = t(nMLoc);
+    end
+end
 
 end
 
 function [maxValue, maxLoc] = findlocalmaxima(X)
 % X: matrix MxN (each row is a signal segment)
 
+if ismatrix(X)
+    dim = 2;
+else
+    dim = 1;
+end
+
 minProm = 0; % > 0 to ignore plateaus/noise
 minSep  = 1; % minimum separation between peaks (in samples)
 
 % 1) Peak candidates per row (dim=2)
-L = islocalmax(X, 2, 'MinProminence', minProm, ...
+L = islocalmax(X, dim, 'MinProminence', minProm, ...
     'MinSeparation',  minSep, ...
     'FlatSelection', 'center');
 
@@ -164,10 +176,10 @@ L = islocalmax(X, 2, 'MinProminence', minProm, ...
 Xmask = X;
 Xmask(~L) = -inf;
 
-[maxValue, maxLoc] = max(Xmask, [], 2, 'omitnan');  % values and positions (column)
+[maxValue, maxLoc] = max(Xmask, [], dim, 'omitnan');  % values and positions (column)
 
 % 3) Rows without peaks -> NaN
-hasPeak = any(L, 2);
+hasPeak = any(L, dim);
 maxLoc(~hasPeak) = NaN;           % column index of peak (NaN if none)
 maxValue(~hasPeak) = NaN;           % peak value (NaN if none)
 

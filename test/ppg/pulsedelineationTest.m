@@ -48,7 +48,7 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             % Expected values
             expectedNA = [0.5805; 1.3400; 2.0684; 2.7887; 3.4662];
             expectedNB = [0.4321; 1.1918; 1.9361; 2.6565; 3.3312];
-            expectedNM = [0.4440; 1.2025; 1.9485; 3.3395; 3.9660];
+            expectedNM = [0.4850; 1.2430; 1.9880; 2.7070; 3.3790];
 
             % Verify outputs are the correct size and type
             tc.verifyClass(nA, 'double', 'nA should be double array');

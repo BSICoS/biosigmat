@@ -12,8 +12,6 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %   ND = PULSEDETECTION(..., 'Name', Value) specifies additional parameters
 %   using name-value pairs:
 %     'Method'        - Detection algorithm: 'adaptive' (default)
-%     'FsInterp'      - Interpolation sampling frequency for peak refinement in Hz
-%                       (default: 2000)
 %
 %   Adaptive algorithm parameters:
 %     'AdaptiveAlphaAmp'      - Multiplier for previous amplitude of detected maximum
@@ -72,7 +70,6 @@ parser.FunctionName = 'pulsedetection';
 addRequired(parser, 'dppg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'Method', 'adaptive', @(x) ismember(lower(x), {'adaptive'}));
-addParameter(parser, 'FsInterp', 2000, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
 % TODO: Add future methods
 
@@ -88,7 +85,6 @@ parse(parser, dppg, fs, varargin{:});
 dppg = parser.Results.dppg;
 fs = parser.Results.fs;
 method = lower(parser.Results.Method);
-fsInterp = parser.Results.FsInterp;
 
 % Extract algorithm-specific parameters
 algorithmParams = extractAlgorithmParams(parser.Results, method);
@@ -130,7 +126,7 @@ for iSegments = 1:nSegments
         segment = segments;
     end
 
-    time = (0:length(segment)-1)/fs;
+    tSegment = (0:length(segment)-1)/fs;
 
     % Detect peaks in the LPD signal using the selected algorithm
     [nDSegment, thresholdSegment] = detectionAlgorithm(segment(:), fs, method, algorithmParams);
@@ -140,18 +136,18 @@ for iSegments = 1:nSegments
         if iSegments == 1
             % Remove the last tAdd seconds
             nDSegment = nDSegment(nDSegment <= segmentLength);
-            thresholdSegment = thresholdSegment(time*fs < segmentLength);
+            thresholdSegment = thresholdSegment(tSegment*fs < segmentLength);
         elseif iSegments == nSegments
             % Remove the first tAdd seconds
             nDSegment = nDSegment(nDSegment > tAdd) - (tAdd);
-            thresholdSegment = thresholdSegment(time*fs >= tAdd);
+            thresholdSegment = thresholdSegment(tSegment*fs >= tAdd);
         else
             % Remove the first and last tAdd seconds
             nDSegment = nDSegment(nDSegment >= tAdd) - tAdd;
             nDSegment = nDSegment(nDSegment < segmentLength);
 
-            thresholdSegment = thresholdSegment(time*fs >= tAdd);
-            thresholdSegment = thresholdSegment(time*fs < segmentLength);
+            thresholdSegment = thresholdSegment(tSegment*fs >= tAdd);
+            thresholdSegment = thresholdSegment(tSegment*fs < segmentLength);
         end
     end
 
@@ -161,23 +157,15 @@ for iSegments = 1:nSegments
 
 end
 
-% Remove duplicates and refine nD positions using interpolation for improved precision
+% Remove NaNs from threshold
+threshold(signalLength+1:end) = [];
+
+% Remove duplicates and refine nD positions
 nD = unique(nD);
 if ~isempty(nD)
-    % Convert indices back to time positions for refinement
-    nDTimePositions = (nD - 1) / fs;
-
-    % Refine positions using high-resolution interpolation
-    refinedPositions = refinepeaksInterp(dppg, fs, nDTimePositions, ...
-        'FsInterp', fsInterp, 'WindowWidth', 0.030);
-
-    % Convert refined positions back to sample indices
-    nD = 1 + round(refinedPositions * fs);
+    t = (0:length(dppg)-1)/fs;
+    [~, nD] = refinepeaks(dppg, nD, t, Method="NLS");
 end
-
-% Arrange Outputs (nD in seconds and NaNs removed from threshold)
-nD = (nD-1)/fs;
-threshold(signalLength+1:end) = [];
 
 end
 

@@ -1,14 +1,14 @@
-function refinedPositions = refinePeakPositions(signal, fs, candidatePositions, varargin)
-% REFINEPEAKPOSITIONS Refines peak positions using high-resolution interpolation.
+function refined = refinepeaks(signal, fs, candidates, varargin)
+% REFINEPEAKS Refines peak positions using high-resolution interpolation.
 %
-%   REFINEDPOSITIONS = REFINEPEAKPOSITIONS(SIGNAL, FS, CANDIDATEPOSITIONS)
-%   refines the positions of peaks in CANDIDATEPOSITIONS (in seconds) by
+%   REFINED = REFINEPEAKS(SIGNAL, FS, CANDIDATES)
+%   refines the positions of peaks in CANDIDATES (in seconds) by
 %   interpolating SIGNAL at a higher sampling rate and searching for local
 %   maxima within a refinement window. SIGNAL is the input signal (numeric vector),
-%   FS is the sampling rate in Hz (positive scalar), and CANDIDATEPOSITIONS
+%   FS is the sampling rate in Hz (positive scalar), and CANDIDATES
 %   contains the initial peak positions in seconds (numeric vector).
 %
-%   REFINEDPOSITIONS = REFINEPEAKPOSITIONS(..., 'Name', Value) specifies
+%   REFINED = REFINEPEAKS(..., 'Name', Value) specifies
 %   additional parameters using name-value pairs:
 %     'FsInterp'        - Interpolation sampling frequency in Hz (default: 1000)
 %     'WindowWidth'     - Refinement window width in seconds (default: 0.030)
@@ -21,21 +21,21 @@ function refinedPositions = refinePeakPositions(signal, fs, candidatePositions, 
 %
 %     % Initial coarse peak detection
 %     [~, peaks] = findpeaks(signal);
-%     candidatePositions = (peaks - 1) / fs;
+%     candidates = (peaks - 1) / fs;
 %
 %     % Refine positions using interpolation
-%     refinedPositions = refinePeakPositions(signal, fs, candidatePositions);
+%     refined = refinepeaks(signal, fs, candidates);
 %
 %     % Refine with custom interpolation frequency
-%     refinedPositions2 = refinePeakPositions(signal, fs, candidatePositions, ...
+%     refined2 = refinepeaks(signal, fs, candidates, ...
 %         'FsInterp', 2000, 'WindowWidth', 0.050);
 %
 %     % Plot results
 %     figure;
 %     plot(t, signal, 'b');
 %     hold on;
-%     plot(candidatePositions, signal(peaks), 'ro', 'MarkerSize', 8);
-%     plot(refinedPositions, interp1(t, signal, refinedPositions), 'g^', 'MarkerSize', 8);
+%     plot(candidates, signal(peaks), 'ro', 'MarkerSize', 8);
+%     plot(refined, interp1(t, signal, refined), 'g^', 'MarkerSize', 8);
 %     legend('Signal', 'Original Peaks', 'Refined Peaks');
 %
 %   See also INTERP1, FINDPEAKS
@@ -46,18 +46,18 @@ nargoutchk(0, 1);
 
 % Parse and validate inputs
 parser = inputParser;
-parser.FunctionName = 'refinePeakPositions';
+parser.FunctionName = 'refinepeaks';
 addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addRequired(parser, 'candidatePositions', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
+addRequired(parser, 'candidates', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
 addParameter(parser, 'FsInterp', 1000, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'WindowWidth', 0.030, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
-parse(parser, signal, fs, candidatePositions, varargin{:});
+parse(parser, signal, fs, candidates, varargin{:});
 
 signal = parser.Results.signal;
 fs = parser.Results.fs;
-candidatePositions = parser.Results.candidatePositions;
+candidates = parser.Results.candidates;
 fsInterp = parser.Results.FsInterp;
 windowWidth = parser.Results.WindowWidth;
 
@@ -65,15 +65,15 @@ windowWidth = parser.Results.WindowWidth;
 signal = signal(:);
 
 % Handle empty input
-if isempty(candidatePositions)
-    refinedPositions = [];
+if isempty(candidates)
+    refined = [];
     return;
 end
 
 % Remove NaN values
-candidatePositions = candidatePositions(~isnan(candidatePositions));
-if isempty(candidatePositions)
-    refinedPositions = [];
+candidates = candidates(~isnan(candidates));
+if isempty(candidates)
+    refined = [];
     return;
 end
 
@@ -86,14 +86,14 @@ tInterp = (0:((length(signal)*fsInterp/fs)-1)) / fsInterp;
 signalInterp = interp1(t, signal, tInterp, 'spline');
 
 % Convert candidate positions to interpolated indices
-candidateIndices = 1 + round(candidatePositions * fsInterp);
-refinedPositions = nan(size(candidatePositions));
+candidateIndices = 1 + round(candidates * fsInterp);
+refined = nan(size(candidates));
 
 % Refine each candidate position
-for ii = 1:length(candidateIndices)
+for candidateIndex = 1:length(candidateIndices)
     % Define search window
-    searchStart = max(1, candidateIndices(ii) - windowSamples);
-    searchEnd = min(length(signalInterp), candidateIndices(ii) + windowSamples);
+    searchStart = max(1, candidateIndices(candidateIndex) - windowSamples);
+    searchEnd = min(length(signalInterp), candidateIndices(candidateIndex) + windowSamples);
     searchIndices = searchStart:searchEnd;
 
     % Find local extremum within the window
@@ -102,10 +102,10 @@ for ii = 1:length(candidateIndices)
 
     % Validate refined index and convert back to time
     if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
-        refinedPositions(ii) = tInterp(refinedIdx);
+        refined(candidateIndex) = tInterp(refinedIdx);
     else
         % Fallback to original position if refinement fails
-        refinedPositions(ii) = candidatePositions(ii);
+        refined(candidateIndex) = candidates(candidateIndex);
     end
 end
 

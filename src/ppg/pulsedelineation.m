@@ -48,7 +48,7 @@ function [nA, nB, nM] = pulsedelineation(dppg, fs, nD, varargin)
 %     ylabel('Amplitude');
 %     title('PPG Pulse Delineation');
 %
-%   See also PULSEDETECTION, LPDFILTER, REFINEPEAKPOSITIONS
+%   See also PULSEDETECTION, LPDFILTER, REFINEPEAKS
 %
 %   Status: Alpha
 
@@ -106,11 +106,11 @@ t = (0:length(dppg)-1) / fs;
 tInterp = (0:((length(dppg)*fsInterp/fs)-1)) / fsInterp;
 signalInterp = interp1(t, dppg, tInterp, 'spline');
 
-% nA - Find maximum after nD within window using refinePeakPositions
-nA = refinePeakPositions(dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', windowA);
+% nA - Find maximum after nD within window using refinepeaks
+nA = refinepeaks(dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', windowA);
 
-% nB - Find minimum before nD within window using refinePeakPositions with inverted signal
-nB = refinePeakPositions(-dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', windowB);
+% nB - Find minimum before nD within window using refinepeaks with inverted signal
+nB = refinepeaks(-dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', windowB);
 
 % nM - Find midpoint between nA and nB
 nM = NaN(length(nDClean), 1);

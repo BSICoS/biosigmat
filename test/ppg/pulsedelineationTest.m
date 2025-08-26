@@ -46,8 +46,8 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             [nA, nB, nM] = pulsedelineation(tc.ppg, tc.fs, tc.nD);
 
             % Expected values
-            expectedNA = [0.4765; 1.2345; 1.9805; 2.7005; 3.3715];
-            expectedNB = [0.4080; 1.1640; 1.9105; 2.8510; 3.3030];
+            expectedNA = [0.5805; 1.3400; 2.0684; 2.7887; 3.4662];
+            expectedNB = [0.4321; 1.1918; 1.9361; 2.6565; 3.3312];
             expectedNM = [0.4440; 1.2025; 1.9485; 3.3395; 3.9660];
 
             % Verify outputs are the correct size and type

@@ -84,17 +84,9 @@ end
 % Ensure signal is a column vector
 dppg = dppg(:);
 
-% Check if nD is empty
+% Handle empty input
+nD = nD(~isnan(nD(:)));
 if isempty(nD)
-    nA = NaN;
-    nB = NaN;
-    nM = NaN;
-    return;
-end
-
-% Remove NaN values from nD
-nDClean = nD(~isnan(nD(:)));
-if isempty(nDClean)
     nA = NaN;
     nB = NaN;
     nM = NaN;
@@ -107,14 +99,14 @@ tInterp = (0:((length(dppg)*fsInterp/fs)-1)) / fsInterp;
 signalInterp = interp1(t, dppg, tInterp, 'spline');
 
 % nA - Find maximum after nD within window using refinepeaks
-nA = refinepeaks(dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', windowA);
+nA = refinepeaks(dppg, fs, nD, 'FsInterp', fsInterp, 'WindowWidth', windowA);
 
 % nB - Find minimum before nD within window using refinepeaks with inverted signal
-nB = refinepeaks(-dppg, fs, nDClean, 'FsInterp', fsInterp, 'WindowWidth', windowB);
+nB = refinepeaks(-dppg, fs, nD, 'FsInterp', fsInterp, 'WindowWidth', windowB);
 
 % nM - Find midpoint between nA and nB
-nM = NaN(length(nDClean), 1);
-for ii = 1:length(nDClean)
+nM = NaN(length(nD), 1);
+for ii = 1:length(nD)
     % Get corresponding interpolated indices for nA and nB
     if isnan(nA(ii)) || isnan(nB(ii))
         continue;

@@ -65,12 +65,6 @@ windowWidth = parser.Results.WindowWidth;
 signal = signal(:);
 
 % Handle empty input
-if isempty(candidates)
-    refined = [];
-    return;
-end
-
-% Remove NaN values
 candidates = candidates(~isnan(candidates));
 if isempty(candidates)
     refined = [];

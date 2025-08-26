@@ -79,11 +79,13 @@ end
 
 % Calculate interpolation parameters
 windowSamples = round(windowWidth * fsInterp);
+signalLength = length(signal);
+t = (0:signalLength-1) / fs;
+tInterp = (0:((signalLength * fsInterp / fs)-1)) / fsInterp;
 
 % Interpolate
-t = (0:length(signal)-1) / fs;
-tInterp = (0:((length(signal)*fsInterp/fs)-1)) / fsInterp;
 signalInterp = interp1(t, signal, tInterp, 'spline');
+signalInterpLength = length(signalInterp);
 
 % Convert candidate positions to interpolated indices
 candidateIndices = 1 + round(candidates * fsInterp);
@@ -93,16 +95,16 @@ refined = nan(size(candidates));
 for candidateIndex = 1:length(candidateIndices)
     % Define search window
     searchStart = max(1, candidateIndices(candidateIndex) - windowSamples);
-    searchEnd = min(length(signalInterp), candidateIndices(candidateIndex) + windowSamples);
+    searchEnd = min(signalInterpLength, candidateIndices(candidateIndex) + windowSamples);
     searchIndices = searchStart:searchEnd;
 
-    % Find local extremum within the window
-    [~, localExtremumIdx] = max(signalInterp(searchIndices));
-    refinedIdx = searchStart + localExtremumIdx - 1;
+    % Find local maximum within the window
+    [~, maxIndex] = max(signalInterp(searchIndices));
+    refinedIndex = searchStart + maxIndex - 1;
 
     % Validate refined index and convert back to time
-    if refinedIdx >= 1 && refinedIdx <= length(signalInterp)
-        refined(candidateIndex) = tInterp(refinedIdx);
+    if refinedIndex >= 1 && refinedIndex <= signalInterpLength
+        refined(candidateIndex) = tInterp(refinedIndex);
     else
         % Fallback to original position if refinement fails
         refined(candidateIndex) = candidates(candidateIndex);

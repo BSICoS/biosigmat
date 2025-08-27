@@ -57,7 +57,7 @@ function [nD, threshold] = pulsedetection(dppg, fs, varargin)
 %
 %   See also LPDFILTER, PULSEDELINEATION, FINDPEAKS
 %
-%   Status: Alpha
+%   Status: Beta
 
 
 % Check number of input and output arguments
@@ -102,63 +102,10 @@ else
 end
 
 nSegments = size(segments, 2);
-nD = [];
-threshold = [];
 tAdd = 5*fs;
 
-% Go through each segment
-for iSegments = 1:nSegments
-    % Make the segments tAdd seconds longer on each side
-    if nSegments > 1
-        if iSegments == 1
-            % End the segment tAdd seconds later
-            segment = [segments(:, 1); segments(1:tAdd, 2)];
-        elseif iSegments == nSegments
-            % Start the segment tAdd seconds earlier
-            segment = [segments(end-(tAdd)+1:end, end-1); segments(:, end)];
-        else
-            % Start the segment tAdd seconds earlier and end tAdd seconds later
-            segment = [segments(end-(tAdd)+1:end, iSegments-1);...
-                segments(:, iSegments); segments(1:tAdd, iSegments+1)];
-        end
-    else
-        % Take the whole segment
-        segment = segments;
-    end
-
-    tSegment = (0:length(segment)-1)/fs;
-
-    % Detect peaks in the LPD signal using the selected algorithm
-    [nDSegment, thresholdSegment] = detectionAlgorithm(segment(:), fs, method, algorithmParams);
-
-    % Remove added signal on both sides
-    if nSegments > 1
-        if iSegments == 1
-            % Remove the last tAdd seconds
-            nDSegment = nDSegment(nDSegment <= segmentLength);
-            thresholdSegment = thresholdSegment(tSegment*fs < segmentLength);
-        elseif iSegments == nSegments
-            % Remove the first tAdd seconds
-            nDSegment = nDSegment(nDSegment > tAdd) - (tAdd);
-            thresholdSegment = thresholdSegment(tSegment*fs >= tAdd);
-        else
-            % Remove the first and last tAdd seconds
-            nDSegment = nDSegment(nDSegment >= tAdd) - tAdd;
-            nDSegment = nDSegment(nDSegment < segmentLength);
-
-            thresholdSegment = thresholdSegment(tSegment*fs >= tAdd);
-            thresholdSegment = thresholdSegment(tSegment*fs < segmentLength);
-        end
-    end
-
-    % Store the signals
-    nD = [nD; nDSegment(:) + segmentLength*(iSegments-1)]; %#ok<*AGROW>
-    threshold = [threshold; thresholdSegment(:)];
-
-end
-
-% Remove NaNs from threshold
-threshold(signalLength+1:end) = [];
+% Process all segments
+[nD, threshold] = processSegments(segments, nSegments, segmentLength, tAdd, fs, method, algorithmParams);
 
 % Remove duplicates and refine nD positions
 nD = unique(nD);
@@ -167,8 +114,12 @@ if ~isempty(nD)
     [~, nD] = refinepeaks(dppg, nD, t, Method="NLS");
 end
 
+% Remove NaNs from threshold
+threshold(signalLength+1:end) = [];
 end
 
+
+%% EXTRACTALGORITHMPARAMS
 function params = extractAlgorithmParams(allParams, method)
 % EXTRACTALGORITHMPARAMS Extract algorithm-specific parameters from parsed inputs.
 %
@@ -188,6 +139,69 @@ switch method
 end
 end
 
+
+%% PROCESSSEGMENTS
+function [nD, threshold] = processSegments(segments, nSegments, segmentLength, tAdd, fs, method, algorithmParams)
+% PROCESSSEGMENTS Process signal segments with boundary handling for pulse detection
+%
+%   [ND, THRESHOLD] = PROCESSSEGMENTS(SEGMENTS, NSEGMENTS, SEGMENTLENGTH, TADD, FS, METHOD, ALGORITHMPARAMS)
+%   processes each segment with boundary extensions to minimize edge effects,
+%   applies the detection algorithm, and combines results while removing overlaps.
+
+nD = [];
+threshold = [];
+
+for iSegments = 1:nSegments
+    % Get extended segment
+    segment = getExtendedSegment(segments, iSegments, nSegments, tAdd);
+
+    % Create time vector for the segment
+    tSegment = (0:length(segment)-1)/fs;
+
+    % Detect peaks in the LPD signal using the selected algorithm
+    [nDSegment, thresholdSegment] = detectionAlgorithm(segment(:), fs, method, algorithmParams);
+
+    % Trim results to original segment boundaries
+    [nDSegment, thresholdSegment] = trimToOriginalBoundaries(nDSegment, thresholdSegment, ...
+        tSegment, fs, iSegments, nSegments, tAdd, segmentLength);
+
+    % Accumulate results with proper indexing
+    nD = [nD; nDSegment(:) + segmentLength*(iSegments-1)]; %#ok<*AGROW>
+    threshold = [threshold; thresholdSegment(:)];
+end
+end
+
+
+%% GETEXTENDEDSEGMENT
+function segment = getExtendedSegment(segments, iSegments, nSegments, tAdd)
+% GETEXTENDEDSEGMENT Get segment extended with boundary samples
+%
+%   SEGMENT = GETEXTENDEDSEGMENT(SEGMENTS, ISEGMENTS, NSEGMENTS, TADD)
+%   returns a segment extended with TADD samples from adjacent segments
+%   to reduce boundary artifacts during processing.
+
+if nSegments == 1
+    segment = segments;
+    return;
+end
+
+switch iSegments
+    case 1
+        % First segment: extend end only
+        segment = [segments(:, 1); segments(1:tAdd, 2)];
+    case nSegments
+        % Last segment: extend beginning only
+        segment = [segments(end-(tAdd)+1:end, end-1); segments(:, end)];
+    otherwise
+        % Middle segment: extend both ends
+        segment = [segments(end-(tAdd)+1:end, iSegments-1);...
+            segments(:, iSegments);
+            segments(1:tAdd, iSegments+1)];
+end
+end
+
+
+%% DETECTIONALGORITHM
 function [nD, threshold] = detectionAlgorithm(signal, fs, method, params)
 % DETECTPULSESALGORITHM Dispatch function for pulse detection algorithms.
 %
@@ -202,5 +216,37 @@ switch method
 
     otherwise
         error('pulsedetection:unknownMethod', 'Unknown detection method: %s', method);
+end
+end
+
+
+%% TRIMTOORIGINALBOUNDARIES
+function [nDSegment, thresholdSegment] = trimToOriginalBoundaries(nDSegment, thresholdSegment, ...
+    tSegment, fs, iSegments, nSegments, tAdd, segmentLength)
+% TRIMTOORIGINALBOUNDARIES Remove boundary extensions from processing results
+%
+%   [NDSEGMENT, THRESHOLDSEGMENT] = TRIMTOORIGINALBOUNDARIES(...)
+%   removes the boundary extensions that were added for processing,
+%   returning results that correspond to the original segment boundaries.
+
+if nSegments == 1
+    return; % No trimming needed for single segment
+end
+
+switch iSegments
+    case 1
+        % First segment: remove end extension
+        nDSegment = nDSegment(nDSegment <= segmentLength);
+        thresholdSegment = thresholdSegment(tSegment*fs < segmentLength);
+    case nSegments
+        % Last segment: remove beginning extension
+        nDSegment = nDSegment(nDSegment > tAdd) - tAdd;
+        thresholdSegment = thresholdSegment(tSegment*fs >= tAdd);
+    otherwise
+        % Middle segment: remove both extensions
+        nDSegment = nDSegment(nDSegment >= tAdd & nDSegment < segmentLength + tAdd) - tAdd;
+
+        validTime = tSegment*fs >= tAdd & tSegment*fs < segmentLength + tAdd;
+        thresholdSegment = thresholdSegment(validTime);
 end
 end

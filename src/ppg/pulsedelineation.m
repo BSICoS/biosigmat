@@ -102,6 +102,7 @@ nM = findMidpoints(ppg, nASamples, nBSamples, t);
 
 end
 
+%% FINDEXTREMA
 function [extremaSamples, extremaTimes] = findExtrema(ppg, nDSamples, window, fs, t, extremaType)
 % FINDEXTREMA Helper function to find local extrema (maxima or minima) in PPG signal
 %
@@ -155,6 +156,7 @@ if any(validIdx)
 end
 end
 
+%% FINDMIDPOINTS
 function midpointTimes = findMidpoints(ppg, nASamples, nBSamples, t)
 % FINDMIDPOINTS Helper function to find pulse midpoints between onset and offset
 %
@@ -191,10 +193,16 @@ for i = 1:length(validIndices)
     pulseSegment = abs(ppg(searchM) - pulseAmplitude);
     [~, minIdx] = min(pulseSegment);
 
-    % Convert back to global index and time
+    % Convert back to global index
     globalIdx = searchM(minIdx);
     if globalIdx >= 1 && globalIdx <= ppgLength
-        midpointTimes(kpulse) = t(globalIdx);
+        % Use refinepeaks for more precise localization
+        % Create time vector for the pulse segment
+        segmentTime = t(searchM);
+
+        % Use refinepeaks on the inverted signal (to find minimum as maximum)
+        [~, refinedTime] = refinepeaks(-pulseSegment, minIdx, segmentTime);
+        midpointTimes(kpulse) = refinedTime;
     end
 end
 end

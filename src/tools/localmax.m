@@ -1,5 +1,10 @@
-function [maxValue, maxLoc] = localmax(X, dim, varargin)
+function [maxValue, maxLoc] = localmax(X, varargin)
 % LOCALMAX Finds local maxima in matrix rows or columns.
+%
+%   MAXVALUE = LOCALMAX(X) finds the location and value of the most
+%   prominent local maximum along the first non-singleton dimension of matrix X.
+%   Returns MAXVALUE containing the max values. For rows/columns without
+%   maxima, returns NaN.
 %
 %   MAXVALUE = LOCALMAX(X, DIM) finds the location and value of the
 %   most prominent local maximum along dimension DIM of matrix X. DIM specifies
@@ -8,6 +13,9 @@ function [maxValue, maxLoc] = localmax(X, dim, varargin)
 %   maxima, returns NaN.
 %
 %   MAXVALUE = LOCALMAX(X, DIM, 'Name', Value) specifies additional
+%   parameters using name-value pairs:
+%
+%   MAXVALUE = LOCALMAX(X, 'Name', Value) specifies additional
 %   parameters using name-value pairs:
 %     'MinProminence' - Minimum prominence required for max detection
 %                       (default: 0)
@@ -24,16 +32,19 @@ function [maxValue, maxLoc] = localmax(X, dim, varargin)
 %     signal2 = cos(3*pi*t) + 0.3*randn(size(t));
 %     X = [signal1; signal2];
 %
-%     % Find local maxima along rows (dim=2)
-%     [maxValue, maxLoc] = localmax(X, 2);
+%     % Find local maxima using automatic dimension detection
+%     [maxValue, maxLoc] = localmax(X);
+%
+%     % Find local maxima along rows (dim=2) explicitly
+%     [maxValue2, maxLoc2] = localmax(X, 2);
 %
 %     % Plot results
 %     figure;
 %     subplot(2,1,1);
-%     plot(t, signal1, 'b-', t(maxLoc(1)), maxValue(1), 'ro', 'MarkerFaceColor', 'r');
+%     plot(t, signal1, 'b-', t(maxLoc2(1)), maxValue2(1), 'ro', 'MarkerFaceColor', 'r');
 %     title('Signal 1 with Local Maximum');
 %     subplot(2,1,2);
-%     plot(t, signal2, 'g-', t(maxLoc(2)), maxValue(2), 'ro', 'MarkerFaceColor', 'r');
+%     plot(t, signal2, 'g-', t(maxLoc2(2)), maxValue2(2), 'ro', 'MarkerFaceColor', 'r');
 %     title('Signal 2 with Local Maximum');
 %
 %   See also ISLOCALMAX, MAX, FINDPEAKS
@@ -42,23 +53,32 @@ function [maxValue, maxLoc] = localmax(X, dim, varargin)
 
 
 % Check number of input and output arguments
-narginchk(2, 6);
+narginchk(1, 5);
 nargoutchk(0, 2);
 
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'localmax';
 addRequired(parser, 'X', @(x) isnumeric(x) && ~isempty(x));
-addRequired(parser, 'dim', @(x) isnumeric(x) && isscalar(x) && (x == 1 || x == 2));
+addOptional(parser, 'dim', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && (x == 1 || x == 2)));
 addParameter(parser, 'MinProminence', 0, @(x) isnumeric(x) && isscalar(x) && x >= 0);
 addParameter(parser, 'MinSeparation', 1, @(x) isnumeric(x) && isscalar(x) && x >= 1);
 
-parse(parser, X, dim, varargin{:});
+parse(parser, X, varargin{:});
 
 X = parser.Results.X;
 dim = parser.Results.dim;
 minProm = parser.Results.MinProminence;
 minSep = parser.Results.MinSeparation;
+
+% If dim is not specified, find first non-singleton dimension
+if isempty(dim)
+    sz = size(X);
+    dim = find(sz > 1, 1);
+    if isempty(dim)
+        dim = 1; % If all dimensions are singleton, default to 1
+    end
+end
 
 % Peak candidates per specified dimension
 L = islocalmax(X, dim, 'MinProminence', minProm, ...

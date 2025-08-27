@@ -92,46 +92,14 @@ t = (0:ppgLength-1) / fs;
 % Convert nD to sample indices
 nDSamples = 1 +  round(nD * fs);
 
-% Initialize outputs
-nA = NaN(npulses,1);
-nB = NaN(npulses,1);
+% nA - Find local max after nD within windowA
+[nALocs, nA] = findExtrema(ppg, nDSamples, windowA, fs, t, 'max');
+
+% nB - Find local min before nD within windowB
+[nBLocs, nB] = findExtrema(ppg, nDSamples, windowB, fs, t, 'min');
+
+% nM - Find midpoint between nA and nB
 nM = NaN(npulses,1);
-
-
-%% nA - Pulse onset: find local max after nD within windowA
-
-% Create search matrix
-searchA = repmat(0:round(windowA*fs), npulses , 1 ) + nDSamples;
-searchA(searchA < 1) = 1;
-searchA(searchA > ppgLength) = ppgLength;
-
-% Find local maxima
-[~, nALocs] = localmax(ppg(searchA), 2);
-nALocs = nALocs + nDSamples - 1;
-nALocs(nALocs<1 | nALocs>ppgLength) = NaN;
-
-% Refine maxima
-[~, nA(~isnan(nALocs))] = refinepeaks(ppg, nALocs(~isnan(nALocs)), t);
-
-
-%% nB - Pulse offset: find min before nD within windowB
-
-% Create search matrix
-searchB = repmat(-round(windowB*fs):0, npulses, 1 ) + nDSamples;
-searchB(searchB < 1) = 1;
-searchB(searchB > ppgLength) = ppgLength;
-
-% Find local minima
-[~, nBLocs] = localmax(-ppg(searchB), 2);
-nBLocs = nBLocs + (nDSamples - round(windowB*fs)) - 1;
-nBLocs(nBLocs<1 | nBLocs>ppgLength) = NaN;
-
-% Refine minima
-[~, nB(~isnan(nBLocs))] = refinepeaks(-ppg, nBLocs(~isnan(nBLocs)), t);
-
-
-%% nM - Find midpoint between nA and nB
-
 for kpulse = 1:npulses
     nBpulse = nBLocs(kpulse);
     nApulse = nALocs(kpulse);
@@ -160,4 +128,58 @@ for kpulse = 1:npulses
     end
 end
 
+end
+
+function [extremaLocs, extremaTimes] = findExtrema(ppg, nDSamples, window, fs, t, extremaType)
+% FINDEXTREMA Helper function to find local extrema (maxima or minima) in PPG signal
+%
+%   [EXTREMALOCS, EXTREMATIMES] = FINDEXTREMA(PPG, NDSAMPLES, WINDOW, FS, T, EXTREMATYPE)
+%   finds local extrema in the PPG signal within specified search windows.
+%   EXTREMATYPE can be 'max' for maxima or 'min' for minima.
+
+npulses = length(nDSamples);
+ppgLength = length(ppg);
+
+% Initialize outputs
+extremaTimes = NaN(npulses, 1);
+
+% Create search matrix
+if strcmp(extremaType, 'max')
+    % Search forward from nD (for nA)
+    searchMatrix = repmat(0:round(window*fs), npulses, 1) + nDSamples;
+    searchSignal = ppg;
+    offset = 0;
+else % 'min'
+    % Search backward from nD (for nB)
+    offset = -round(window*fs);
+    searchMatrix = repmat(offset:0, npulses, 1) + nDSamples;
+    searchSignal = -ppg;
+end
+
+% Clamp search indices to valid range
+searchMatrix(searchMatrix < 1) = 1;
+searchMatrix(searchMatrix > ppgLength) = ppgLength;
+
+% Find local extrema
+[~, locs] = localmax(searchSignal(searchMatrix), 2);
+
+% Adjust locations based on search type
+if strcmp(extremaType, 'max')
+    extremaLocs = locs + nDSamples - 1;
+else % 'min'
+    extremaLocs = locs + (nDSamples + offset) - 1;
+end
+
+% Clamp to valid range
+extremaLocs(extremaLocs < 1 | extremaLocs > ppgLength) = NaN;
+
+% Refine extrema positions
+validIdx = ~isnan(extremaLocs);
+if any(validIdx)
+    if strcmp(extremaType, 'max')
+        [~, extremaTimes(validIdx)] = refinepeaks(ppg, extremaLocs(validIdx), t);
+    else % 'min'
+        [~, extremaTimes(validIdx)] = refinepeaks(-ppg, extremaLocs(validIdx), t);
+    end
+end
 end

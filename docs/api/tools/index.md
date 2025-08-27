@@ -8,6 +8,7 @@ title: TOOLS Module Overview
 - [`findsequences`](findsequences.md)
 - [`interpgap`](interpgap.md)
 - [`ispeaky`](ispeaky.md)
+- [`localmax`](localmax.md)
 - [`lpdfilter`](lpdfilter.md)
 - [`medfiltThreshold`](medfiltThreshold.md)
 - [`nanfilter`](nanfilter.md)
@@ -25,4 +26,4 @@ title: TOOLS Module Overview
 
 ---
 
-**Functions**: 13 | **Last Updated**: 2025-08-26
+**Functions**: 14 | **Last Updated**: 2025-08-27

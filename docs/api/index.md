@@ -28,8 +28,8 @@ Functions for photoplethysmography signal analysis and pulse detection.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
-| [`pulsedelineation`](ppg/pulsedelineation.md) | Performs pulse delineation in PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :material-alpha: Alpha |
-| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using configurable algorithms. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :material-alpha: Alpha |
+| [`pulsedelineation`](ppg/pulsedelineation.md) | Performs pulse delineation in PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :material-beta: Beta |
+| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using configurable algorithms. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :material-beta: Beta |
 
 ### [General Tools](tools/index.md)
 
@@ -40,6 +40,7 @@ Utility functions for signal processing and data manipulation.
 | [`findsequences`](tools/findsequences.md) | Find sequences of repeated (adjacent/consecutive) numeric values. | :white_check_mark: Stable |
 | [`interpgap`](tools/interpgap.md) | Interpolate small NaN gaps in a signal. | :white_check_mark: Stable |
 | [`ispeaky`](tools/ispeaky.md) | Determines if spectra are considered peaky based on peakedness thresholds. | :white_check_mark: Stable |
+| [`localmax`](tools/localmax.md) | Finds local maxima in matrix rows or columns. | :material-beta: Beta |
 | [`lpdfilter`](tools/lpdfilter.md) | Low-pass derivative filter. | :white_check_mark: Stable |
 | [`medfiltThreshold`](tools/medfiltThreshold.md) | Compute median-filtered adaptive threshold. | :white_check_mark: Stable |
 | [`nanfilter`](tools/nanfilter.md) | Implements filter function with support for NaN values. | :white_check_mark: Stable |
@@ -61,6 +62,7 @@ All functions sorted alphabetically:
 - [`findsequences`](tools/findsequences.md)
 - [`interpgap`](tools/interpgap.md)
 - [`ispeaky`](tools/ispeaky.md)
+- [`localmax`](tools/localmax.md)
 - [`lpdfilter`](tools/lpdfilter.md)
 - [`medfiltThreshold`](tools/medfiltThreshold.md)
 - [`nanfilter`](tools/nanfilter.md)
@@ -87,4 +89,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2025-08-26 | Total functions: 19*
+*Last updated: 2025-08-27 | Total functions: 20*

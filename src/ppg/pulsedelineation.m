@@ -92,6 +92,12 @@ t = (0:ppgLength-1) / fs;
 % Convert nD to sample indices
 nDSamples = 1 +  round(nD * fs);
 
+% Initialize outputs
+nA = NaN(npulses,1);
+nB = NaN(npulses,1);
+nM = NaN(npulses,1);
+
+
 %% nA - Pulse onset: find local max after nD within windowA
 
 % Create search matrix
@@ -105,8 +111,7 @@ nALocs = nALocs + nDSamples - 1;
 nALocs(nALocs<1 | nALocs>ppgLength) = NaN;
 
 % Refine maxima
-nA = nALocs;
-[~, nA(~isnan(nA))] = refinepeaks(ppg, nALocs(~isnan(nALocs)), t);
+[~, nA(~isnan(nALocs))] = refinepeaks(ppg, nALocs(~isnan(nALocs)), t);
 
 
 %% nB - Pulse offset: find min before nD within windowB
@@ -122,12 +127,11 @@ nBLocs = nBLocs + (nDSamples - round(windowB*fs)) - 1;
 nBLocs(nBLocs<1 | nBLocs>ppgLength) = NaN;
 
 % Refine minima
-nB = nBLocs;
-[~, nB(~isnan(nB))] = refinepeaks(-ppg, nBLocs(~isnan(nBLocs)), t);
+[~, nB(~isnan(nBLocs))] = refinepeaks(-ppg, nBLocs(~isnan(nBLocs)), t);
 
 
 %% nM - Find midpoint between nA and nB
-nM = NaN(npulses,1);
+
 for kpulse = 1:npulses
     nBpulse = nBLocs(kpulse);
     nApulse = nALocs(kpulse);
@@ -141,11 +145,13 @@ for kpulse = 1:npulses
     searchM = nBpulse:nApulse;
     searchM(searchM < 1) = 1;
     searchM(searchM > ppgLength) = ppgLength;
+
+    % Extract pulse segment
     pulseAmplitude = (ppg(nBpulse) + ppg(nApulse))/2;
     pulseSegment = abs(ppg(searchM) - pulseAmplitude');
 
     % Find local maxima
-    [~, nMLoc] = max(-pulseSegment);
+    [~, nMLoc] = localmax(-pulseSegment);
     nMLoc = nMLoc + nBpulse - 1;
     nMLoc(nMLoc<1 | nMLoc>ppgLength) = NaN;
 

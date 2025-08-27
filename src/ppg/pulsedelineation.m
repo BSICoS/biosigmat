@@ -47,7 +47,7 @@ function [nA, nB, nM] = pulsedelineation(ppg, fs, nD, varargin)
 %
 %   See also PULSEDETECTION, LPDFILTER
 %
-%   Status: Alpha
+%   Status: Beta
 
 
 % Check number of input and output arguments
@@ -102,6 +102,7 @@ nM = findMidpoints(ppg, nASamples, nBSamples, t);
 
 end
 
+
 %% FINDEXTREMA
 function [extremaSamples, extremaTimes] = findExtrema(ppg, nDSamples, window, fs, t, extremaType)
 % FINDEXTREMA Helper function to find local extrema (maxima or minima) in PPG signal
@@ -155,6 +156,7 @@ if any(validIdx)
     end
 end
 end
+
 
 %% FINDMIDPOINTS
 function midpointTimes = findMidpoints(ppg, nASamples, nBSamples, t)

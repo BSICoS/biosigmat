@@ -44,7 +44,7 @@ function [maxValue, maxLoc] = localmax(X, varargin)
 %
 %   See also ISLOCALMAX, MAX, FINDPEAKS
 %
-%   Status: Alpha
+%   Status: Beta
 
 
 % Check number of input and output arguments

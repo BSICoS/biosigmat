@@ -83,7 +83,6 @@ if isempty(nD)
     return;
 end
 
-npulses = length(nD);
 ppgLength = length(ppg);
 
 % Time vector
@@ -93,44 +92,17 @@ t = (0:ppgLength-1) / fs;
 nDSamples = 1 +  round(nD * fs);
 
 % nA - Find local max after nD within windowA
-[nALocs, nA] = findExtrema(ppg, nDSamples, windowA, fs, t, 'max');
+[nASamples, nA] = findExtrema(ppg, nDSamples, windowA, fs, t, 'max');
 
 % nB - Find local min before nD within windowB
-[nBLocs, nB] = findExtrema(ppg, nDSamples, windowB, fs, t, 'min');
+[nBSamples, nB] = findExtrema(ppg, nDSamples, windowB, fs, t, 'min');
 
 % nM - Find midpoint between nA and nB
-nM = NaN(npulses,1);
-for kpulse = 1:npulses
-    nBpulse = nBLocs(kpulse);
-    nApulse = nALocs(kpulse);
-
-    if (isnan(nBpulse) || isnan(nApulse))
-        % If either position is NaN, skip this pulse
-        continue;
-    end
-
-    % Create search vector
-    searchM = nBpulse:nApulse;
-    searchM(searchM < 1) = 1;
-    searchM(searchM > ppgLength) = ppgLength;
-
-    % Extract pulse segment
-    pulseAmplitude = (ppg(nBpulse) + ppg(nApulse))/2;
-    pulseSegment = abs(ppg(searchM) - pulseAmplitude');
-
-    % Find local maxima
-    [~, nMLoc] = localmax(-pulseSegment);
-    nMLoc = nMLoc + nBpulse - 1;
-    nMLoc(nMLoc<1 | nMLoc>ppgLength) = NaN;
-
-    if ~any(isnan(nMLoc)) && ~isempty(nMLoc)
-        nM(kpulse) = t(nMLoc);
-    end
-end
+nM = findMidpoints(ppg, nASamples, nBSamples, t);
 
 end
 
-function [extremaLocs, extremaTimes] = findExtrema(ppg, nDSamples, window, fs, t, extremaType)
+function [extremaSamples, extremaTimes] = findExtrema(ppg, nDSamples, window, fs, t, extremaType)
 % FINDEXTREMA Helper function to find local extrema (maxima or minima) in PPG signal
 %
 %   [EXTREMALOCS, EXTREMATIMES] = FINDEXTREMA(PPG, NDSAMPLES, WINDOW, FS, T, EXTREMATYPE)
@@ -157,29 +129,72 @@ else % 'min'
 end
 
 % Clamp search indices to valid range
-searchMatrix(searchMatrix < 1) = 1;
-searchMatrix(searchMatrix > ppgLength) = ppgLength;
+searchMatrix = max(1, min(searchMatrix, ppgLength));
 
 % Find local extrema
 [~, locs] = localmax(searchSignal(searchMatrix), 2);
 
 % Adjust locations based on search type
 if strcmp(extremaType, 'max')
-    extremaLocs = locs + nDSamples - 1;
+    extremaSamples = locs + nDSamples - 1;
 else % 'min'
-    extremaLocs = locs + (nDSamples + offset) - 1;
+    extremaSamples = locs + (nDSamples + offset) - 1;
 end
 
 % Clamp to valid range
-extremaLocs(extremaLocs < 1 | extremaLocs > ppgLength) = NaN;
+extremaSamples(extremaSamples < 1 | extremaSamples > ppgLength) = NaN;
 
 % Refine extrema positions
-validIdx = ~isnan(extremaLocs);
+validIdx = ~isnan(extremaSamples);
 if any(validIdx)
     if strcmp(extremaType, 'max')
-        [~, extremaTimes(validIdx)] = refinepeaks(ppg, extremaLocs(validIdx), t);
+        [~, extremaTimes(validIdx)] = refinepeaks(ppg, extremaSamples(validIdx), t);
     else % 'min'
-        [~, extremaTimes(validIdx)] = refinepeaks(-ppg, extremaLocs(validIdx), t);
+        [~, extremaTimes(validIdx)] = refinepeaks(-ppg, extremaSamples(validIdx), t);
+    end
+end
+end
+
+function midpointTimes = findMidpoints(ppg, nASamples, nBSamples, t)
+% FINDMIDPOINTS Helper function to find pulse midpoints between onset and offset
+%
+%   MIDPOINTTIMES = FINDMIDPOINTS(PPG, NALOCS, NBLOCS, T) finds the midpoint
+%   of each pulse between onset (nB) and offset (nA) locations by finding
+%   the point closest to the average amplitude of the pulse endpoints.
+
+npulses = length(nASamples);
+ppgLength = length(ppg);
+midpointTimes = NaN(npulses, 1);
+
+% Process only valid pulses (both nA and nB are not NaN)
+validPulses = ~isnan(nASamples) & ~isnan(nBSamples);
+validIndices = find(validPulses);
+
+if isempty(validIndices)
+    return;
+end
+
+% Process each valid pulse
+for i = 1:length(validIndices)
+    kpulse = validIndices(i);
+    nBpulse = nBSamples(kpulse);
+    nApulse = nASamples(kpulse);
+
+    % Create search vector (from nB to nA)
+    searchM = nBpulse:nApulse;
+    searchM = max(1, min(searchM, ppgLength)); % Clamp to valid range
+
+    % Calculate target amplitude (average of endpoints)
+    pulseAmplitude = (ppg(nBpulse) + ppg(nApulse)) / 2;
+
+    % Find point closest to target amplitude
+    pulseSegment = abs(ppg(searchM) - pulseAmplitude);
+    [~, minIdx] = min(pulseSegment);
+
+    % Convert back to global index and time
+    globalIdx = searchM(minIdx);
+    if globalIdx >= 1 && globalIdx <= ppgLength
+        midpointTimes(kpulse) = t(globalIdx);
     end
 end
 end

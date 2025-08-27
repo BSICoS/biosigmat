@@ -9,13 +9,8 @@ function [maxValue, maxLoc] = localmax(X, varargin)
 %   MAXVALUE = LOCALMAX(X, DIM) finds the location and value of the
 %   most prominent local maximum along dimension DIM of matrix X. DIM specifies
 %   the dimension along which to search for maxima (1 for columns, 2 for rows).
-%   Returns MAXVALUE containing the max values. For rows/columns without
-%   maxima, returns NaN.
 %
-%   MAXVALUE = LOCALMAX(X, DIM, 'Name', Value) specifies additional
-%   parameters using name-value pairs:
-%
-%   MAXVALUE = LOCALMAX(X, 'Name', Value) specifies additional
+%   MAXVALUE = LOCALMAX(..., 'Name', Value) specifies additional
 %   parameters using name-value pairs:
 %     'MinProminence' - Minimum prominence required for max detection
 %                       (default: 0)

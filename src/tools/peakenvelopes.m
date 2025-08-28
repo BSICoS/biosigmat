@@ -33,6 +33,7 @@ function [upper, lower, amplitude] = peakenvelopes(signal, varargin)
 %
 %   Status: Alpha
 
+
 % Check number of input and output arguments
 narginchk(1, 2);
 nargoutchk(0, 3);
@@ -48,56 +49,78 @@ parse(parser, signal, varargin{:});
 signal = parser.Results.signal;
 mindist = parser.Results.mindist;
 
+signal = signal(:);
+
+% Find zero crossings
 zerocross = diff(sign(signal));
+
+% Find downcross and upcross indices
 downcross = find(zerocross==-2)+1;
 upcross = find(zerocross==2)+1;
 
-downcross(diff(upcross)<mindist) = [];
-upcross(diff(upcross)<mindist) = [];
+% Remove close peaks and valleys
+downcross(diff(upcross) < mindist) = [];
+upcross(diff(upcross) < mindist) = [];
 
-% Upcross first
-if downcross(1)<upcross(1)
+if downcross(1) < upcross(1)
     downcross(1) = [];
 end
 
-if downcross(end)<upcross(end)
+if downcross(end) < upcross(end)
     upcross(end) = [];
 end
 
+% Initialize output arrays
 peaks = nan(size(downcross));
 peakIndices = peaks;
 valleys = peaks;
 valleyIndices = peaks;
+
 if downcross(1)<upcross(1)
+    % Case 1: Downcross first
+
+    % Find peaks
     for kk=2:length(downcross)
         indexes = upcross(kk-1):downcross(kk);
         [peaks(kk), peakIndices(kk)] = max(signal(indexes));
         peakIndices(kk) = peakIndices(kk) + upcross(kk-1) - 1;
     end
+
+    % Find valleys
     for kk=1:length(upcross)
-        [valleys(kk), valleyIndices(kk)] = min(signal(downcross(kk):upcross(kk)));
+        indexes = downcross(kk):upcross(kk);
+        [valleys(kk), valleyIndices(kk)] = min(signal(indexes));
         valleyIndices(kk) = valleyIndices(kk) + downcross(kk) - 1;
     end
-else %downcross(1)>upcross(1)
+else
+    % Case 2: Upcross first
+
+    % Find peaks
     for kk=1:length(downcross)
-        [peaks(kk), peakIndices(kk)] = max(signal(upcross(kk):downcross(kk)));
+        indexes = upcross(kk):downcross(kk);
+        [peaks(kk), peakIndices(kk)] = max(signal(indexes));
         peakIndices(kk) = peakIndices(kk) + upcross(kk) - 1;
     end
+
+    % Find valleys
     for kk=2:length(upcross)
-        [valleys(kk), valleyIndices(kk)] = min(signal(downcross(kk-1):upcross(kk)));
+        indexes = downcross(kk-1):upcross(kk);
+        [valleys(kk), valleyIndices(kk)] = min(signal(indexes));
         valleyIndices(kk) = valleyIndices(kk) + downcross(kk-1) - 1;
     end
 end
 
+% Remove NaNs from output
 peaks = peaks(~isnan(peakIndices));
 peakIndices = peakIndices(~isnan(peakIndices));
 valleys = valleys(~isnan(valleyIndices));
 valleyIndices = valleyIndices(~isnan(valleyIndices));
 
-
+% Interpolate envelopes
 upper = interp1(peakIndices, peaks, 1:length(signal),'pchip');
 lower = interp1(valleyIndices, valleys, 1:length(signal),'pchip');
 
+% Remove invalid regions
 upper(1:upcross(1)) = nan;
 upper(downcross(end):end) = nan;
 lower(1:downcross(1)) = nan;

@@ -94,8 +94,18 @@ nDSamples = 1 +  round(nD * fs);
 % nA - Find local max after nD within windowA
 [nASamples, nA] = findExtrema(ppg, nDSamples, windowA, fs, t, 'max');
 
+if nargout < 2
+    % Only nA requested
+    return;
+end
+
 % nB - Find local min before nD within windowB
 [nBSamples, nB] = findExtrema(ppg, nDSamples, windowB, fs, t, 'min');
+
+if nargout < 3
+    % Only nA and nB requested
+    return;
+end
 
 % nM - Find midpoint between nA and nB
 nM = findMidpoints(ppg, nASamples, nBSamples, t);

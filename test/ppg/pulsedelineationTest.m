@@ -1,5 +1,8 @@
 % Tests covering:
 %   - Basic functionality with PPG signal from fixtures
+%   - Custom parameters
+%   - Empty detections
+%   - Nargout-optimized behavior
 
 classdef pulsedelineationTest < matlab.unittest.TestCase
     properties
@@ -42,7 +45,6 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
 
     methods (Test)
         function testBasicFunctionality(tc)
-            % Test with default parameters
             [nA, nB, nM] = pulsedelineation(tc.ppg, tc.fs, tc.nD);
 
             % Expected values
@@ -72,7 +74,6 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
         end
 
         function testCustomParameters(tc)
-            % Test with custom window parameters
             customWindowA = 300e-3;
             customWindowB = 200e-3;
 
@@ -91,13 +92,26 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
         end
 
         function testEmptyDetectionPoints(tc)
-            % Test with empty nD array
             [nA, nB, nM] = pulsedelineation(tc.dppg, tc.fs, []);
 
             % Should return NaN arrays when no detection points provided
             tc.verifyTrue(isnan(nA), 'nA should be NaN when nD is empty');
             tc.verifyTrue(isnan(nB), 'nB should be NaN when nD is empty');
             tc.verifyTrue(isnan(nM), 'nM should be NaN when nD is empty');
+        end
+
+        function testNargoutOptimization(tc)
+            % Test with nargout = 1 (only nA)
+            nA = pulsedelineation(tc.ppg, tc.fs, tc.nD);
+            tc.verifyClass(nA, 'double', 'nA should be double array');
+            tc.verifyTrue(sum(~isnan(nA)) > 0, 'Should detect at least one pulse onset');
+
+            % Test with nargout = 2 (nA and nB)
+            [nA, nB] = pulsedelineation(tc.ppg, tc.fs, tc.nD);
+            tc.verifyClass(nA, 'double', 'nA should be double array');
+            tc.verifyClass(nB, 'double', 'nB should be double array');
+            tc.verifyTrue(sum(~isnan(nA)) > 0, 'Should detect at least one pulse onset');
+            tc.verifyTrue(sum(~isnan(nB)) > 0, 'Should detect at least one pulse offset');
         end
     end
 end

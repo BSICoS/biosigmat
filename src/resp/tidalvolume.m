@@ -4,8 +4,12 @@ function [tdvol, upper, lower] = tidalvolume(resp, varargin)
 %   TDVOL = TIDALVOLUME(SIGNAL) extracts a signal proportional to an estimation
 %   of the tidal volume from a respiration signal RESP (numeric vector).
 %   The estimation is performed using the upper and lower envelopes connecting the
-%   peaks and valleys. RESP should be a detrended signal, as each peak and valley
-%   should be separated by zero crossings.
+%   peaks and valleys.
+%
+%   The algorithm does not detect every peak and valley to compute the envelopes.
+%   It only uses peaks and valleys between zero crossings. This way we assure
+%   that small fluctuations that may occur in real respiration signals are not
+%   detected as separate events.
 %
 %   TDVOL = TIDALVOLUME(SIGNAL, MINDIST) specifies the minimum distance between
 %   consecutive peaks in samples. MINDIST is a non-negative scalar with default
@@ -48,16 +52,18 @@ parse(parser, resp, varargin{:});
 resp = parser.Results.resp;
 mindist = parser.Results.mindist;
 
+% Ensure column vector and detrend
 resp = resp(:);
+resp = detrend(resp);
 
-% Find zero crossings
+% Find zero crossings (downward and upward). Peaks and valleys are
+% detected between these crossings following the cycle upcross -> peak
+% -> downcross -> valley
 zerocross = diff(sign(resp));
-
-% Find downcross and upcross indices
 downcross = find(zerocross==-2)+1;
 upcross = find(zerocross==2)+1;
 
-% Remove close peaks and valleys
+% Remove close crossings to reduce noise effects
 downcross(diff(upcross) < mindist) = [];
 upcross(diff(upcross) < mindist) = [];
 

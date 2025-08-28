@@ -39,7 +39,7 @@ nargoutchk(0, 3);
 
 % Parse and validate inputs
 parser = inputParser;
-parser.FunctionName = 'peakenvelopes';
+parser.FunctionName = 'tidalvolume';
 addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addOptional(parser, 'mindist', 0, @(x) isnumeric(x) && isscalar(x) && x >= 0);
 

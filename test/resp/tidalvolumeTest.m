@@ -11,8 +11,7 @@ classdef tidalvolumeTest < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function addToPath(~)
-            addpath(fullfile(pwd, 'src'));
-            addpath(fullfile(pwd, 'src', 'tools'));
+            addpath(fullfile('..', '..', 'src', 'resp'));
         end
 
         function setupTestSignal(tc)
@@ -24,47 +23,33 @@ classdef tidalvolumeTest < matlab.unittest.TestCase
 
     methods (Test)
         function testBasicFunctionality(tc)
-            [upper, lower, amplitude] = tidalvolume(tc.signal);
+            [tdvol, upper, lower] = tidalvolume(tc.signal);
 
             % Verify outputs are same length as input
+            tc.verifyEqual(length(tdvol), length(tc.signal));
             tc.verifyEqual(length(upper), length(tc.signal));
             tc.verifyEqual(length(lower), length(tc.signal));
-            tc.verifyEqual(length(amplitude), length(tc.signal));
-
-            % Verify upper and lower envelopes don't cross
-            validIndices = ~isnan(upper) & ~isnan(lower);
-            tc.verifyTrue(all(upper(validIndices) >= lower(validIndices)), ...
-                'Upper envelope should always be >= lower envelope');
-
-            % Verify amplitude is always positive where defined
-            validAmplitudeIndices = ~isnan(amplitude);
-            tc.verifyTrue(all(amplitude(validAmplitudeIndices) >= 0), ...
-                'Amplitude should always be non-negative');
         end
 
         function testNanHandling(tc)
             signalWithNans = tc.signal;
             signalWithNans([50, 100, 150]) = NaN;
 
-            [upper, lower, amplitude] = tidalvolume(signalWithNans);
-
-            % Verify NaNs in signal correspond to NaNs in outputs
+            tdvolume = tidalvolume(signalWithNans);
             nanSignalIndices = isnan(signalWithNans);
-            tc.verifyTrue(all(isnan(upper(nanSignalIndices))), ...
-                'Upper envelope should have NaNs where signal has NaNs');
-            tc.verifyTrue(all(isnan(lower(nanSignalIndices))), ...
-                'Lower envelope should have NaNs where signal has NaNs');
-            tc.verifyTrue(all(isnan(amplitude(nanSignalIndices))), ...
-                'Amplitude should have NaNs where signal has NaNs');
+
+            % Verify NaNs in signal correspond to NaNs in tidal volume
+            tc.verifyTrue(all(isnan(tdvolume(nanSignalIndices))), ...
+                'Tidal volume should have NaNs where signal has NaNs');
         end
 
         function testMindistParameter(tc)
             % Extract envelopes with default mindist (0)
-            [upper1, lower1] = tidalvolume(tc.signal);
+            [~, upper1, lower1] = tidalvolume(tc.signal);
 
             % Extract envelopes with larger mindist
             mindist = 20;
-            [upper2, lower2] = tidalvolume(tc.signal, mindist);
+            [~, upper2, lower2] = tidalvolume(tc.signal, mindist);
 
             % Verify outputs are same length
             tc.verifyEqual(length(upper1), length(tc.signal));

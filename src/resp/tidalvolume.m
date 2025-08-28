@@ -61,21 +61,13 @@ upcross = find(zerocross==2)+1;
 downcross(diff(upcross) < mindist) = [];
 upcross(diff(upcross) < mindist) = [];
 
-if downcross(1) < upcross(1)
-    downcross(1) = [];
-end
-
-if downcross(end) < upcross(end)
-    upcross(end) = [];
-end
-
 % Initialize output arrays
 peaks = nan(size(downcross));
 peakIndices = peaks;
 valleys = peaks;
 valleyIndices = peaks;
 
-if downcross(1)<upcross(1)
+if downcross(1) < upcross(1)
     % Case 1: Downcross first
 
     % Find peaks
@@ -134,7 +126,7 @@ valleys = valleys(valleyIndices>peakIndices(1));
 valleyIndices = valleyIndices(valleyIndices>peakIndices(1));
 
 amplitudeAux = peaks(1:length(valleys)) - valleys;
-tAux = (peakIndices(1:length(valleys))+valleyIndices)/2;
+tAux = (peakIndices(1:length(valleys)) + valleyIndices)/2;
 
 tdvol = interp1(tAux, amplitudeAux, 1:length(resp),'pchip');
 tdvol(isnan(upper-lower)) = nan;

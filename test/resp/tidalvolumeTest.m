@@ -3,7 +3,7 @@
 %   - NaN handling
 %   - mindist parameter functionality
 
-classdef peakenvelopesTest < matlab.unittest.TestCase
+classdef tidalvolumeTest < matlab.unittest.TestCase
 
     properties
         signal
@@ -24,7 +24,7 @@ classdef peakenvelopesTest < matlab.unittest.TestCase
 
     methods (Test)
         function testBasicFunctionality(tc)
-            [upper, lower, amplitude] = peakenvelopes(tc.signal);
+            [upper, lower, amplitude] = tidalvolume(tc.signal);
 
             % Verify outputs are same length as input
             tc.verifyEqual(length(upper), length(tc.signal));
@@ -46,7 +46,7 @@ classdef peakenvelopesTest < matlab.unittest.TestCase
             signalWithNans = tc.signal;
             signalWithNans([50, 100, 150]) = NaN;
 
-            [upper, lower, amplitude] = peakenvelopes(signalWithNans);
+            [upper, lower, amplitude] = tidalvolume(signalWithNans);
 
             % Verify NaNs in signal correspond to NaNs in outputs
             nanSignalIndices = isnan(signalWithNans);
@@ -60,11 +60,11 @@ classdef peakenvelopesTest < matlab.unittest.TestCase
 
         function testMindistParameter(tc)
             % Extract envelopes with default mindist (0)
-            [upper1, lower1] = peakenvelopes(tc.signal);
+            [upper1, lower1] = tidalvolume(tc.signal);
 
             % Extract envelopes with larger mindist
             mindist = 20;
-            [upper2, lower2] = peakenvelopes(tc.signal, mindist);
+            [upper2, lower2] = tidalvolume(tc.signal, mindist);
 
             % Verify outputs are same length
             tc.verifyEqual(length(upper1), length(tc.signal));

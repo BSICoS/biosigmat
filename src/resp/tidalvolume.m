@@ -1,19 +1,18 @@
-function [upper, lower, amplitude] = peakenvelopes(signal, varargin)
-% PEAKENVELOPES Extracts upper and lower peak envelopes from a signal.
+function [tdvol, upper, lower] = tidalvolume(resp, varargin)
+% TIDALVOLUME Extracts upper and lower peak envelopes from a signal.
 %
-%   [UPPER, LOWER] = PEAKENVELOPES(SIGNAL) extracts the upper and lower
-%   peak envelopes from the input signal. SIGNAL is the input signal (numeric
-%   vector). UPPER is the upper envelope connecting the peaks and LOWER is the
-%   lower envelope connecting the valleys.
+%   TDVOL = TIDALVOLUME(SIGNAL) extracts a signal proportional to an estimation
+%   of the tidal volume from a respiration signal RESP (numeric vector).
+%   The estimation is performed using the upper and lower envelopes connecting the
+%   peaks and valleys. RESP should be a detrended signal, as each peak and valley
+%   should be separated by zero crossings.
 %
-%   [UPPER, LOWER] = PEAKENVELOPES(SIGNAL, MINDIST) and
-%   [UPPER, LOWER, AMPLITUDE] = PEAKENVELOPES(SIGNAL, MINDIST) specify
-%   the minimum distance between consecutive peaks in samples. MINDIST is a
-%   non-negative scalar with default value 0.
+%   TDVOL = TIDALVOLUME(SIGNAL, MINDIST) specifies the minimum distance between
+%   consecutive peaks in samples. MINDIST is a non-negative scalar with default
+%   value 0.
 %
-%   [UPPER, LOWER, AMPLITUDE] = PEAKENVELOPES(...) also returns
-%   AMPLITUDE, the amplitude envelope representing the difference between
-%   peaks and valleys.
+%   [TDVOL, UPPER, LOWER] = TIDALVOLUME(...) also returns the UPPER and
+%   LOWER envelopes connecting the peaks and valleys.
 
 %   Example:
 %     % Extract envelopes from a modulated sine wave
@@ -44,15 +43,15 @@ parser.FunctionName = 'peakenvelopes';
 addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addOptional(parser, 'mindist', 0, @(x) isnumeric(x) && isscalar(x) && x >= 0);
 
-parse(parser, signal, varargin{:});
+parse(parser, resp, varargin{:});
 
-signal = parser.Results.signal;
+resp = parser.Results.signal;
 mindist = parser.Results.mindist;
 
-signal = signal(:);
+resp = resp(:);
 
 % Find zero crossings
-zerocross = diff(sign(signal));
+zerocross = diff(sign(resp));
 
 % Find downcross and upcross indices
 downcross = find(zerocross==-2)+1;
@@ -82,14 +81,14 @@ if downcross(1)<upcross(1)
     % Find peaks
     for kk=2:length(downcross)
         indexes = upcross(kk-1):downcross(kk);
-        [peaks(kk), peakIndices(kk)] = max(signal(indexes));
+        [peaks(kk), peakIndices(kk)] = max(resp(indexes));
         peakIndices(kk) = peakIndices(kk) + upcross(kk-1) - 1;
     end
 
     % Find valleys
     for kk=1:length(upcross)
         indexes = downcross(kk):upcross(kk);
-        [valleys(kk), valleyIndices(kk)] = min(signal(indexes));
+        [valleys(kk), valleyIndices(kk)] = min(resp(indexes));
         valleyIndices(kk) = valleyIndices(kk) + downcross(kk) - 1;
     end
 else
@@ -98,14 +97,14 @@ else
     % Find peaks
     for kk=1:length(downcross)
         indexes = upcross(kk):downcross(kk);
-        [peaks(kk), peakIndices(kk)] = max(signal(indexes));
+        [peaks(kk), peakIndices(kk)] = max(resp(indexes));
         peakIndices(kk) = peakIndices(kk) + upcross(kk) - 1;
     end
 
     % Find valleys
     for kk=2:length(upcross)
         indexes = downcross(kk-1):upcross(kk);
-        [valleys(kk), valleyIndices(kk)] = min(signal(indexes));
+        [valleys(kk), valleyIndices(kk)] = min(resp(indexes));
         valleyIndices(kk) = valleyIndices(kk) + downcross(kk-1) - 1;
     end
 end
@@ -117,8 +116,8 @@ valleys = valleys(~isnan(valleyIndices));
 valleyIndices = valleyIndices(~isnan(valleyIndices));
 
 % Interpolate envelopes
-upper = interp1(peakIndices, peaks, 1:length(signal),'pchip');
-lower = interp1(valleyIndices, valleys, 1:length(signal),'pchip');
+upper = interp1(peakIndices, peaks, 1:length(resp),'pchip');
+lower = interp1(valleyIndices, valleys, 1:length(resp),'pchip');
 
 % Remove invalid regions
 upper(1:upcross(1)) = nan;
@@ -127,20 +126,19 @@ lower(1:downcross(1)) = nan;
 lower(upcross(end):end) = nan;
 
 % Propagate NaNs from input signal to envelopes
-upper(isnan(signal)) = nan;
-lower(isnan(signal)) = nan;
+upper(isnan(resp)) = nan;
+lower(isnan(resp)) = nan;
 
-% Calculate amplitude envelope only if requested
-if nargout >= 3
-    valleys = valleys(valleyIndices>peakIndices(1));
-    valleyIndices = valleyIndices(valleyIndices>peakIndices(1));
+% Calculate amplitude
+valleys = valleys(valleyIndices>peakIndices(1));
+valleyIndices = valleyIndices(valleyIndices>peakIndices(1));
 
-    amplitudeAux = peaks(1:length(valleys)) - valleys;
-    tAux = (peakIndices(1:length(valleys))+valleyIndices)/2;
+amplitudeAux = peaks(1:length(valleys)) - valleys;
+tAux = (peakIndices(1:length(valleys))+valleyIndices)/2;
 
-    amplitude = interp1(tAux, amplitudeAux, 1:length(signal),'pchip');
-    amplitude(isnan(upper-lower)) = nan;
-    amplitude(isnan(signal)) = nan;
-end
+tdvol = interp1(tAux, amplitudeAux, 1:length(resp),'pchip');
+tdvol(isnan(upper-lower)) = nan;
+tdvol(isnan(resp)) = nan;
+
 
 end

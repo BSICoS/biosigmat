@@ -40,12 +40,12 @@ nargoutchk(0, 3);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'tidalvolume';
-addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
+addRequired(parser, 'resp', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addOptional(parser, 'mindist', 0, @(x) isnumeric(x) && isscalar(x) && x >= 0);
 
 parse(parser, resp, varargin{:});
 
-resp = parser.Results.signal;
+resp = parser.Results.resp;
 mindist = parser.Results.mindist;
 
 resp = resp(:);

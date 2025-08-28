@@ -199,12 +199,37 @@ function tdvol = calculateTidalVolume(peaks, peakIndices, valleys, valleyIndices
 %   calculates the tidal volume signal by interpolating amplitude differences between
 %   peaks and valleys, and handles NaN propagation.
 
-% Calculate amplitude
-valleys = valleys(valleyIndices>peakIndices(1));
-valleyIndices = valleyIndices(valleyIndices>peakIndices(1));
+% Ensure we have matching pairs by taking minimum length
+minLength = min(length(peaks), length(valleys));
+if minLength < 2
+    tdvol = nan(size(resp));
+    return;
+end
 
-amplitudeAux = peaks(1:length(valleys)) - valleys;
-tAux = (peakIndices(1:length(valleys)) + valleyIndices)/2;
+% Determine the correct pairing based on temporal sequence
+if peakIndices(1) < valleyIndices(1)
+    % Signal starts with peak: pair each peak with corresponding valley
+    % peak[i] -> valley[i]
+    amplitudeAux = peaks(1:minLength) - valleys(1:minLength);
+    tAux = (peakIndices(1:minLength) + valleyIndices(1:minLength))/2;
+else
+    % Signal starts with valley: pair each valley with next peak
+    % valley[i] -> peak[i+1], so we need to offset the arrays
+    if minLength > 2
+        amplitudeAux = peaks(1:minLength-1) - valleys(2:minLength);
+        tAux = (peakIndices(1:minLength-1) + valleyIndices(2:minLength))/2;
+    else
+        % Not enough data for proper pairing
+        tdvol = nan(size(resp));
+        return;
+    end
+end
+
+% Check if we have valid data for interpolation
+if isempty(tAux) || isempty(amplitudeAux)
+    tdvol = nan(size(resp));
+    return;
+end
 
 tdvol = interp1(tAux, amplitudeAux, 1:length(resp),'pchip');
 tdvol(isnan(upper-lower)) = nan;

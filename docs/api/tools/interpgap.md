@@ -48,4 +48,4 @@ title('Signal Gap Interpolation');
 
 ---
 
-**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-27
+**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-28

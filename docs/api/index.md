@@ -31,6 +31,14 @@ Functions for photoplethysmography signal analysis and pulse detection.
 | [`pulsedelineation`](ppg/pulsedelineation.md) | Performs pulse delineation in PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :material-beta: Beta |
 | [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using configurable algorithms. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :material-beta: Beta |
 
+### [RESP](resp/index.md)
+
+Functions for resp processing.
+
+| Function | Description | Examples | Status |
+| -------- | ----------- | -------- | ------ |
+| [`tidalvolume`](resp/tidalvolume.md) | Extracts upper and lower peak envelopes from a signal. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/resp/tidalvolumeExample.m) | :white_check_mark: Stable |
+
 ### [General Tools](tools/index.md)
 
 Utility functions for signal processing and data manipulation.
@@ -77,6 +85,7 @@ All functions sorted alphabetically:
 - [`sloperange`](ecg/sloperange.md)
 - [`snaptopeak`](tools/snaptopeak.md)
 - [`tdmetrics`](hrv/tdmetrics.md)
+- [`tidalvolume`](resp/tidalvolume.md)
 - [`trimnans`](tools/trimnans.md)
 
 
@@ -89,4 +98,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2025-08-27 | Total functions: 20*
+*Last updated: 2025-08-28 | Total functions: 21*

@@ -23,6 +23,10 @@ This section contains practical examples and workflows demonstrating the usage o
 - [`pulsedelineationExample`](pulsedelineationExample.md)
 - [`pulsedetectionExample`](pulsedetectionExample.md)
 
+### RESP
+
+- [`tidalvolumeExample`](tidalvolumeExample.md)
+
 ## Workflows
 
 - [`pcaverageWorkflow`](pcaverageWorkflow.md)
@@ -34,4 +38,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 6 | **Workflows**: 2 | **Last Updated**: 2025-08-27
+**Examples**: 7 | **Workflows**: 2 | **Last Updated**: 2025-08-28

@@ -26,4 +26,4 @@ title: TOOLS Module Overview
 
 ---
 
-**Functions**: 14 | **Last Updated**: 2025-08-27
+**Functions**: 14 | **Last Updated**: 2025-08-28

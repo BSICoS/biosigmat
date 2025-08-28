@@ -39,4 +39,4 @@ result = pantompkins(input);
 
 ---
 
-**Module**: [ECG](index.md) | **Last Updated**: 2025-08-27
+**Module**: [ECG](index.md) | **Last Updated**: 2025-08-28

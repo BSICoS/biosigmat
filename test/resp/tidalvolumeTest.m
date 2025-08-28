@@ -44,18 +44,27 @@ classdef tidalvolumeTest < matlab.unittest.TestCase
         end
 
         function testMindistParameter(tc)
-            % Extract envelopes with default mindist (0)
-            [~, upper1, lower1] = tidalvolume(tc.signal);
+            % Add noise to signal to trigger close zero crossings
+            rng(42); % Set seed for reproducible results
+            noisySignal = tc.signal + 0.1 * randn(size(tc.signal));
 
-            % Extract envelopes with larger mindist
+            % Extract envelopes with default mindist (0)
+            [~, upper1, lower1] = tidalvolume(noisySignal);
+
+            % Extract envelopes with larger mindist to filter close crossings
             mindist = 20;
-            [~, upper2, lower2] = tidalvolume(tc.signal, mindist);
+            [~, upper2, lower2] = tidalvolume(noisySignal, mindist);
 
             % Verify outputs are same length
-            tc.verifyEqual(length(upper1), length(tc.signal));
-            tc.verifyEqual(length(upper2), length(tc.signal));
-            tc.verifyEqual(length(lower1), length(tc.signal));
-            tc.verifyEqual(length(lower2), length(tc.signal));
+            tc.verifyEqual(length(upper1), length(noisySignal));
+            tc.verifyEqual(length(upper2), length(noisySignal));
+            tc.verifyEqual(length(lower1), length(noisySignal));
+            tc.verifyEqual(length(lower2), length(noisySignal));
+
+            % With mindist filtering, we expect smoother envelopes
+            % (fewer extreme variations due to noise-induced close crossings)
+            tc.verifyTrue(~isequal(upper1, upper2) || ~isequal(lower1, lower2), ...
+                'Mindist parameter should affect the envelope extraction');
         end
     end
 end

@@ -82,16 +82,33 @@ function [downcross, upcross] = detectZeroCrossings(resp, mindist)
 %   and upward zero crossings in the signal RESP. MINDIST specifies the minimum
 %   distance between consecutive crossings to reduce noise effects.
 
-% Find zero crossings (downward and upward). Peaks and valleys are
-% detected between these crossings following the cycle upcross -> peak
-% -> downcross -> valley
+% Find all zero crossings first
 zerocross = diff(sign(resp));
-downcross = find(zerocross==-2)+1;
-upcross = find(zerocross==2)+1;
+allCrossings = find(abs(zerocross) == 2) + 1;
 
-% Remove close crossings to reduce noise effects
-downcross(diff(upcross) < mindist) = [];
-upcross(diff(upcross) < mindist) = [];
+% Filter close crossings to reduce noise effects
+if mindist > 0 && length(allCrossings) > 1
+    % Keep the first crossing from each group of close crossings
+    keepCrossings = true(size(allCrossings));
+    for kk = 2:length(allCrossings)
+        if allCrossings(kk) - allCrossings(kk-1) < mindist
+            keepCrossings(kk) = false;
+        end
+    end
+    filteredCrossings = allCrossings(keepCrossings);
+else
+    filteredCrossings = allCrossings;
+end
+
+% Classify into upward and downward crossings
+if ~isempty(filteredCrossings)
+    crossingTypes = zerocross(filteredCrossings - 1);
+    downcross = filteredCrossings(crossingTypes == -2);
+    upcross = filteredCrossings(crossingTypes == 2);
+else
+    downcross = [];
+    upcross = [];
+end
 
 end
 

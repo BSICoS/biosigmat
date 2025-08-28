@@ -58,6 +58,30 @@ mindist = parser.Results.mindist;
 resp = resp(:);
 resp = detrend(resp, 'omitnan');
 
+% Find zero crossings and filter by minimum distance
+[downcross, upcross] = detectZeroCrossings(resp, mindist);
+
+% Find peaks and valleys between zero crossings
+[peaks, peakIndices, valleys, valleyIndices] = findPeaksAndValleys(resp, downcross, upcross);
+
+% Interpolate envelopes and handle invalid regions
+upper = interpolateEnvelope(peakIndices, peaks, resp, upcross(1), downcross(end));
+lower = interpolateEnvelope(valleyIndices, valleys, resp, downcross(1), upcross(end));
+
+% Calculate tidal volume
+tdvol = calculateTidalVolume(peaks, peakIndices, valleys, valleyIndices, resp, upper, lower);
+
+end
+
+
+%% DETECTZEROCROSSINGS
+function [downcross, upcross] = detectZeroCrossings(resp, mindist)
+% DETECTZEROCROSSINGS Find zero crossings in a signal with minimum distance filtering.
+%
+%   [DOWNCROSS, UPCROSS] = DETECTZEROCROSSINGS(RESP, MINDIST) finds downward
+%   and upward zero crossings in the signal RESP. MINDIST specifies the minimum
+%   distance between consecutive crossings to reduce noise effects.
+
 % Find zero crossings (downward and upward). Peaks and valleys are
 % detected between these crossings following the cycle upcross -> peak
 % -> downcross -> valley
@@ -68,6 +92,17 @@ upcross = find(zerocross==2)+1;
 % Remove close crossings to reduce noise effects
 downcross(diff(upcross) < mindist) = [];
 upcross(diff(upcross) < mindist) = [];
+
+end
+
+
+%% FINDPEAKSANDVALLEYS
+function [peaks, peakIndices, valleys, valleyIndices] = findPeaksAndValleys(resp, downcross, upcross)
+% FINDPEAKSANDVALLEYS Find peaks and valleys between zero crossings.
+%
+%   [PEAKS, PEAKINDICES, VALLEYS, VALLEYINDICES] = FINDPEAKSANDVALLEYS(RESP, DOWNCROSS, UPCROSS)
+%   finds peaks and valleys in the signal RESP between zero crossings defined by
+%   DOWNCROSS and UPCROSS indices.
 
 % Initialize output arrays
 peaks = nan(size(downcross));
@@ -115,19 +150,37 @@ peakIndices = peakIndices(~isnan(peakIndices));
 valleys = valleys(~isnan(valleyIndices));
 valleyIndices = valleyIndices(~isnan(valleyIndices));
 
-% Interpolate envelopes
-upper = interp1(peakIndices, peaks, 1:length(resp),'pchip');
-lower = interp1(valleyIndices, valleys, 1:length(resp),'pchip');
+end
+
+
+%% INTERPOLATEENVELOPE
+function envelope = interpolateEnvelope(indices, values, resp, startInvalid, endInvalid)
+% INTERPOLATEENVELOPE Interpolate a single envelope and handle invalid regions.
+%
+%   ENVELOPE = INTERPOLATEENVELOPE(INDICES, VALUES, RESP, STARTINVALID, ENDINVALID)
+%   interpolates a single envelope from the given indices and values, removes invalid
+%   regions at the beginning and end, and propagates NaNs from the input signal.
+
+% Interpolate envelope
+envelope = interp1(indices, values, 1:length(resp), 'pchip');
 
 % Remove invalid regions
-upper(1:upcross(1)) = nan;
-upper(downcross(end):end) = nan;
-lower(1:downcross(1)) = nan;
-lower(upcross(end):end) = nan;
+envelope(1:startInvalid) = nan;
+envelope(endInvalid:end) = nan;
 
-% Propagate NaNs from input signal to envelopes
-upper(isnan(resp)) = nan;
-lower(isnan(resp)) = nan;
+% Propagate NaNs from input signal
+envelope(isnan(resp)) = nan;
+
+end
+
+
+%% CALCULATETIDALVOLUME
+function tdvol = calculateTidalVolume(peaks, peakIndices, valleys, valleyIndices, resp, upper, lower)
+% CALCULATETIDALVOLUME Calculate tidal volume from peaks and valleys.
+%
+%   TDVOL = CALCULATETIDALVOLUME(PEAKS, PEAKINDICES, VALLEYS, VALLEYINDICES, RESP, UPPER, LOWER)
+%   calculates the tidal volume signal by interpolating amplitude differences between
+%   peaks and valleys, and handles NaN propagation.
 
 % Calculate amplitude
 valleys = valleys(valleyIndices>peakIndices(1));
@@ -139,6 +192,5 @@ tAux = (peakIndices(1:length(valleys)) + valleyIndices)/2;
 tdvol = interp1(tAux, amplitudeAux, 1:length(resp),'pchip');
 tdvol(isnan(upper-lower)) = nan;
 tdvol(isnan(resp)) = nan;
-
 
 end

@@ -16,7 +16,7 @@ respDetrended = detrend(resp);
 respFiltered = filtfilt(b, a, respDetrended);
 
 % Extract tidal volume
-[tdvol, upper, lower] = tidalvolume(respFiltered, 1.5*fs);
+[tdvol, upper, lower] = tidalvolume(respFiltered, 1*fs);
 
 
 %% Plot results

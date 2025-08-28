@@ -94,6 +94,7 @@ function [downcross, upcross] = detectZeroCrossings(resp, mindist)
 %   FILTERING STRATEGY:
 %   - First detects ALL zero crossings regardless of direction
 %   - Then filters out crossings that are too close together (noise-induced)
+%   - Ensures strict alternating pattern by removing consecutive crossings of same type
 %   - Finally classifies remaining crossings into upward/downward
 %   - This approach avoids complex edge cases that arise from separate filtering
 
@@ -118,6 +119,20 @@ end
 % Classify into upward and downward crossings after filtering
 if ~isempty(filteredCrossings)
     crossingTypes = zerocross(filteredCrossings - 1);
+
+    % Additional filtering: ensure alternating pattern by removing consecutive
+    % crossings of the same type (keep only the first of each group)
+    if length(filteredCrossings) > 1
+        keepAlternating = true(size(filteredCrossings));
+        for kk = 2:length(filteredCrossings)
+            if crossingTypes(kk) == crossingTypes(kk-1)
+                keepAlternating(kk) = false;
+            end
+        end
+        filteredCrossings = filteredCrossings(keepAlternating);
+        crossingTypes = crossingTypes(keepAlternating);
+    end
+
     downcross = filteredCrossings(crossingTypes == -2);
     upcross = filteredCrossings(crossingTypes == 2);
 else

@@ -13,6 +13,15 @@ function [tdvol, upper, lower] = tidalvolume(resp, varargin)
 %   input signals. Although a simple detrend is performed internally, a
 %   preprocessing step to remove any slow drifts or trends is recommended.
 %
+%   ALGORITHM PHILOSOPHY:
+%   - Peak-valley synchronization is guaranteed by the zero-crossing approach
+%   - Peaks are defined as global maxima between consecutive zero crossings
+%   - Valleys are defined as global minima between consecutive zero crossings
+%   - This definition ignores intermediate local maxima/minima that don't cross zero
+%   - This approach has physiological sense: it removes noise, artifacts, and
+%     imperfections in breathing patterns while preserving the main respiratory cycles
+%   - The method ensures robust envelope extraction for real respiratory signals
+%
 %   TDVOL = TIDALVOLUME(SIGNAL, MINDIST) specifies the minimum distance between
 %   consecutive peaks in samples. MINDIST is a non-negative scalar with default
 %   value 0.
@@ -81,14 +90,20 @@ function [downcross, upcross] = detectZeroCrossings(resp, mindist)
 %   [DOWNCROSS, UPCROSS] = DETECTZEROCROSSINGS(RESP, MINDIST) finds downward
 %   and upward zero crossings in the signal RESP. MINDIST specifies the minimum
 %   distance between consecutive crossings to reduce noise effects.
+%
+%   FILTERING STRATEGY:
+%   - First detects ALL zero crossings regardless of direction
+%   - Then filters out crossings that are too close together (noise-induced)
+%   - Finally classifies remaining crossings into upward/downward
+%   - This approach avoids complex edge cases that arise from separate filtering
 
-% Find all zero crossings first
+% Find all zero crossings
 zerocross = diff(sign(resp));
 allCrossings = find(abs(zerocross) == 2) + 1;
 
 % Filter close crossings to reduce noise effects
+% Keep the first crossing from each group of close crossings
 if mindist > 0 && length(allCrossings) > 1
-    % Keep the first crossing from each group of close crossings
     keepCrossings = true(size(allCrossings));
     for kk = 2:length(allCrossings)
         if allCrossings(kk) - allCrossings(kk-1) < mindist
@@ -100,7 +115,7 @@ else
     filteredCrossings = allCrossings;
 end
 
-% Classify into upward and downward crossings
+% Classify into upward and downward crossings after filtering
 if ~isempty(filteredCrossings)
     crossingTypes = zerocross(filteredCrossings - 1);
     downcross = filteredCrossings(crossingTypes == -2);
@@ -120,40 +135,49 @@ function [peaks, peakIndices, valleys, valleyIndices] = findPeaksAndValleys(resp
 %   [PEAKS, PEAKINDICES, VALLEYS, VALLEYINDICES] = FINDPEAKSANDVALLEYS(RESP, DOWNCROSS, UPCROSS)
 %   finds peaks and valleys in the signal RESP between zero crossings defined by
 %   DOWNCROSS and UPCROSS indices.
+%
+%   KEY DESIGN PRINCIPLES:
+%   - Peaks and valleys are ALWAYS synchronized by design due to zero-crossing approach
+%   - Each peak/valley represents the global extremum between consecutive zero crossings
+%   - Intermediate local extrema (that don't cross zero) are intentionally ignored
+%   - This ensures robust detection despite noise, artifacts, or breathing irregularities
+%   - The difference in array lengths can be at most 1 due to signal start/end effects
 
-% Initialize output arrays
+% Initialize output arrays with same size (synchronized by design)
 peaks = nan(size(downcross));
 peakIndices = peaks;
 valleys = peaks;
 valleyIndices = peaks;
 
 if downcross(1) < upcross(1)
-    % Case 1: Downcross first
+    % Case 1: Signal starts with downcross (expiration phase)
+    % Sequence: downcross -> valley -> upcross -> peak -> downcross -> ...
 
-    % Find peaks
+    % Find peaks between upcross and downcross
     for kk=2:length(downcross)
         indexes = upcross(kk-1):downcross(kk);
         [peaks(kk), peakIndices(kk)] = max(resp(indexes));
         peakIndices(kk) = peakIndices(kk) + upcross(kk-1) - 1;
     end
 
-    % Find valleys
+    % Find valleys between downcross and upcross
     for kk=1:length(upcross)
         indexes = downcross(kk):upcross(kk);
         [valleys(kk), valleyIndices(kk)] = min(resp(indexes));
         valleyIndices(kk) = valleyIndices(kk) + downcross(kk) - 1;
     end
 else
-    % Case 2: Upcross first
+    % Case 2: Signal starts with upcross (inhalation phase)
+    % Sequence: upcross -> peak -> downcross -> valley -> upcross -> ...
 
-    % Find peaks
+    % Find peaks between upcross and downcross
     for kk=1:length(downcross)
         indexes = upcross(kk):downcross(kk);
         [peaks(kk), peakIndices(kk)] = max(resp(indexes));
         peakIndices(kk) = peakIndices(kk) + upcross(kk) - 1;
     end
 
-    % Find valleys
+    % Find valleys between downcross and upcross
     for kk=2:length(upcross)
         indexes = downcross(kk-1):upcross(kk);
         [valleys(kk), valleyIndices(kk)] = min(resp(indexes));
@@ -161,7 +185,7 @@ else
     end
 end
 
-% Remove NaNs from output
+% Remove NaNs from output (clean up unused positions)
 peaks = peaks(~isnan(peakIndices));
 peakIndices = peakIndices(~isnan(peakIndices));
 valleys = valleys(~isnan(valleyIndices));
@@ -198,8 +222,16 @@ function tdvol = calculateTidalVolume(peaks, peakIndices, valleys, valleyIndices
 %   TDVOL = CALCULATETIDALVOLUME(PEAKS, PEAKINDICES, VALLEYS, VALLEYINDICES, RESP, UPPER, LOWER)
 %   calculates the tidal volume signal by interpolating amplitude differences between
 %   peaks and valleys, and handles NaN propagation.
+%
+%   TEMPORAL PAIRING STRATEGY:
+%   - Determines correct peak-valley pairing based on temporal sequence
+%   - If signal starts with peak: pairs peak[i] with valley[i] (same respiratory cycle)
+%   - If signal starts with valley: pairs valley[i] with peak[i+1] (consecutive cycles)
+%   - This ensures physiologically meaningful amplitude calculations
+%   - Requires at least 2 complete cycles for robust interpolation
 
-% Ensure we have matching pairs by taking minimum length
+% Ensure we have sufficient data for meaningful tidal volume estimation
+% At least 2 cycles needed for robust interpolation
 minLength = min(length(peaks), length(valleys));
 if minLength < 2
     tdvol = nan(size(resp));
@@ -209,17 +241,19 @@ end
 % Determine the correct pairing based on temporal sequence
 if peakIndices(1) < valleyIndices(1)
     % Signal starts with peak: pair each peak with corresponding valley
+    % This represents inspiration amplitude (peak) to expiration baseline (valley)
     % peak[i] -> valley[i]
     amplitudeAux = peaks(1:minLength) - valleys(1:minLength);
     tAux = (peakIndices(1:minLength) + valleyIndices(1:minLength))/2;
 else
     % Signal starts with valley: pair each valley with next peak
-    % valley[i] -> peak[i+1], so we need to offset the arrays
+    % This requires offsetting arrays to maintain temporal consistency
+    % valley[i] -> peak[i+1]
     if minLength > 2
         amplitudeAux = peaks(1:minLength-1) - valleys(2:minLength);
         tAux = (peakIndices(1:minLength-1) + valleyIndices(2:minLength))/2;
     else
-        % Not enough data for proper pairing
+        % Not enough data for proper offset pairing
         tdvol = nan(size(resp));
         return;
     end
@@ -231,7 +265,10 @@ if isempty(tAux) || isempty(amplitudeAux)
     return;
 end
 
+% Interpolate tidal volume signal using pchip for smooth results
 tdvol = interp1(tAux, amplitudeAux, 1:length(resp),'pchip');
+
+% Propagate NaNs from envelope computation and input signal
 tdvol(isnan(upper-lower)) = nan;
 tdvol(isnan(resp)) = nan;
 

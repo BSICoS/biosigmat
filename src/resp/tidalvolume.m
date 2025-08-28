@@ -9,7 +9,9 @@ function [tdvol, upper, lower] = tidalvolume(resp, varargin)
 %   The algorithm does not detect every peak and valley to compute the envelopes.
 %   It only uses peaks and valleys between zero crossings. This way we assure
 %   that small fluctuations that may occur in real respiration signals are not
-%   detected as separate events.
+%   detected as separate events. This means that the function expects detrended
+%   input signals. Although a simple detrend is performed internally, a
+%   preprocessing step to remove any slow drifts or trends is recommended.
 %
 %   TDVOL = TIDALVOLUME(SIGNAL, MINDIST) specifies the minimum distance between
 %   consecutive peaks in samples. MINDIST is a non-negative scalar with default
@@ -54,7 +56,7 @@ mindist = parser.Results.mindist;
 
 % Ensure column vector and detrend
 resp = resp(:);
-resp = detrend(resp);
+resp = detrend(resp, 'omitnan');
 
 % Find zero crossings (downward and upward). Peaks and valleys are
 % detected between these crossings following the cycle upcross -> peak

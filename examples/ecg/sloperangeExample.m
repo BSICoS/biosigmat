@@ -27,6 +27,7 @@ peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
 fs = 256;
 
 % Extract signals from loaded data
+resp = signalsData.resp;
 ecg = signalsData.ecg;
 tk = peaksData.tk;  % Pre-calculated R-peaks in seconds
 nk = round(tk * fs) + 1;  % Convert to sample indices
@@ -47,7 +48,7 @@ figure;
 t = (0:length(decg) - 1) / fs;
 
 % Plot 1: ECG signal with detected R-peaks
-ax(1) = subplot(311);
+ax(1) = subplot(411);
 plot(t, ecg);
 hold on;
 plot(tk, ecg(nk), 'o');
@@ -56,7 +57,7 @@ ylabel('ECG');
 title('Beat detection');
 
 % Plot 2: ECG derivative with upslope and downslope intervals
-ax(2) = subplot(312);
+ax(2) = subplot(412);
 plot(t, decg);
 hold on;
 plot(t, upslopes, 'linewidth', 3);
@@ -70,10 +71,16 @@ ylabel('1st der ECG');
 title('Intervals for upslope (black) and downslope (magenta)');
 
 % Plot 3: Extracted EDR signal
-ax(3) = subplot(313);
+ax(3) = subplot(413);
 plot(tk, edr);
 axis tight;
 title('Slope range');
+
+% Plot 4: Respiratory signal from device
+ax(4) = subplot(414);
+plot(t, resp);
+axis tight;
+title('Respiratory signal from device');
 xlabel('time (s)');
 
 % Link axes for synchronized zooming and enable interactive slider

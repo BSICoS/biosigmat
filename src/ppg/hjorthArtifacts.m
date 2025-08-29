@@ -27,11 +27,6 @@ function [artifactVector, artifactMatrix] = hjorthArtifacts(signal, fs, seg, ste
 %   intermediate results when PLOTFLAG is true (default: false).
 %
 %   Example:
-%     % Load PPG signal and detect artifacts
-%     fs = 125;
-%     t = 0:1/fs:60;
-%     signal = sin(2*pi*1*t) + 0.1*randn(size(t));
-%
 %     % Define parameters
 %     seg = 4;
 %     step = 3;

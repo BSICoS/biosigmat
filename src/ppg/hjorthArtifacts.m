@@ -1,7 +1,7 @@
-function [detectionsVector, segments] = hjorthArtifacts(signal, fs, seg, step, margins, varargin)
+function [detectionVector, detectionMatrix] = hjorthArtifacts(signal, fs, seg, step, margins, varargin)
 % HJORTHARTIFACTS Detects artifacts in physiological signals using Hjorth parameters.
 %
-%   [DETECTIONSVECTOR, SEGMENTS] = HJORTHARTIFACTS(SIGNAL, FS, SEG, STEP,
+%   [DETECTIONSVECTOR, DETECTIONS] = HJORTHARTIFACTS(SIGNAL, FS, SEG, STEP,
 %   MARGINS) detects artifacts in the input signal using Hjorth parameters
 %   analysis. SIGNAL is the input signal vector, FS is the sampling frequency
 %   in Hz, SEG is the time window search in seconds, STEP is the step in seconds
@@ -115,68 +115,63 @@ for kk=0:nSegments
 end
 
 % Compute thresholds
-thresholdH0LowCalc  = medfilt1(h0,medfiltOrder,'truncate','omitnan') - marginH0Low;
-thresholdH0UpCalc  = medfilt1(h0,medfiltOrder,'truncate','omitnan') + marginH0Up;
-thresholdH1LowCalc = medfilt1(h1,medfiltOrder,'truncate','omitnan') - marginH1Low;
-thresholdH1UpCalc = medfilt1(h1,medfiltOrder,'truncate','omitnan') + marginH1Up;
-thresholdH2LowCalc  = medfilt1(h2,medfiltOrder,'truncate','omitnan') - marginH2Low;
-thresholdH2UpCalc  = medfilt1(h2,medfiltOrder,'truncate','omitnan') + marginH2Up;
-thresholdH0LowCalc(thresholdH0LowCalc<=0) = 0.0001;
+thresholdH0Low  = medfilt1(h0,medfiltOrder,'truncate','omitnan') - marginH0Low;
+thresholdH0Up  = medfilt1(h0,medfiltOrder,'truncate','omitnan') + marginH0Up;
+thresholdH1Low = medfilt1(h1,medfiltOrder,'truncate','omitnan') - marginH1Low;
+thresholdH1Up = medfilt1(h1,medfiltOrder,'truncate','omitnan') + marginH1Up;
+thresholdH2Low = medfilt1(h2,medfiltOrder,'truncate','omitnan') - marginH2Low;
+thresholdH2Up  = medfilt1(h2,medfiltOrder,'truncate','omitnan') + marginH2Up;
+thresholdH0Low(thresholdH0Low<=0) = 0.0001;
 
 % Look for artifact segments
-artifactSegments = (h2 > thresholdH2UpCalc) | (h2 < thresholdH2LowCalc) | (h1 > thresholdH1UpCalc) | (h1 < thresholdH1LowCalc)...
-    | (h0 > thresholdH0UpCalc) | (h0 < thresholdH0LowCalc);% | isnan(h0);
+artifactSegments = (h2 > thresholdH2Up) | (h2 < thresholdH2Low) | (h1 > thresholdH1Up) | (h1 < thresholdH1Low)...
+    | (h0 > thresholdH0Up) | (h0 < thresholdH0Low);% | isnan(h0);
 if negative
     artifactSegments = ~artifactSegments;
 end
 
-if nargout > 1
-    detections = artifactSegments(:);
-    %     detections(find(diff(diff(detections))>minSegmentSeparation)+1) = true;
+artifactSegments = find(artifactSegments);
+
+if isempty(artifactSegments)
+    detectionMatrix = [];
+    detectionVector = zeros(size(signal));
 else
-    artifactSegments = find(artifactSegments);
+    artifactSegments = [artifactSegments artifactSegments(end)+minSegmentSeparation]; % To use last one too
+    newSegmentPosition = find(diff(artifactSegments)>=minSegmentSeparation);
 
-    if isempty(artifactSegments)
-        detections = [];
-        detectionsVector = zeros(size(signal));
+    if ~isempty(newSegmentPosition)
+        idetection = nan(length(newSegmentPosition),2);
+        detectionMatrix = nan(length(newSegmentPosition),2);
+        k = 1;
+        for i = 1:length(newSegmentPosition)
+            idetection(i,1) = artifactSegments(k);
+            idetection(i,2) = artifactSegments(newSegmentPosition(i));
+            k = newSegmentPosition(i)+1;
+        end
     else
-        artifactSegments = [artifactSegments artifactSegments(end)+minSegmentSeparation]; % To use last one too
-        newSegmentPosition = find(diff(artifactSegments)>=minSegmentSeparation);
-
-        if ~isempty(newSegmentPosition)
-            idetection = nan(length(newSegmentPosition),2);
-            detections = nan(length(newSegmentPosition),2);
-            k = 1;
-            for i = 1:length(newSegmentPosition)
-                idetection(i,1) = artifactSegments(k);
-                idetection(i,2) = artifactSegments(newSegmentPosition(i));
-                k = newSegmentPosition(i)+1;
-            end
-        else
-            idetection(1,1) = artifactSegments(1);
-            idetection(1,2) = artifactSegments(end);
-        end
-
-        % Samples -> Seconds
-        detections(:,1) = (idetection(:,1)-1)*nStep + 1;
-        detections(:,2) = (idetection(:,2)-1)*nStep + nWindow;
-
-        detectionsVector = zeros(size(signal));
-        for i=1:size(detections,1)
-            indexes = detections(i,1):detections(i,2);
-            detectionsVector(indexes) = 1;
-        end
-
-        % Detections can be outputed as a matrix with inits and ends in
-        % seconds by changing the output from "detectionsVector" to "detections"
-        detections = (detections-1)/fs;
+        idetection(1,1) = artifactSegments(1);
+        idetection(1,2) = artifactSegments(end);
     end
+
+    % Samples -> Seconds
+    detectionMatrix(:,1) = (idetection(:,1)-1)*nStep + 1;
+    detectionMatrix(:,2) = (idetection(:,2)-1)*nStep + nWindow;
+
+    detectionVector = zeros(size(signal));
+    for i=1:size(detectionMatrix,1)
+        indexes = detectionMatrix(i,1):detectionMatrix(i,2);
+        detectionVector(indexes) = 1;
+    end
+
+    % Matrix with inits and ends in seconds
+    detectionMatrix = (detectionMatrix-1)/fs;
 end
 
+
 if plotflag
-    plotResults(signal, fs, h0, h1, h2, thresholdH0UpCalc, thresholdH0LowCalc, ...
-        thresholdH1UpCalc, thresholdH1LowCalc, thresholdH2UpCalc, thresholdH2LowCalc, ...
-        segments, detections);
+    plotResults(signal, fs, h0, h1, h2, thresholdH0Up, thresholdH0Low, ...
+        thresholdH1Up, thresholdH1Low, thresholdH2Up, thresholdH2Low, ...
+        segments, detectionMatrix);
 end
 
 end

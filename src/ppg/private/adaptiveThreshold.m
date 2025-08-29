@@ -81,7 +81,15 @@ while true
     downCrossing = upCrossing + relativeDownCrossing - 1;
 
     % Find peak within the crossing region
-    [~, relativePeakIndex] = max(dppg(upCrossing:downCrossing));
+    [~, relativePeakIndex] = localmax(dppg(upCrossing:downCrossing));
+
+    if isnan(relativePeakIndex)
+        % No peak found - move to next index
+        currentIndex = downCrossing + 1;
+        continue;
+    end
+
+    % Find peak index
     peakIndex = upCrossing + relativePeakIndex - 1;
 
     % Calculate peak amplitude using adaptive estimation

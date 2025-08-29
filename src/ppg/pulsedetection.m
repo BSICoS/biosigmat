@@ -111,7 +111,7 @@ tAdd = 5*fs;
 nD = unique(nD);
 if ~isempty(nD)
     t = (0:length(dppg)-1)/fs;
-    [~, nD] = refinepeaks(dppg, nD, t, Method="NLS");
+    [~, nD] = refinepeaks(dppg, nD, t);
 end
 
 % Remove NaNs from threshold

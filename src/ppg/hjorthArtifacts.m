@@ -1,18 +1,21 @@
-function [detectionsVector, segments] = hjorthArtifacts(signal, fs, seg, step, thresholdH0, thresholdH1, thresholdH2, minSegmentSeparation, medfiltOrder, varargin)
+function [detectionsVector, segments] = hjorthArtifacts(signal, fs, seg, step, margins, varargin)
 % HJORTHARTIFACTS Detects artifacts in physiological signals using Hjorth parameters.
 %
 %   [DETECTIONSVECTOR, SEGMENTS] = HJORTHARTIFACTS(SIGNAL, FS, SEG, STEP,
-%   THRESHOLDH0, THRESHOLDH1, THRESHOLDH2, MINSEGMENTSEPARATION, MEDFILTORDER)
-%   detects artifacts in the input signal using Hjorth parameters analysis.
-%   SIGNAL is the input signal vector, FS is the sampling frequency in Hz,
-%   SEG is the time window search in seconds, STEP is the step in seconds to
-%   shift the window, THRESHOLDH0 is a 2-element vector [low, up] for H0
-%   thresholds, THRESHOLDH1 is a 2-element vector [low, up] for H1 thresholds,
-%   THRESHOLDH2 is a 2-element vector [low, up] for H2 thresholds,
-%   MINSEGMENTSEPARATION is the minimum segment separation in seconds, and
-%   MEDFILTORDER is the median filter order for threshold computation.
-%   DETECTIONSVECTOR is a logical vector indicating artifact segments, and
-%   SEGMENTS contains the onset and offset of segments in seconds.
+%   MARGINS) detects artifacts in the input signal using Hjorth parameters
+%   analysis. SIGNAL is the input signal vector, FS is the sampling frequency
+%   in Hz, SEG is the time window search in seconds, STEP is the step in seconds
+%   to shift the window, MARGINS is a 3x2 matrix where each row contains
+%   [low, up] margins for H0, H1, and H2 parameters respectively, relative to
+%   their median filtered baselines. DETECTIONSVECTOR is a logical vector
+%   indicating artifact segments, and SEGMENTS contains the onset and offset
+%   of segments in seconds.
+%
+%   [...] = HJORTHARTIFACTS(..., 'minSegmentSeparation', MINSEGMENTSEPARATION)
+%   sets the minimum segment separation in seconds (default: 1).
+%
+%   [...] = HJORTHARTIFACTS(..., 'medfiltOrder', MEDFILTORDER) sets the median
+%   filter order for threshold computation (default: 300).
 %
 %   [...] = HJORTHARTIFACTS(..., 'negative', NEGATIVE) inverts the artifact
 %   detection logic when NEGATIVE is true (default: false).
@@ -29,15 +32,13 @@ function [detectionsVector, segments] = hjorthArtifacts(signal, fs, seg, step, t
 %     % Define parameters
 %     seg = 4;
 %     step = 3;
-%     thresholdH0 = [5, 1];
-%     thresholdH1 = [0.8, 2];
-%     thresholdH2 = [6, 6];
-%     minSegmentSeparation = 1;
-%     medfiltOrder = 15;
+%     marginH0 = [5, 1];
+%     marginH1 = [0.8, 2];
+%     marginH2 = [6, 6];
+%     margins = [marginH0; marginH1; marginH2];
 %
 %     [artifacts, segments] = hjorthArtifacts(signal, fs, seg, step, ...
-%         thresholdH0, thresholdH1, thresholdH2, minSegmentSeparation, ...
-%         medfiltOrder, 'plotflag', true);
+%         margins, 'minSegmentSeparation', 1, 'medfiltOrder', 15, 'plotflag', true);
 %
 %     % Plot results
 %     figure;
@@ -53,7 +54,7 @@ function [detectionsVector, segments] = hjorthArtifacts(signal, fs, seg, step, t
 
 
 % Check number of input and output arguments
-narginchk(9, 13);
+narginchk(5, 9);
 nargoutchk(0, 2);
 
 % Parse and validate inputs
@@ -64,37 +65,33 @@ addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addRequired(parser, 'seg', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addRequired(parser, 'step', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addRequired(parser, 'thresholdH0', @(x) isnumeric(x) && numel(x) == 2);
-addRequired(parser, 'thresholdH1', @(x) isnumeric(x) && numel(x) == 2);
-addRequired(parser, 'thresholdH2', @(x) isnumeric(x) && numel(x) == 2);
-addRequired(parser, 'minSegmentSeparation', @(x) isnumeric(x) && isscalar(x) && x >= 0);
-addRequired(parser, 'medfiltOrder', @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'margins', @(x) isnumeric(x) && size(x,1) == 3 && size(x,2) == 2);
 
+addParameter(parser, 'minSegmentSeparation', 1, @(x) isnumeric(x) && isscalar(x) && x >= 0);
+addParameter(parser, 'medfiltOrder', 300, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'negative', false, @(x) islogical(x) && isscalar(x));
 addParameter(parser, 'plotflag', false, @(x) islogical(x) && isscalar(x));
 
-parse(parser, signal, fs, seg, step, thresholdH0, thresholdH1, thresholdH2, minSegmentSeparation, medfiltOrder, varargin{:});
+parse(parser, signal, fs, seg, step, margins, varargin{:});
 
 % Extract parsed values
 signal = parser.Results.signal;
 fs = parser.Results.fs;
 seg = parser.Results.seg;
 step = parser.Results.step;
-thresholdH0 = parser.Results.thresholdH0;
-thresholdH1 = parser.Results.thresholdH1;
-thresholdH2 = parser.Results.thresholdH2;
+margins = parser.Results.margins;
 minSegmentSeparation = parser.Results.minSegmentSeparation;
 medfiltOrder = parser.Results.medfiltOrder;
 negative = parser.Results.negative;
 plotflag = parser.Results.plotflag;
 
-% Extract threshold values
-thresholdH0Low = thresholdH0(1);
-thresholdH0Up = thresholdH0(2);
-thresholdH1Low = thresholdH1(1);
-thresholdH1Up = thresholdH1(2);
-thresholdH2Low = thresholdH2(1);
-thresholdH2Up = thresholdH2(2);
+% Extract margin values
+marginH0Low = margins(1,1);
+marginH0Up = margins(1,2);
+marginH1Low = margins(2,1);
+marginH1Up = margins(2,2);
+marginH2Low = margins(3,1);
+marginH2Up = margins(3,2);
 
 % Initialize Hjorth parameters
 nWindow = floor(seg*fs); % Segmentation window [samples]
@@ -118,12 +115,12 @@ for kk=0:nSegments
 end
 
 % Compute thresholds
-thresholdH0LowCalc  = medfilt1(h0,medfiltOrder,'truncate','omitnan') - thresholdH0Low;
-thresholdH0UpCalc  = medfilt1(h0,medfiltOrder,'truncate','omitnan') + thresholdH0Up;
-thresholdH1LowCalc = medfilt1(h1,medfiltOrder,'truncate','omitnan') - thresholdH1Low;
-thresholdH1UpCalc = medfilt1(h1,medfiltOrder,'truncate','omitnan') + thresholdH1Up;
-thresholdH2LowCalc  = medfilt1(h2,medfiltOrder,'truncate','omitnan') - thresholdH2Low;
-thresholdH2UpCalc  = medfilt1(h2,medfiltOrder,'truncate','omitnan') + thresholdH2Up;
+thresholdH0LowCalc  = medfilt1(h0,medfiltOrder,'truncate','omitnan') - marginH0Low;
+thresholdH0UpCalc  = medfilt1(h0,medfiltOrder,'truncate','omitnan') + marginH0Up;
+thresholdH1LowCalc = medfilt1(h1,medfiltOrder,'truncate','omitnan') - marginH1Low;
+thresholdH1UpCalc = medfilt1(h1,medfiltOrder,'truncate','omitnan') + marginH1Up;
+thresholdH2LowCalc  = medfilt1(h2,medfiltOrder,'truncate','omitnan') - marginH2Low;
+thresholdH2UpCalc  = medfilt1(h2,medfiltOrder,'truncate','omitnan') + marginH2Up;
 thresholdH0LowCalc(thresholdH0LowCalc<=0) = 0.0001;
 
 % Look for artifact segments

@@ -1,15 +1,18 @@
-function [detectionVector, detectionMatrix] = hjorthArtifacts(signal, fs, seg, step, margins, varargin)
+function [artifactVector, artifactMatrix] = hjorthArtifacts(signal, fs, seg, step, margins, varargin)
 % HJORTHARTIFACTS Detects artifacts in physiological signals using Hjorth parameters.
 %
-%   [DETECTIONSVECTOR, DETECTIONS] = HJORTHARTIFACTS(SIGNAL, FS, SEG, STEP,
-%   MARGINS) detects artifacts in the input signal using Hjorth parameters
-%   analysis. SIGNAL is the input signal vector, FS is the sampling frequency
-%   in Hz, SEG is the time window search in seconds, STEP is the step in seconds
-%   to shift the window, MARGINS is a 3x2 matrix where each row contains
-%   [low, up] margins for H0, H1, and H2 parameters respectively, relative to
-%   their median filtered baselines. DETECTIONSVECTOR is a logical vector
-%   indicating artifact segments, and SEGMENTS contains the onset and offset
-%   of segments in seconds.
+%   ARTIFACTVECTOR = HJORTHARTIFACTS(SIGNAL, FS, SEG, STEP, MARGINS) detects
+%   artifacts in the input signal using Hjorth parameters analysis. SIGNAL is
+%   the input signal vector, FS is the sampling frequency in Hz, SEG is the time
+%   window search in seconds, STEP is the step in seconds to shift the window,
+%   MARGINS is a 3x2 matrix where each row contains [low, up] margins for H0, H1,
+%   and H2 parameters respectively, relative to their median filtered baselines.
+%   ARTIFACTVECTOR is a logical vector indicating artifact samples.
+%
+%   [ARTIFACTVECTOR, ARTIFACTMATRIX] = HJORTHARTIFACTS(...) returns both the
+%   artifact vector and a matrix. ARTIFACTMATRIX contains the onset and offset
+%   times of artifact segments in seconds as an Nx2 matrix where each row
+%   represents [start_time, end_time] of an artifact segment.
 %
 %   [...] = HJORTHARTIFACTS(..., 'minSegmentSeparation', MINSEGMENTSEPARATION)
 %   sets the minimum segment separation in seconds (default: 1).
@@ -37,16 +40,9 @@ function [detectionVector, detectionMatrix] = hjorthArtifacts(signal, fs, seg, s
 %     marginH2 = [6, 6];
 %     margins = [marginH0; marginH1; marginH2];
 %
-%     [artifacts, segments] = hjorthArtifacts(signal, fs, seg, step, ...
+%     % Get both artifact vector and matrix
+%     [artifactVector, artifactMatrix] = hjorthArtifacts(signal, fs, seg, step, ...
 %         margins, 'minSegmentSeparation', 1, 'medfiltOrder', 15, 'plotflag', true);
-%
-%     % Plot results
-%     figure;
-%     plot(t, signal, 'b');
-%     hold on;
-%     plot(t(artifacts == 1), signal(artifacts == 1), 'r.');
-%     title('Artifact Detection using Hjorth Parameters');
-%     legend('Original Signal', 'Detected Artifacts');
 %
 %   See also HJORTH, MEDFILT1
 %
@@ -124,54 +120,54 @@ thresholdH2Up  = medfilt1(h2,medfiltOrder,'truncate','omitnan') + marginH2Up;
 thresholdH0Low(thresholdH0Low<=0) = 0.0001;
 
 % Look for artifact segments
-artifactSegments = (h2 > thresholdH2Up) | (h2 < thresholdH2Low) | (h1 > thresholdH1Up) | (h1 < thresholdH1Low)...
+isArtifact = (h2 > thresholdH2Up) | (h2 < thresholdH2Low) | (h1 > thresholdH1Up) | (h1 < thresholdH1Low)...
     | (h0 > thresholdH0Up) | (h0 < thresholdH0Low);% | isnan(h0);
 if negative
-    artifactSegments = ~artifactSegments;
+    isArtifact = ~isArtifact;
 end
 
-artifactSegments = find(artifactSegments);
+isArtifact = find(isArtifact);
 
-if isempty(artifactSegments)
-    detectionMatrix = [];
-    detectionVector = zeros(size(signal));
+if isempty(isArtifact)
+    artifactMatrix = [];
+    artifactVector = zeros(size(signal));
 else
-    artifactSegments = [artifactSegments artifactSegments(end)+minSegmentSeparation]; % To use last one too
-    newSegmentPosition = find(diff(artifactSegments)>=minSegmentSeparation);
+    isArtifact = [isArtifact isArtifact(end)+minSegmentSeparation]; % To use last one too
+    newSegmentPosition = find(diff(isArtifact)>=minSegmentSeparation);
 
     if ~isempty(newSegmentPosition)
-        idetection = nan(length(newSegmentPosition),2);
-        detectionMatrix = nan(length(newSegmentPosition),2);
+        artifactSegments = nan(length(newSegmentPosition),2);
+        artifactMatrix = nan(length(newSegmentPosition),2);
         k = 1;
         for i = 1:length(newSegmentPosition)
-            idetection(i,1) = artifactSegments(k);
-            idetection(i,2) = artifactSegments(newSegmentPosition(i));
+            artifactSegments(i,1) = isArtifact(k);
+            artifactSegments(i,2) = isArtifact(newSegmentPosition(i));
             k = newSegmentPosition(i)+1;
         end
     else
-        idetection(1,1) = artifactSegments(1);
-        idetection(1,2) = artifactSegments(end);
+        artifactSegments(1,1) = isArtifact(1);
+        artifactSegments(1,2) = isArtifact(end);
     end
 
     % Samples -> Seconds
-    detectionMatrix(:,1) = (idetection(:,1)-1)*nStep + 1;
-    detectionMatrix(:,2) = (idetection(:,2)-1)*nStep + nWindow;
+    artifactMatrix(:,1) = (artifactSegments(:,1)-1)*nStep + 1;
+    artifactMatrix(:,2) = (artifactSegments(:,2)-1)*nStep + nWindow;
 
-    detectionVector = zeros(size(signal));
-    for i=1:size(detectionMatrix,1)
-        indexes = detectionMatrix(i,1):detectionMatrix(i,2);
-        detectionVector(indexes) = 1;
+    artifactVector = zeros(size(signal));
+    for i=1:size(artifactMatrix,1)
+        indexes = artifactMatrix(i,1):artifactMatrix(i,2);
+        artifactVector(indexes) = 1;
     end
 
     % Matrix with inits and ends in seconds
-    detectionMatrix = (detectionMatrix-1)/fs;
+    artifactMatrix = (artifactMatrix-1)/fs;
 end
 
 
 if plotflag
     plotResults(signal, fs, h0, h1, h2, thresholdH0Up, thresholdH0Low, ...
         thresholdH1Up, thresholdH1Low, thresholdH2Up, thresholdH2Low, ...
-        segments, detectionMatrix);
+        segments, artifactMatrix);
 end
 
 end

@@ -1,7 +1,7 @@
 function [tdvol, upper, lower] = tidalvolume(resp, varargin)
 % TIDALVOLUME Extracts upper and lower peak envelopes from a signal.
 %
-%   TDVOL = TIDALVOLUME(SIGNAL) extracts a signal proportional to an estimation
+%   TDVOL = TIDALVOLUME(RESP) extracts a signal proportional to an estimation
 %   of the tidal volume from a respiration signal RESP (numeric vector).
 %   The estimation is performed using the upper and lower envelopes connecting the
 %   peaks and valleys.
@@ -22,7 +22,7 @@ function [tdvol, upper, lower] = tidalvolume(resp, varargin)
 %     imperfections in breathing patterns while preserving the main respiratory cycles
 %   - The method ensures robust envelope extraction for real respiratory signals
 %
-%   TDVOL = TIDALVOLUME(SIGNAL, MINDIST) specifies the minimum distance between
+%   TDVOL = TIDALVOLUME(RESP, MINDIST) specifies the minimum distance between
 %   consecutive peaks in samples. MINDIST is a non-negative scalar with default
 %   value 0.
 %

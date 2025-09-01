@@ -3,5 +3,6 @@ arrange:
   - index.md
   - ecg
   - ppg
+  - resp
   - hrv
   - tools

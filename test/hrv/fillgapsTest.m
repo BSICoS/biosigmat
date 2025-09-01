@@ -22,6 +22,10 @@ classdef fillgapsTest < matlab.unittest.TestCase
             % Load ECG timing data from fixture
             tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
             tc.originalTk = tkData.tk;
+            
+            % Remove false positives from the original data (same as fillgaps does)
+            tc.originalTk = tc.removefp(tc.originalTk);
+            
             tc.tolerance = 0.05; % 50ms tolerance for timing differences
         end
     end
@@ -29,9 +33,6 @@ classdef fillgapsTest < matlab.unittest.TestCase
     methods (Test)
         function testRandomGapFilling(tc)
             tk = tc.originalTk(1:100);
-
-            % Remove false positives before creating gaps (same as fillgaps does)
-            tk = tc.removefp(tk);
             originalLength = length(tk);
 
             % Randomly remove 10-15% of the detections to create gaps
@@ -58,9 +59,6 @@ classdef fillgapsTest < matlab.unittest.TestCase
 
         function testConsecutiveRemovedBeats(tc)
             tk = tc.originalTk(1:50);
-
-            % Remove false positives before creating gaps (same as fillgaps does)
-            tk = tc.removefp(tk);
             originalLength = length(tk);
 
             % Remove consecutive beats to create larger gaps
@@ -84,9 +82,6 @@ classdef fillgapsTest < matlab.unittest.TestCase
         function testBasicInput(tc)
             % Test with a few beat input that requires no gap filling
             tk = tc.originalTk(1:5);
-
-            % Remove false positives before testing (same as fillgaps does)
-            tk = tc.removefp(tk);
 
             tn = fillgaps(tk, false);
 

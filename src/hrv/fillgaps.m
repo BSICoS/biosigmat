@@ -63,65 +63,76 @@ parse(parser, tk, varargin{:});
 tk = parser.Results.tk;
 debug = parser.Results.debug;
 
+% Disable warning for NaN values in interpolation
 warning('off', 'MATLAB:interp1:NaNstrip');
 
-% Threshold multipliers for upper and lower thresholds
+% Threshold multipliers for gap detection and validation
 kupper = 1.5;
 kupperFine = 1/kupper*1.15;
 klower = 1/kupper*0.75;
 
-% Ensure tk is a column vector
+% Ensure tk is a column vector and remove false positives
 tk = tk(:);
-
-% Remove false positives
 tk = removefp(tk);
+
+% Compute inter-beat intervals
 dtk = diff(tk);
 
-% Initialize output
+% Initialize output variables with original values
 tn = tk;
 dtn = dtk;
 
-% Gaps are detected by deviation from the median in difference series
+% Detect gaps using adaptive baseline threshold
+% Gaps are identified as inter-beat intervals significantly longer than the median
 baseline = medfiltThreshold(dtk, 30, 1, 1.5);
 gaps = find(dtk>baseline*kupper & dtk>0.5);
 
-% Finish if no gaps are found
+% Early exit if no gaps are detected
 if isempty(gaps)
     return;
 end
 
-% Gaps on first and last pulses are not allowed
+% Remove gaps at signal edges as they cannot be reliably filled
 [gaps, tn, baseline] = removeEdgeGaps(gaps, tn, dtk, baseline, kupper);
 
-% Compute thresholds at gaps
+% Compute thresholds for each gap based on local baseline
 thresholdAtGap = baseline(gaps)*kupper;
 
+% Setup debug figure if debugging is enabled
 if debug
     f = set(gcf, 'Position', get(0, 'Screensize'));
 end
 
-nfill = 1; % Start filling with one sample
+% Iterative gap filling algorithm
+% Start with filling one beat per gap, then progressively increase
+nfill = 1;
 while ~isempty(gaps)
-    % In each iteration, try to fill with one more sample
+    % In each iteration, try to fill gaps with 'nfill' number of beats
     for kk = 1:length(gaps)
+        % Display original signal with gaps highlighted (debug mode)
         if kk==1 && debug
             subplot(211);
             hold off
             stem(dtn); hold on;
-            stem(gaps,dtn(gaps),'r');
+            stem(gaps,dtn(gaps),'r');  % Highlight gaps in red
             hold on
-            plot(baseline*kupper,'k--')
+            plot(baseline*kupper,'k--')  % Show detection threshold
             axis tight
             ylabel('Original RR [s]')
         end
 
+        % Attempt to fill current gap with 'nfill' interpolated beats
         auxtn = nfillgap(tn,gaps,gaps(kk),nfill);
         auxdtn = diff(auxtn);
 
+        % Validate the correction: check if interpolated intervals are reasonable
         correct = auxdtn(gaps(kk):gaps(kk)+nfill)<kupperFine*thresholdAtGap(kk);
+
+        % Check if intervals are too small (over-correction indicator)
         limitExceeded = auxdtn(gaps(kk):gaps(kk)+nfill)<klower*thresholdAtGap(kk) | ...
             auxdtn(gaps(kk):gaps(kk)+nfill)<0.5;
 
+        % Debug visualization of the correction attempt
         if debug
             if limitExceeded
                 debugplots(auxdtn,gaps(kk),kupperFine*thresholdAtGap(kk),klower*thresholdAtGap(kk),nfill,false);
@@ -130,30 +141,34 @@ while ~isempty(gaps)
             end
         end
 
+        % Decide whether to accept the correction
         if limitExceeded
-            % Check that lower theshold is not exceeded. Use previous nfill instead
+            % Over-correction detected: use previous nfill value instead
             auxtn = nfillgap(tn,gaps,gaps(kk),nfill-1);
             auxdtn = diff(auxtn);
             if debug
                 debugplots(auxdtn,gaps(kk),kupperFine*thresholdAtGap(kk),klower*thresholdAtGap(kk),nfill-1,true);
             end
             tn = auxtn;
-            gaps = gaps+nfill-1;
+            gaps = gaps+nfill-1; % Update gap indices after insertion
         elseif correct
-            % If correct number of samples, save serie
+            % Correction is valid: accept the filled series
             tn = auxtn;
-            gaps = gaps+nfill;
+            gaps = gaps+nfill; % Update gap indices after insertion
         end
+        % If neither condition is met, gap remains unfilled for this iteration
     end
 
-    % Compute gaps for next iteration
+    % Prepare for next iteration: recalculate gaps and thresholds
     dtn = diff(tn);
     baseline = medfiltThreshold(dtn, 30, 1, 1.5);
     gaps = find(dtn>baseline*kupper & dtn>0.5);
     thresholdAtGap = baseline(gaps)*kupper;
-    nfill = nfill+1;
+
+    nfill = nfill+1; % Increase number of beats to fill per gap
 end
 
+% Close debug figure if it was opened
 if debug
     close(f);
 end
@@ -163,66 +178,161 @@ end
 
 %% REMOVEFP
 function tk = removefp(tk)
+% REMOVEFP Remove false positive detections from HRV event series.
+%
+%   TK = REMOVEFP(TK) removes false positive detections from the HRV event
+%   series TK by identifying and eliminating beats that are too close together.
+%   TK is a vector of event timestamps in seconds. Returns the corrected
+%   event series with false positives removed.
+%
+%   The function uses an adaptive baseline approach to identify intervals
+%   that are significantly shorter than expected, indicating likely false
+%   positive detections. When such intervals are found, the second beat
+%   in the pair is removed.
+
 tk = tk(:);
 dtk = diff(tk);
+
+% Calculate adaptive baseline for RR intervals
 baseline = medfiltThreshold(dtk, 30, 1, 1.5);
+
+% Identify intervals that are too short (false positives)
 fp = dtk<0.7*baseline;
+
+% Remove the second beat in each false positive pair
 tk(find(fp)+1) = [];
+
 end
 
 
 %% REMOVEEDGEGAPS
 function [gaps, tn, baseline] = removeEdgeGaps(gaps,tn,dtk,baseline,kupper)
+% REMOVEEDGEGAPS Remove gaps at signal edges from HRV event series.
+%
+%   [GAPS, TN, BASELINE] = REMOVEEDGEGAPS(GAPS, TN, DTK, BASELINE, KUPPER)
+%   removes gaps that occur at the beginning or end of the HRV signal.
+%   GAPS is a vector of gap indices, TN is the event time series, DTK is
+%   the difference series (RR intervals), BASELINE is the adaptive threshold
+%   baseline, and KUPPER is the upper threshold multiplier.
+%
+%   Edge gaps cannot be reliably filled due to lack of sufficient context
+%   on one side. The function iteratively removes events from the beginning
+%   and end of the series until no edge gaps remain. Returns the updated
+%   gaps vector, event series, and baseline after edge removal.
+
+% Remove beats from the beginning until no edge gaps remain
 while gaps(1)<2
-    tn(1) = [];
-    dtk(1) = [];
-    baseline(1) = [];
-    gaps = find(dtk>baseline*kupper);
+    tn(1) = [];         % Remove first beat
+    dtk(1) = [];        % Remove first interval
+    baseline(1) = [];   % Remove first baseline value
+    gaps = find(dtk>baseline*kupper);  % Recalculate gaps
     if isempty(gaps)
         return;
     end
 end
+
+% Remove beats from the end until no edge gaps remain
 while gaps(end)>numel(dtk)-1
-    tn(end) = [];
-    dtk(end) = [];
-    baseline(end) = [];
-    gaps = find(dtk>baseline*kupper);
+    tn(end) = [];       % Remove last beat
+    dtk(end) = [];      % Remove last interval
+    baseline(end) = []; % Remove last baseline value
+    gaps = find(dtk>baseline*kupper);  % Recalculate gaps
     if isempty(gaps)
         return;
     end
 end
+
 end
+
 
 %% NFILLGAP
 function tn = nfillgap(tk,gaps,currentGap,nfill)
+% NFILLGAP Fill a single gap with N interpolated beats in HRV event series.
+%
+%   TN = NFILLGAP(TK, GAPS, CURRENTGAP, NFILL) interpolates NFILL beats
+%   into a specific gap in the HRV event series. TK is the event time series,
+%   GAPS is a vector of all gap indices, CURRENTGAP is the index of the gap
+%   to fill, and NFILL is the number of beats to interpolate. Returns TN,
+%   the corrected event series with the gap filled.
+%
+%   The function uses piecewise cubic Hermite interpolation (PCHIP) based on
+%   surrounding RR intervals (up to 20 beats on each side of the gap). The
+%   interpolated intervals are scaled to match the total duration of the gap,
+%   ensuring temporal consistency. Other gaps in the series are excluded
+%   from the interpolation context to avoid contamination.
+
 dtk = diff(tk);
+
+% Exclude other gaps from interpolation context
 gaps(gaps==currentGap) = [];
 dtk(gaps) = nan;
+
+% Get the gap duration to be filled
 gap = dtk(currentGap);
+
+% Extract context intervals around the gap (up to 20 beats on each side)
 previousIntervals = dtk(max(1,currentGap-20):currentGap-1);
-posteriorIntervals = dtk(currentGap+1:min(end,currentGap+20));
+nextIntervals = dtk(currentGap+1:min(end,currentGap+20));
+
+% Count the number of intervals on each side
 npre = numel(previousIntervals);
-npos = numel(posteriorIntervals);
-intervals = interp1([1:npre nfill+npre+2:nfill+npre+npos+1],[previousIntervals; posteriorIntervals],...
+npos = numel(nextIntervals);
+
+% Interpolate intervals using piecewise cubic Hermite interpolation
+% Create time indices for previous and next intervals
+intervals = interp1([1:npre nfill+npre+2:nfill+npre+npos+1],[previousIntervals; nextIntervals],...
     npre+1:npre+nfill+1,'pchip');
-intervals = intervals(1:end-1)*gap/(sum(intervals,'omitnan')); % map intervals to gap
+
+% Scale interpolated intervals to match the total gap duration
+intervals = intervals(1:end-1)*gap/(sum(intervals,'omitnan'));
+
+% Construct the corrected event series
+% Insert interpolated beats by computing cumulative times within the gap
 tn = [tk(1:currentGap); tk(currentGap)+cumsum(intervals)'; tk(currentGap+1:end)];
+
 end
 
 
 %% DEBUGPLOTS
 function debugplots(dtn,gap,upperThreshold,lowerThreshold,nfill,correct)
-subplot(212); hold off;
-stem(dtn); hold on;
+% DEBUGPLOTS Visualization for gap filling debugging in HRV analysis.
+%
+%   DEBUGPLOTS(DTN, GAP, UPPERTHRESHOLD, LOWERTHRESHOLD, NFILL, CORRECT)
+%   displays the correction results with threshold lines for visual inspection
+%   of the gap filling process. DTN is the corrected RR interval series, GAP
+%   is the index of the current gap being filled, UPPERTHRESHOLD and
+%   LOWERTHRESHOLD are the validation thresholds, NFILL is the number of
+%   beats being interpolated, and CORRECT is a logical indicating whether
+%   the correction meets validation criteria.
+%
+%   The function creates a stem plot of the RR intervals with color-coded
+%   visualization: green for correct fills, red for incorrect fills. Threshold
+%   lines are displayed for reference, and the view is focused around the
+%   current gap. The function pauses for user interaction to allow step-by-step
+%   inspection of the gap filling process.
+
+% Create a new subplot for the corrected RR intervals
+subplot(212);
+stem(dtn);
+hold on;
+
+% Color-code the filled intervals: green for correct, red for incorrect
 if correct
     stem(gap:gap+nfill,dtn(gap:gap+nfill),'g','LineWidth',1);
 else
     stem(gap:gap+nfill,dtn(gap:gap+nfill),'r','LineWidth',1);
 end
+
+% Focus view around the current gap
 xlim([max(0,gap-50) min(gap+50,numel(dtn))])
 ylabel('Corrected RR [s]')
-xlabel('Samples');% ylim([0 1.7])
+xlabel('Samples');
+
+% Display threshold lines for reference
 line(xlim,[upperThreshold upperThreshold],'Color','k');
 line(xlim,[lowerThreshold lowerThreshold],'Color','k');
+
+% Wait for user input to continue
 pause;
+
 end

@@ -32,13 +32,13 @@ function tn = fillgaps(tk, varargin)
 %     % Plot results
 %     figure;
 %     subplot(2,1,1);
-%     stem(dtk, 'b'); hold on
+%     stem(dtk, 'k'); hold on
 %     stem([19, 39], dtk([19, 39]), 'r')
 %     title('Original RR Intervals');
 %     ylabel('RR Interval (s)');
 %
 %     subplot(2,1,2);
-%     stem(dtn, 'g');
+%     stem(dtn, 'k');
 %     title('Filled RR Intervals');
 %     ylabel('RR Interval (s)');
 %     xlabel('Beat Index');
@@ -318,15 +318,18 @@ hold off;
 stem(dtn);
 hold on;
 
+filledPositions = gap:gap+nfill;
+
 % Color-code the filled intervals: green for correct, red for incorrect
 if correct
-    stem(gap:gap+nfill,dtn(gap:gap+nfill),'g','LineWidth',1);
+    stem(filledPositions,dtn(filledPositions),'g','LineWidth',1);
 else
-    stem(gap:gap+nfill,dtn(gap:gap+nfill),'r','LineWidth',1);
+    stem(filledPositions,dtn(filledPositions),'r','LineWidth',1);
 end
 
 % Focus view around the current gap
 xlim([max(0,gap-50) min(gap+50,numel(dtn))])
+ylim([0 1.1*max(dtn(filledPositions))])
 ylabel('Corrected RR [s]')
 xlabel('Samples');
 

@@ -244,16 +244,43 @@ gap = dtk(currentGap);
 
 % Extract context intervals around the gap (up to 4 beats on each side)
 nneighbors = 4;
+minValidNeighbors = 2; % Minimum required for interpolation
+
+% Start with initial window size and expand if needed
 previousIntervals = dtk(max(1,currentGap-nneighbors):currentGap-1);
 nextIntervals = dtk(currentGap+1:min(end,currentGap+nneighbors));
 
-% Count the number of intervals on each side
+% Remove NaN values from context intervals
+validPrevious = previousIntervals(~isnan(previousIntervals));
+validNext = nextIntervals(~isnan(nextIntervals));
+
+% Expand window if we don't have enough valid intervals on either side
+maxNeighbors = min(currentGap-1, length(dtk)-currentGap); % Maximum possible expansion
+while (numel(validPrevious) < minValidNeighbors || numel(validNext) < minValidNeighbors) && nneighbors < maxNeighbors
+    nneighbors = nneighbors + 1;
+
+    % Extract larger windows
+    previousIntervals = dtk(max(1,currentGap-nneighbors):currentGap-1);
+    nextIntervals = dtk(currentGap+1:min(end,currentGap+nneighbors));
+
+    % Filter NaN values
+    validPrevious = previousIntervals(~isnan(previousIntervals));
+    validNext = nextIntervals(~isnan(nextIntervals));
+end
+
+% Use the valid intervals for interpolation
+previousIntervals = validPrevious;
+nextIntervals = validNext;
+
+% Count the number of valid intervals on each side
 npre = numel(previousIntervals);
 nnext = numel(nextIntervals);
 
 % Interpolate intervals
-intervals = interp1([1:npre nfill+npre+2:nfill+npre+nnext+1],[previousIntervals; nextIntervals],...
-    npre+1:npre+nfill+1,'makima');
+knownPositions = [1:npre nfill+npre+2:nfill+npre+nnext+1];
+knownIntervals = [previousIntervals; nextIntervals];
+targetPositions = npre+1:npre+nfill+1;
+intervals = interp1(knownPositions,knownIntervals,targetPositions,'pchip');
 
 % Scale interpolated intervals to match the total gap duration
 intervals = intervals(1:end-1)*gap/(sum(intervals,'omitnan'));

@@ -249,10 +249,10 @@ nextIntervals = dtk(currentGap+1:min(end,currentGap+nneighbors));
 
 % Count the number of intervals on each side
 npre = numel(previousIntervals);
-npos = numel(nextIntervals);
+nnext = numel(nextIntervals);
 
 % Interpolate intervals
-intervals = interp1([1:npre nfill+npre+2:nfill+npre+npos+1],[previousIntervals; nextIntervals],...
+intervals = interp1([1:npre nfill+npre+2:nfill+npre+nnext+1],[previousIntervals; nextIntervals],...
     npre+1:npre+nfill+1,'makima');
 
 % Scale interpolated intervals to match the total gap duration

@@ -43,7 +43,7 @@ function tn = fillgaps(tk, varargin)
 %     ylabel('RR Interval (s)');
 %     xlabel('Beat Index');
 %
-%   See also TDMETRICS, MEDFILTTHRESHOLD
+%   See also TDMETRICS, MEDFILTTHRESHOLD, REMOVEFP
 %
 %   Status: Alpha
 
@@ -173,35 +173,6 @@ end
 if debug
     close(f);
 end
-
-end
-
-
-%% REMOVEFP
-function tk = removefp(tk)
-% REMOVEFP Remove false positive detections from HRV event series.
-%
-%   TK = REMOVEFP(TK) removes false positive detections from the HRV event
-%   series TK by identifying and eliminating beats that are too close together.
-%   TK is a vector of event timestamps in seconds. Returns the corrected
-%   event series with false positives removed.
-%
-%   The function uses an adaptive baseline approach to identify intervals
-%   that are significantly shorter than expected, indicating likely false
-%   positive detections. When such intervals are found, the second beat
-%   in the pair is removed.
-
-tk = tk(:);
-dtk = diff(tk);
-
-% Calculate adaptive baseline for RR intervals
-baseline = medfiltThreshold(dtk, 30, 1, 1.5);
-
-% Identify intervals that are too short (false positives)
-fp = dtk<0.7*baseline;
-
-% Remove the second beat in each false positive pair
-tk(find(fp)+1) = [];
 
 end
 

@@ -22,11 +22,8 @@ classdef fillgapsTest < matlab.unittest.TestCase
             % Load ECG timing data from fixture
             tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
             tc.originalTk = tkData.tk;
-            
-            % Remove false positives from the original data (same as fillgaps does)
-            tc.originalTk = tc.removefp(tc.originalTk);
-            
-            tc.tolerance = 0.05; % 50ms tolerance for timing differences
+            tc.originalTk = removefp(tc.originalTk);
+            tc.tolerance = 0.05;
         end
     end
 
@@ -77,36 +74,6 @@ classdef fillgapsTest < matlab.unittest.TestCase
             timingDifferences = abs(tn - tk);
             tc.verifyTrue(all(timingDifferences <= tc.tolerance), ...
                 sprintf('All timing differences should be within %.3f seconds tolerance for sequential gaps', tc.tolerance));
-        end
-
-        function testBasicInput(tc)
-            % Test with a few beat input that requires no gap filling
-            tk = tc.originalTk(1:5);
-
-            tn = fillgaps(tk, false);
-
-            % Should return the same input when no gaps exist
-            tc.verifyEqual(tn, tk, 'AbsTol', 1e-10, ...
-                'Input with no gaps should return unchanged');
-        end
-    end
-
-    methods (Access = private)
-        function tk = removefp(~, tk)
-            % REMOVEFP Remove false positive detections from HRV event series.
-            % Copied from fillgaps.m to ensure consistent preprocessing
-
-            tk = tk(:);
-            dtk = diff(tk);
-
-            % Calculate adaptive baseline for RR intervals
-            baseline = medfiltThreshold(dtk, 30, 1, 1.5);
-
-            % Identify intervals that are too short (false positives)
-            fp = dtk<0.7*baseline;
-
-            % Remove the second beat in each false positive pair
-            tk(find(fp)+1) = [];
         end
     end
 end

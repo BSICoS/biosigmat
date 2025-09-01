@@ -1,3 +1,14 @@
+% HJORTHARTIFACTSEXAMPLE Example demonstrating artifact detection using Hjorth parameters.
+%
+% This example demonstrates how to detect artifacts in photoplethysmography (PPG)
+% signals using Hjorth parameters analysis. The process involves loading PPG signal
+% data from a CSV file and applying the hjorthArtifacts function to identify
+% signal segments that contain artifacts based on activity, mobility, and complexity
+% parameters. The example shows how to configure detection margins for different
+% Hjorth parameters and visualizes both the artifact detection vector and the
+% parameter matrix, providing insights into signal quality assessment for PPG
+% analysis applications.
+
 % Add source paths
 addpath('../../src/ppg');
 addpath('../../src/tools');

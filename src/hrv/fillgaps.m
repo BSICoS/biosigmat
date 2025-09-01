@@ -271,7 +271,7 @@ dtk(gaps) = nan;
 % Get the gap duration to be filled
 gap = dtk(currentGap);
 
-% Extract context intervals around the gap (up to 6 beats on each side)
+% Extract context intervals around the gap (up to 4 beats on each side)
 nneighbors = 4;
 previousIntervals = dtk(max(1,currentGap-nneighbors):currentGap-1);
 nextIntervals = dtk(currentGap+1:min(end,currentGap+nneighbors));

@@ -5,10 +5,14 @@ title: HRV Module Overview
 
 ## Functions
 
+- [`fillgaps`](fillgaps.md)
+- [`removefp`](removefp.md)
 - [`tdmetrics`](tdmetrics.md)
 
 ## Examples
 
+- [`fillgapsExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m)
+- [`removefpExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m)
 - [`tdmetricsExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m)
 
 ## See Also
@@ -17,4 +21,4 @@ title: HRV Module Overview
 
 ---
 
-**Functions**: 1 | **Examples**: 1 | **Last Updated**: 2025-09-01
+**Functions**: 3 | **Examples**: 3 | **Last Updated**: 2025-09-01

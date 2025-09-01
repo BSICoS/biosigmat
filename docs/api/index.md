@@ -20,6 +20,8 @@ Functions for heart rate variability analysis and metrics calculation.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
+| [`fillgaps`](hrv/fillgaps.md) | Fill gaps in HRV event series using iterative interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m) | :material-alpha: Alpha |
+| [`removefp`](hrv/removefp.md) | Remove false positive detections from HRV event series. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m) | :material-alpha: Alpha |
 | [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :white_check_mark: Stable |
 
 ### [PPG Processing](ppg/index.md)
@@ -69,6 +71,7 @@ Utility functions for signal processing and data manipulation.
 All functions sorted alphabetically:
 
 - [`baselineremove`](ecg/baselineremove.md)
+- [`fillgaps`](hrv/fillgaps.md)
 - [`findsequences`](tools/findsequences.md)
 - [`hjorth`](tools/hjorth.md)
 - [`hjorthArtifacts`](ppg/hjorthArtifacts.md)
@@ -84,6 +87,7 @@ All functions sorted alphabetically:
 - [`peakedness`](tools/peakedness.md)
 - [`pulsedelineation`](ppg/pulsedelineation.md)
 - [`pulsedetection`](ppg/pulsedetection.md)
+- [`removefp`](hrv/removefp.md)
 - [`slicesignal`](tools/slicesignal.md)
 - [`slider`](tools/slider.md)
 - [`sloperange`](ecg/sloperange.md)
@@ -102,4 +106,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2025-09-01 | Total functions: 23*
+*Last updated: 2025-09-01 | Total functions: 25*

@@ -45,7 +45,7 @@ function [artifactVector, artifactMatrix] = hjorthArtifacts(signal, fs, seg, ste
 
 
 % Check number of input and output arguments
-narginchk(5, 9);
+narginchk(5, 13);
 nargoutchk(0, 2);
 
 % Parse and validate inputs

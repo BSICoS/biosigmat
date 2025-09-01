@@ -73,6 +73,7 @@ klower = 1/kupper*0.75;
 
 % Ensure tk is a column vector and remove false positives
 tk = tk(:);
+tk = sort(tk);
 tk = removefp(tk);
 
 % Compute inter-beat intervals
@@ -270,9 +271,10 @@ dtk(gaps) = nan;
 % Get the gap duration to be filled
 gap = dtk(currentGap);
 
-% Extract context intervals around the gap (up to 20 beats on each side)
-previousIntervals = dtk(max(1,currentGap-20):currentGap-1);
-nextIntervals = dtk(currentGap+1:min(end,currentGap+20));
+% Extract context intervals around the gap (up to 6 beats on each side)
+nneighbors = 4;
+previousIntervals = dtk(max(1,currentGap-nneighbors):currentGap-1);
+nextIntervals = dtk(currentGap+1:min(end,currentGap+nneighbors));
 
 % Count the number of intervals on each side
 npre = numel(previousIntervals);
@@ -281,7 +283,7 @@ npos = numel(nextIntervals);
 % Interpolate intervals using piecewise cubic Hermite interpolation
 % Create time indices for previous and next intervals
 intervals = interp1([1:npre nfill+npre+2:nfill+npre+npos+1],[previousIntervals; nextIntervals],...
-    npre+1:npre+nfill+1,'pchip');
+    npre+1:npre+nfill+1,'makima');
 
 % Scale interpolated intervals to match the total gap duration
 intervals = intervals(1:end-1)*gap/(sum(intervals,'omitnan'));
@@ -313,6 +315,7 @@ function debugplots(dtn,gap,upperThreshold,lowerThreshold,nfill,correct)
 
 % Create a new subplot for the corrected RR intervals
 subplot(212);
+hold off;
 stem(dtn);
 hold on;
 

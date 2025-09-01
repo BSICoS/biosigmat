@@ -280,8 +280,7 @@ nextIntervals = dtk(currentGap+1:min(end,currentGap+nneighbors));
 npre = numel(previousIntervals);
 npos = numel(nextIntervals);
 
-% Interpolate intervals using piecewise cubic Hermite interpolation
-% Create time indices for previous and next intervals
+% Interpolate intervals
 intervals = interp1([1:npre nfill+npre+2:nfill+npre+npos+1],[previousIntervals; nextIntervals],...
     npre+1:npre+nfill+1,'makima');
 

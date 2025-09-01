@@ -39,4 +39,4 @@ legend('Original', 'Detrended');
 
 ---
 
-**Module**: [ECG](index.md) | **Last Updated**: 2025-08-28
+**Module**: [ECG](index.md) | **Last Updated**: 2025-09-01

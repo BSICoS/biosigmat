@@ -78,4 +78,4 @@ fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 
 ---
 
-**Module**: [PPG](index.md) | **Last Updated**: 2025-08-28
+**Module**: [PPG](index.md) | **Last Updated**: 2025-09-01

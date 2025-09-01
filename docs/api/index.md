@@ -28,6 +28,7 @@ Functions for photoplethysmography signal analysis and pulse detection.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
+| [`hjorthArtifacts`](ppg/hjorthArtifacts.md) | Detects artifacts in physiological signals using Hjorth parameters. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/hjorthArtifactsExample.m) | :material-alpha: Alpha |
 | [`pulsedelineation`](ppg/pulsedelineation.md) | Performs pulse delineation in PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :material-beta: Beta |
 | [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using configurable algorithms. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :material-beta: Beta |
 
@@ -46,6 +47,7 @@ Utility functions for signal processing and data manipulation.
 | Function | Description | Status |
 | -------- | ----------- | ------ |
 | [`findsequences`](tools/findsequences.md) | Find sequences of repeated (adjacent/consecutive) numeric values. | :white_check_mark: Stable |
+| [`hjorth`](tools/hjorth.md) | Computes Hjorth parameters (activity, mobility, and complexity) from a signal. | :white_check_mark: Stable |
 | [`interpgap`](tools/interpgap.md) | Interpolate small NaN gaps in a signal. | :white_check_mark: Stable |
 | [`ispeaky`](tools/ispeaky.md) | Determines if spectra are considered peaky based on peakedness thresholds. | :white_check_mark: Stable |
 | [`localmax`](tools/localmax.md) | Finds local maxima in matrix rows or columns. | :material-beta: Beta |
@@ -68,6 +70,8 @@ All functions sorted alphabetically:
 
 - [`baselineremove`](ecg/baselineremove.md)
 - [`findsequences`](tools/findsequences.md)
+- [`hjorth`](tools/hjorth.md)
+- [`hjorthArtifacts`](ppg/hjorthArtifacts.md)
 - [`interpgap`](tools/interpgap.md)
 - [`ispeaky`](tools/ispeaky.md)
 - [`localmax`](tools/localmax.md)
@@ -98,4 +102,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2025-08-28 | Total functions: 21*
+*Last updated: 2025-09-01 | Total functions: 23*

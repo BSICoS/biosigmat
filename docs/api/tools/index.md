@@ -6,6 +6,7 @@ title: TOOLS Module Overview
 ## Functions
 
 - [`findsequences`](findsequences.md)
+- [`hjorth`](hjorth.md)
 - [`interpgap`](interpgap.md)
 - [`ispeaky`](ispeaky.md)
 - [`localmax`](localmax.md)
@@ -26,4 +27,4 @@ title: TOOLS Module Overview
 
 ---
 
-**Functions**: 14 | **Last Updated**: 2025-08-28
+**Functions**: 15 | **Last Updated**: 2025-09-01

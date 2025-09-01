@@ -20,6 +20,7 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ### PPG
 
+- [`hjorthArtifactsExample`](hjorthArtifactsExample.md)
 - [`pulsedelineationExample`](pulsedelineationExample.md)
 - [`pulsedetectionExample`](pulsedetectionExample.md)
 
@@ -38,4 +39,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 7 | **Workflows**: 2 | **Last Updated**: 2025-08-28
+**Examples**: 8 | **Workflows**: 2 | **Last Updated**: 2025-09-01

@@ -38,4 +38,4 @@ outliers = x > threshold;
 
 ---
 
-**Module**: [TOOLS](index.md) | **Last Updated**: 2025-08-28
+**Module**: [TOOLS](index.md) | **Last Updated**: 2025-09-01

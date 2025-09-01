@@ -18,4 +18,4 @@ This example demonstrates how to estimate tidal volume from respiration signals 
 
 ---
 
-**Module**: [RESP](../api/resp/index.md) | **Last Updated**: 2025-08-28
+**Module**: [RESP](../api/resp/index.md) | **Last Updated**: 2025-09-01

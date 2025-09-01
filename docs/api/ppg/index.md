@@ -5,11 +5,13 @@ title: PPG Module Overview
 
 ## Functions
 
+- [`hjorthArtifacts`](hjorthArtifacts.md)
 - [`pulsedelineation`](pulsedelineation.md)
 - [`pulsedetection`](pulsedetection.md)
 
 ## Examples
 
+- [`hjorthArtifactsExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/hjorthArtifactsExample.m)
 - [`pulsedelineationExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m)
 - [`pulsedetectionExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m)
 
@@ -19,4 +21,4 @@ title: PPG Module Overview
 
 ---
 
-**Functions**: 2 | **Examples**: 2 | **Last Updated**: 2025-08-28
+**Functions**: 3 | **Examples**: 3 | **Last Updated**: 2025-09-01

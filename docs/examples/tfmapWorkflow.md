@@ -17,4 +17,4 @@ This workflow demonstrates how to create comprehensive time-frequency maps of sy
 
 ---
 
-**Last Updated**: 2025-08-28
+**Last Updated**: 2025-09-01

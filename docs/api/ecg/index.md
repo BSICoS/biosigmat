@@ -21,4 +21,4 @@ title: ECG Module Overview
 
 ---
 
-**Functions**: 3 | **Examples**: 3 | **Last Updated**: 2025-08-28
+**Functions**: 3 | **Examples**: 3 | **Last Updated**: 2025-09-01

@@ -72,39 +72,29 @@ klower = 1/kupper*0.75;
 
 % Ensure tk is a column vector
 tk = tk(:);
-dtk = diff(tk);
 
 % Remove false positives
-baseline = medfiltThreshold(dtk, 30, 1, 1.5);
-fp = dtk<0.7*baseline;
-tk(find(fp)+1) = [];
-tn = tk;
+tk = removefp(tk);
 dtk = diff(tk);
+
+% Initialize output
+tn = tk;
 dtn = dtk;
 
 % Gaps are detected by deviation from the median in difference series
 baseline = medfiltThreshold(dtk, 30, 1, 1.5);
 gaps = find(dtk>baseline*kupper & dtk>0.5);
-if isempty(gaps), return; end
-thresholdAtGap = baseline(gaps)*kupper;
+
+% Finish if no gaps are found
+if isempty(gaps)
+    return;
+end
 
 % Gaps on first and last pulses are not allowed
-while gaps(1)<2
-    tn(1) = [];
-    dtk(1) = [];
-    baseline(1) = [];
-    gaps = find(dtk>baseline*kupper);
-    thresholdAtGap = baseline(gaps)*kupper;
-    if isempty(gaps), return; end
-end
-while gaps(end)>numel(dtk)-1
-    tn(end) = [];
-    dtk(end) = [];
-    baseline(end) = [];
-    gaps = find(dtk>baseline*kupper);
-    thresholdAtGap = baseline(gaps)*kupper;
-    if isempty(gaps), return; end
-end
+[gaps, tn, baseline] = removeEdgeGaps(gaps, tn, dtk, baseline, kupper);
+
+% Compute thresholds at gaps
+thresholdAtGap = baseline(gaps)*kupper;
 
 if debug
     f = set(gcf, 'Position', get(0, 'Screensize'));
@@ -170,6 +160,38 @@ end
 
 end
 
+
+%% REMOVEFP
+function tk = removefp(tk)
+tk = tk(:);
+dtk = diff(tk);
+baseline = medfiltThreshold(dtk, 30, 1, 1.5);
+fp = dtk<0.7*baseline;
+tk(find(fp)+1) = [];
+end
+
+
+%% REMOVEEDGEGAPS
+function [gaps, tn, baseline] = removeEdgeGaps(gaps,tn,dtk,baseline,kupper)
+while gaps(1)<2
+    tn(1) = [];
+    dtk(1) = [];
+    baseline(1) = [];
+    gaps = find(dtk>baseline*kupper);
+    if isempty(gaps)
+        return;
+    end
+end
+while gaps(end)>numel(dtk)-1
+    tn(end) = [];
+    dtk(end) = [];
+    baseline(end) = [];
+    gaps = find(dtk>baseline*kupper);
+    if isempty(gaps)
+        return;
+    end
+end
+end
 
 %% NFILLGAP
 function tn = nfillgap(tk,gaps,currentGap,nfill)

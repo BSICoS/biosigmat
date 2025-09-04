@@ -1,4 +1,4 @@
-function tn = fillgaps(tk, varargin)
+function [tn, dtn] = fillgaps(tk, varargin)
 % FILLGAPS Fill gaps in HRV event series using iterative interpolation.
 %
 %   TN = FILLGAPS(TK) fills gaps in the HRV event series TK using an iterative
@@ -18,6 +18,14 @@ function tn = fillgaps(tk, varargin)
 %   When DEBUG is true, the function displays gap-by-gap plots for visual
 %   inspection of the correction process.
 %
+%   TN = FILLGAPS(TK, DEBUG, MAXGAPDURATION) sets the maximum gap duration in
+%   seconds that will be attempted for interpolation. Gaps longer than
+%   MAXGAPDURATION will be excluded from processing. Default value is 10 seconds.
+%
+%   [TN, DTN] = FILLGAPS(...) also returns DTN, the RR interval series (diff of TN).
+%   Gaps that were too large to interpolate (exceeding maxgapDuration) will have
+%   NaN values in the corresponding positions of DTN.
+%
 %   Example:
 %     % Create synthetic HRV event series with gaps
 %     tk = 0:0.8:60; % Regular 75 bpm baseline
@@ -25,9 +33,8 @@ function tn = fillgaps(tk, varargin)
 %     tk(40:44) = []; % Create another larger gap
 %     dtk = diff(tk);
 %
-%     % Fill gaps in the event series
-%     tn = fillgaps(tk,true);
-%     dtn = diff(tn);
+%     % Fill gaps with custom maximum gap duration (5 seconds)
+%     [tn, dtn] = fillgaps(tk, true, 5);
 %
 %     % Plot results
 %     figure;
@@ -39,7 +46,7 @@ function tn = fillgaps(tk, varargin)
 %
 %     subplot(2,1,2);
 %     stem(dtn, 'k');
-%     title('Filled RR Intervals');
+%     title('Filled RR Intervals (NaN for too-large gaps)');
 %     ylabel('RR Interval (s)');
 %     xlabel('Beat Index');
 %
@@ -49,19 +56,21 @@ function tn = fillgaps(tk, varargin)
 
 
 % Check number of input and output arguments
-narginchk(1, 2);
-nargoutchk(0, 1);
+narginchk(1, 3);
+nargoutchk(0, 2);
 
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'fillgaps';
 addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)));
 addOptional(parser, 'debug', false, @(x) islogical(x) && isscalar(x));
+addOptional(parser, 'maxgapduration', 10, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
 parse(parser, tk, varargin{:});
 
 tk = parser.Results.tk;
 debug = parser.Results.debug;
+maxgapduration = parser.Results.maxgapduration;
 
 % Disable warning for NaN values in interpolation
 warning('off', 'MATLAB:interp1:NaNstrip');
@@ -88,7 +97,14 @@ dtn = dtk;
 baseline = medfiltThreshold(dtk, 30, 1, 1.5);
 gaps = find(dtk>baseline*kupper & dtk>0.5);
 
-% Early exit if no gaps are detected
+% Filter out gaps that are too large to interpolate reliably
+if ~isempty(gaps)
+    gapDurations = dtk(gaps);
+    validGaps = gapDurations <= maxgapduration;
+    gaps = gaps(validGaps);
+end
+
+% Early exit if no gaps are detected or all gaps are too large
 if isempty(gaps)
     return;
 end
@@ -164,6 +180,14 @@ while ~isempty(gaps)
     dtn = diff(tn);
     baseline = medfiltThreshold(dtn, 30, 1, 1.5);
     gaps = find(dtn>baseline*kupper & dtn>0.5);
+
+    % Filter out gaps that are too large to interpolate reliably
+    if ~isempty(gaps)
+        gapDurations = dtn(gaps);
+        validGaps = gapDurations <= maxgapduration;
+        gaps = gaps(validGaps);
+    end
+
     thresholdAtGap = baseline(gaps)*kupper;
 
     nfill = nfill+1; % Increase number of beats to fill per gap
@@ -172,6 +196,12 @@ end
 % Close debug figure if it was opened
 if debug
     close(f);
+end
+
+% Calculate final RR intervals and mark too-large gaps with NaN
+if nargout > 1
+    dtn = diff(tn);
+    dtn(dtn > maxgapduration) = NaN;
 end
 
 end

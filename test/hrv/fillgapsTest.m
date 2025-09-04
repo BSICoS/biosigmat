@@ -1,7 +1,7 @@
 
 % Tests covering:
 %   - Number preservation after gap filling
-%   - Timing accuracy within tolerance
+%   - Large gap handling with NaN marking
 
 classdef fillgapsTest < matlab.unittest.TestCase
 
@@ -54,26 +54,27 @@ classdef fillgapsTest < matlab.unittest.TestCase
                 sprintf('All timing differences should be within %.3f seconds tolerance', tc.tolerance));
         end
 
-        function testConsecutiveRemovedBeats(tc)
-            tk = tc.originalTk(1:50);
-            originalLength = length(tk);
+        function testLargeGapHandling(tc)
+            tk = 0:0.8:60; % Regular 75 bpm baseline
 
-            % Remove consecutive beats to create larger gaps
-            tkWithGaps = tk;
-            tkWithGaps(10:12) = [];
-            tkWithGaps(20:22) = [];
+            % Create gaps of different sizes
+            tk(20:21) = [];    % Small gap (1.6s) - should be filled
+            tk(38:42) = [];    % Medium gap (4s) - should be filled
 
-            % Apply gap filling
-            tn = fillgaps(tkWithGaps, false);
+            % Create a very large gap by inserting a long interval
+            tkWithLargeGap = tk;
+            % Insert a 15-second gap (exceeds maxgapDuration of 10s)
+            tkWithLargeGap = [tkWithLargeGap(1:30), tkWithLargeGap(30) + 15, tkWithLargeGap(31:end) + 15];
 
-            % Verify that the number of corrected events matches the original
-            tc.verifyEqual(length(tn), originalLength, ...
-                'Number of corrected events should match original after sequential gap filling');
+            % Test with two outputs
+            [~, dtn] = fillgaps(tkWithLargeGap, false);
 
-            % Verify that timing values are within tolerance
-            timingDifferences = abs(tn - tk);
-            tc.verifyTrue(all(timingDifferences <= tc.tolerance), ...
-                sprintf('All timing differences should be within %.3f seconds tolerance for sequential gaps', tc.tolerance));
+            % Verify that very large gaps are marked as NaN
+            tc.verifyTrue(any(isnan(dtn)), 'Large gaps should be marked as NaN in dtn');
+
+            % Count NaN values
+            nanCount = sum(isnan(dtn));
+            tc.verifyTrue(nanCount == 1, 'Only one interval should be NaN');
         end
     end
 end

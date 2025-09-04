@@ -50,4 +50,4 @@ fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 
 ---
 
-**Module**: [HRV](index.md) | **Last Updated**: 2025-09-01
+**Module**: [HRV](index.md) | **Last Updated**: 2025-09-04

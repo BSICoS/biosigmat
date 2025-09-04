@@ -18,4 +18,4 @@ This example demonstrates the implementation of the Pan-Tompkins algorithm for r
 
 ---
 
-**Module**: [ECG](../api/ecg/index.md) | **Last Updated**: 2025-09-01
+**Module**: [ECG](../api/ecg/index.md) | **Last Updated**: 2025-09-04

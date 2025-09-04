@@ -41,4 +41,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 10 | **Workflows**: 2 | **Last Updated**: 2025-09-01
+**Examples**: 10 | **Workflows**: 2 | **Last Updated**: 2025-09-04

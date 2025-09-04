@@ -5,7 +5,7 @@ Fill gaps in HRV event series using iterative interpolation.
 ## Syntax
 
 ```matlab
-function tn = fillgaps(tk, varargin)
+function [tn, dtn] = fillgaps(tk, varargin)
 ```
 
 ## Description
@@ -15,6 +15,10 @@ TN = FILLGAPS(TK) fills gaps in the HRV event series TK using an iterative inter
 The algorithm maintains original detections without displacement, trusting that detections are correct at these points. It is recommended that the processing chain discards all areas with artifacts or low SNR before detection.
 
 TN = FILLGAPS(TK, DEBUG) enables visual inspection when DEBUG is true. When DEBUG is true, the function displays gap-by-gap plots for visual inspection of the correction process.
+
+TN = FILLGAPS(TK, DEBUG, MAXGAPDURATION) sets the maximum gap duration in seconds that will be attempted for interpolation. Gaps longer than MAXGAPDURATION will be excluded from processing. Default value is 10 seconds.
+
+[TN, DTN] = FILLGAPS(...) also returns DTN, the RR interval series (diff of TN). Gaps that were too large to interpolate (exceeding maxgapDuration) will have NaN values in the corresponding positions of DTN.
 
 ## Source Code
 
@@ -29,9 +33,8 @@ tk(20:22) = []; % Remove some beats to create a gap
 tk(40:44) = []; % Create another larger gap
 dtk = diff(tk);
 
-% Fill gaps in the event series
-tn = fillgaps(tk,true);
-dtn = diff(tn);
+% Fill gaps with custom maximum gap duration (5 seconds)
+[tn, dtn] = fillgaps(tk, true, 5);
 
 % Plot results
 figure;
@@ -43,7 +46,7 @@ ylabel('RR Interval (s)');
 
 subplot(2,1,2);
 stem(dtn, 'k');
-title('Filled RR Intervals');
+title('Filled RR Intervals (NaN for too-large gaps)');
 ylabel('RR Interval (s)');
 xlabel('Beat Index');
 ```
@@ -60,4 +63,4 @@ xlabel('Beat Index');
 
 ---
 
-**Module**: [HRV](index.md) | **Last Updated**: 2025-09-01
+**Module**: [HRV](index.md) | **Last Updated**: 2025-09-04

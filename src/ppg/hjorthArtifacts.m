@@ -104,7 +104,7 @@ h0 = zeros(1,nSegments+1);
 h1 = zeros(1,nSegments+1);
 h2 = zeros(1,nSegments+1);
 segments = zeros(nSegments+1,2);
-signal(nSegments*nStep+nWindow+1:end) = [];
+%signal(nSegments*nStep+nWindow+1:end) = [];
 
 % Compute derivatives
 sfilt = signal-mean(signal,'omitnan');

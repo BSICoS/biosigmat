@@ -35,16 +35,10 @@ classdef hjorthArtifactsTest < matlab.unittest.TestCase
             % Test the function
             [artifactVector, artifactMatrix] = hjorthArtifacts(ppg, fs, seg, step, margins);
 
-            % Calculate expected output length (function truncates signal internally)
-            nWindow = floor(seg*fs);
-            nStep = floor(step*fs);
-            nSegments = floor((length(ppg)-nWindow)/nStep);
-            expectedLength = nSegments*nStep + nWindow;
-
             % Verify output types and dimensions
             tc.verifyClass(artifactVector, 'double', 'Artifact vector should be numeric (double)');
             tc.verifyTrue(all(ismember(artifactVector, [0, 1])), 'Artifact vector should contain only 0s and 1s');
-            tc.verifyEqual(length(artifactVector), expectedLength, 'Artifact vector should match truncated signal length');
+            tc.verifyEqual(length(artifactVector), length(ppg), 'Artifact vector should match signal length');
             tc.verifyTrue(isnumeric(artifactMatrix), 'Artifact matrix should be numeric');
 
             % Verify artifact matrix format (should be Nx2 with time values)
@@ -76,16 +70,10 @@ classdef hjorthArtifactsTest < matlab.unittest.TestCase
             [artifactVector, artifactMatrix] = hjorthArtifacts(ppg, fs, seg, step, margins, ...
                 'minSegmentSeparation', 1, 'medfiltOrder', 15, 'negative', false, 'plotflag', false);
 
-            % Calculate expected output length
-            nWindow = floor(seg*fs);
-            nStep = floor(step*fs);
-            nSegments = floor((length(ppg)-nWindow)/nStep);
-            expectedLength = nSegments*nStep + nWindow;
-
             % Verify outputs
             tc.verifyClass(artifactVector, 'double', 'Artifact vector should be numeric (double)');
             tc.verifyTrue(all(ismember(artifactVector, [0, 1])), 'Artifact vector should contain only 0s and 1s');
-            tc.verifyEqual(length(artifactVector), expectedLength, 'Artifact vector should match truncated signal length');
+            tc.verifyEqual(length(artifactVector), length(ppg), 'Artifact vector should match truncated signal length');
             tc.verifyTrue(isnumeric(artifactMatrix), 'Artifact matrix should be numeric');
         end
 

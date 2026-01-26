@@ -18,4 +18,4 @@ This example demonstrates how to perform detailed pulse delineation in photoplet
 
 ---
 
-**Module**: [PPG](../api/ppg/index.md) | **Last Updated**: 2025-09-04
+**Module**: [PPG](../api/ppg/index.md) | **Last Updated**: 2026-01-26

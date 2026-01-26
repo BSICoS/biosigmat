@@ -33,6 +33,7 @@ Functions for photoplethysmography signal analysis and pulse detection.
 | [`hjorthArtifacts`](ppg/hjorthArtifacts.md) | Detects artifacts in physiological signals using Hjorth parameters. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/hjorthArtifactsExample.m) | :material-alpha: Alpha |
 | [`pulsedelineation`](ppg/pulsedelineation.md) | Performs pulse delineation in PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :material-beta: Beta |
 | [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using configurable algorithms. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :material-beta: Beta |
+| [`pulseenvelopes`](ppg/pulseenvelopes.md) | Estimates lower and upper PPG envelopes using pulse-anchored interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulseenvelopesExample.m) | :material-beta: Beta |
 
 ### [RESP](resp/index.md)
 
@@ -87,6 +88,7 @@ All functions sorted alphabetically:
 - [`peakedness`](tools/peakedness.md)
 - [`pulsedelineation`](ppg/pulsedelineation.md)
 - [`pulsedetection`](ppg/pulsedetection.md)
+- [`pulseenvelopes`](ppg/pulseenvelopes.md)
 - [`removefp`](hrv/removefp.md)
 - [`slicesignal`](tools/slicesignal.md)
 - [`slider`](tools/slider.md)
@@ -106,4 +108,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2025-09-04 | Total functions: 25*
+*Last updated: 2026-01-26 | Total functions: 26*

@@ -54,4 +54,4 @@ xlabel('Beat Index');
 
 ---
 
-**Module**: [HRV](index.md) | **Last Updated**: 2025-09-04
+**Module**: [HRV](index.md) | **Last Updated**: 2026-01-26

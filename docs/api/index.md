@@ -49,6 +49,7 @@ Utility functions for signal processing and data manipulation.
 
 | Function | Description | Status |
 | -------- | ----------- | ------ |
+| [`expandnans`](tools/expandnans.md) | Expands NaN segments by a time window. | :material-beta: Beta |
 | [`findsequences`](tools/findsequences.md) | Find sequences of repeated (adjacent/consecutive) numeric values. | :white_check_mark: Stable |
 | [`hjorth`](tools/hjorth.md) | Computes Hjorth parameters (activity, mobility, and complexity) from a signal. | :white_check_mark: Stable |
 | [`interpgap`](tools/interpgap.md) | Interpolate small NaN gaps in a signal. | :white_check_mark: Stable |
@@ -72,6 +73,7 @@ Utility functions for signal processing and data manipulation.
 All functions sorted alphabetically:
 
 - [`baselineremove`](ecg/baselineremove.md)
+- [`expandnans`](tools/expandnans.md)
 - [`fillgaps`](hrv/fillgaps.md)
 - [`findsequences`](tools/findsequences.md)
 - [`hjorth`](tools/hjorth.md)
@@ -108,4 +110,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2026-01-26 | Total functions: 26*
+*Last updated: 2026-01-27 | Total functions: 27*

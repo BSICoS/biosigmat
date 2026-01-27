@@ -23,4 +23,4 @@ title: PPG Module Overview
 
 ---
 
-**Functions**: 4 | **Examples**: 4 | **Last Updated**: 2026-01-26
+**Functions**: 4 | **Examples**: 4 | **Last Updated**: 2026-01-27

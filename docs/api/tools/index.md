@@ -5,6 +5,7 @@ title: TOOLS Module Overview
 
 ## Functions
 
+- [`expandnans`](expandnans.md)
 - [`findsequences`](findsequences.md)
 - [`hjorth`](hjorth.md)
 - [`interpgap`](interpgap.md)
@@ -27,4 +28,4 @@ title: TOOLS Module Overview
 
 ---
 
-**Functions**: 15 | **Last Updated**: 2026-01-26
+**Functions**: 16 | **Last Updated**: 2026-01-27

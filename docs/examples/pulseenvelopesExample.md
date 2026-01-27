@@ -18,4 +18,4 @@ This example demonstrates how to estimate lower and upper envelopes of a photopl
 
 ---
 
-**Module**: [PPG](../api/ppg/index.md) | **Last Updated**: 2026-01-26
+**Module**: [PPG](../api/ppg/index.md) | **Last Updated**: 2026-01-27

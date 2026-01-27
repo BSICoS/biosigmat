@@ -58,4 +58,4 @@ xlabel('Time (s)'); ylabel('Amplitude');
 
 ---
 
-**Module**: [PPG](index.md) | **Last Updated**: 2026-01-26
+**Module**: [PPG](index.md) | **Last Updated**: 2026-01-27

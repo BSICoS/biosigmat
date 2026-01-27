@@ -18,4 +18,4 @@ This example demonstrates how to remove false positive detections from RR interv
 
 ---
 
-**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-01-26
+**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-01-27

@@ -114,8 +114,12 @@ if ~isempty(nD)
     [~, nD] = refinepeaks(dppg, nD, t);
 end
 
-% Remove NaNs from threshold
+% Trim threshold to original signal length
 threshold(signalLength+1:end) = [];
+
+% Remove NaN values from nD
+nD = nD(~isnan(nD));
+
 end
 
 

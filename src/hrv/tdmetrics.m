@@ -25,6 +25,8 @@ function metrics = tdmetrics(dtk)
 %     fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 %
 %   See also PANTOMPKINS
+%
+%   Status: Beta
 
 
 % Check number of input and output arguments
@@ -35,7 +37,6 @@ nargoutchk(0, 1);
 parser = inputParser;
 parser.FunctionName = 'tdmetrics';
 addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addOptional(parser, 'removeOutliers', true, @(x) islogical(x) && isscalar(x));
 
 parse(parser, dtk);
 

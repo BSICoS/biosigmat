@@ -22,7 +22,7 @@ Functions for heart rate variability analysis and metrics calculation.
 | -------- | ----------- | -------- | ------ |
 | [`fillgaps`](hrv/fillgaps.md) | Fill gaps in HRV event series using iterative interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m) | :material-alpha: Alpha |
 | [`removefp`](hrv/removefp.md) | Remove false positive detections from HRV event series. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m) | :material-alpha: Alpha |
-| [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :white_check_mark: Stable |
+| [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :material-beta: Beta |
 
 ### [PPG Processing](ppg/index.md)
 
@@ -110,4 +110,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2026-01-27 | Total functions: 27*
+*Last updated: 2026-03-13 | Total functions: 27*

@@ -56,4 +56,4 @@ signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
 ---
 
-**Module**: [TOOLS](index.md) | **Last Updated**: 2026-01-27
+**Module**: [TOOLS](index.md) | **Last Updated**: 2026-03-13

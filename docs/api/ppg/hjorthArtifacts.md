@@ -53,4 +53,4 @@ margins = [marginH0; marginH1; marginH2];
 
 ---
 
-**Module**: [PPG](index.md) | **Last Updated**: 2026-01-27
+**Module**: [PPG](index.md) | **Last Updated**: 2026-03-13

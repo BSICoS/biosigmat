@@ -42,4 +42,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 11 | **Workflows**: 2 | **Last Updated**: 2026-01-27
+**Examples**: 11 | **Workflows**: 2 | **Last Updated**: 2026-03-13

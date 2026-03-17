@@ -21,6 +21,7 @@ Functions for heart rate variability analysis and metrics calculation.
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
 | [`fillgaps`](hrv/fillgaps.md) | Fill gaps in HRV event series using iterative interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m) | :material-alpha: Alpha |
+| [`ipfm`](hrv/ipfm.md) | Estimate instantaneous heart rate using the integral pulse frequency modulation model. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ipfmExample.m) | :material-alpha: Alpha |
 | [`removefp`](hrv/removefp.md) | Remove false positive detections from HRV event series. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m) | :material-alpha: Alpha |
 | [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :material-beta: Beta |
 
@@ -79,6 +80,7 @@ All functions sorted alphabetically:
 - [`hjorth`](tools/hjorth.md)
 - [`hjorthArtifacts`](ppg/hjorthArtifacts.md)
 - [`interpgap`](tools/interpgap.md)
+- [`ipfm`](hrv/ipfm.md)
 - [`ispeaky`](tools/ispeaky.md)
 - [`localmax`](tools/localmax.md)
 - [`lpdfilter`](tools/lpdfilter.md)
@@ -110,4 +112,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2026-03-13 | Total functions: 27*
+*Last updated: 2026-03-17 | Total functions: 28*

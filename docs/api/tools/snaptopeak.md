@@ -46,4 +46,4 @@ refinedDetections2 = snaptopeak(ecg, initialDetections, 'WindowSize', 30);
 
 ---
 
-**Module**: [TOOLS](index.md) | **Last Updated**: 2026-03-13
+**Module**: [TOOLS](index.md) | **Last Updated**: 2026-03-17

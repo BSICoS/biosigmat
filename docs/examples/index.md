@@ -17,6 +17,7 @@ This section contains practical examples and workflows demonstrating the usage o
 ### HRV
 
 - [`fillgapsExample`](fillgapsExample.md)
+- [`ipfmExample`](ipfmExample.md)
 - [`removefpExample`](removefpExample.md)
 - [`tdmetricsExample`](tdmetricsExample.md)
 
@@ -42,4 +43,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 11 | **Workflows**: 2 | **Last Updated**: 2026-03-13
+**Examples**: 12 | **Workflows**: 2 | **Last Updated**: 2026-03-17

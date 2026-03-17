@@ -18,4 +18,4 @@ This example demonstrates how to detect artifacts in photoplethysmography (PPG) 
 
 ---
 
-**Module**: [PPG](../api/ppg/index.md) | **Last Updated**: 2026-03-13
+**Module**: [PPG](../api/ppg/index.md) | **Last Updated**: 2026-03-17

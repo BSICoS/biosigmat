@@ -26,7 +26,8 @@ tkRemoved = tk;
 tkRemoved(indicesToRemove) = [];
 
 % Fill gaps in the event series
-tn = fillgaps(tkRemoved,true);
+debug = false; % Set to true to enable debug output
+tn = fillgaps(tkRemoved, debug);
 
 %% Visualize the original and filled RR interval series
 figure;

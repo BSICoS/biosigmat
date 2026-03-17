@@ -9,21 +9,27 @@
 
 function runExamplesTest()
 
+narginchk(0, 0);
+nargoutchk(0, 0);
+
 % Get project root directory and change to it (navigate up from scripts/local/ to project root)
 projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 cd(projectRoot);
+projectRootCleanup = onCleanup(@() cd(projectRoot));
 
 fprintf('Running examples test...\n');
 fprintf('========================\n\n');
 
-% Store original figure visibility setting
-originalVisibility = get(0, 'DefaultFigureVisible');
+% Force figure visibility back on when the script finishes so interactive
+% example runs after this test behave normally.
+restoredVisibility = 'on';
+visibilityCleanup = onCleanup(@() set(0, 'DefaultFigureVisible', restoredVisibility));
 
 % Set figures to be invisible during testing
 set(0, 'DefaultFigureVisible', 'off');
 
 % Initialize test results
-testResults = struct();
+testResults = repmat(struct('name', '', 'status', '', 'error', '', 'time', 0), 0, 1);
 totalTests = 0;
 passedTests = 0;
 
@@ -32,9 +38,6 @@ totalStartTime = tic;
 
 % Automatically discover all example files
 exampleFiles = findExampleFiles();
-
-% Store current directory to restore later
-originalDir = pwd;
 
 % Display discovered examples
 fprintf('Discovered %d example files:\n', length(exampleFiles));
@@ -52,53 +55,25 @@ try
 
         fprintf('Testing: %s\n', exampleFile);
 
-        % Start timer for this example
-        exampleStartTime = tic;
-
         try
-            % Change to the directory containing the example
-            [exampleDir, ~, ~] = fileparts(exampleFile);
-            cd(exampleDir);
-
-            % Get the filename without path
-            [~, exampleFunction, ~] = fileparts(exampleFile);
-
-            % Run the example and capture output to suppress it
-            evalc(exampleFunction);
-
-            % Calculate execution time
-            exampleTime = toc(exampleStartTime);
+            testResults(totalTests) = runSingleExample(exampleFile);
 
             % If we get here, the example ran successfully
             fprintf('  Result: PASSED\n');
-            fprintf('  Execution time: %.3f seconds\n\n', exampleTime);
-            testResults.(sprintf('test%d', i)) = struct('name', exampleFile, 'status', 'PASSED', 'error', '', 'time', exampleTime);
+            fprintf('  Execution time: %.3f seconds\n\n', testResults(totalTests).time);
             passedTests = passedTests + 1;
 
-            % Close any figures that might have been created
-            close all;
-
         catch ME
-            % Calculate execution time even for failed examples
-            exampleTime = toc(exampleStartTime);
+            testResults(totalTests) = struct('name', exampleFile, 'status', 'FAILED', 'error', ME.message, 'time', NaN);
 
             % Example failed
             fprintf('  Result: FAILED\n');
-            fprintf('  Execution time: %.3f seconds\n', exampleTime);
+            fprintf('  Execution time: N/A\n');
             fprintf('  Error: %s\n\n', ME.message);
-            testResults.(sprintf('test%d', i)) = struct('name', exampleFile, 'status', 'FAILED', 'error', ME.message, 'time', exampleTime);
-
-            % Close any figures that might have been created
-            close all;
         end
-
-        % Return to original directory
-        cd(originalDir);
     end
 
 catch ME
-    % Restore original directory in case of unexpected error
-    cd(originalDir);
     rethrow(ME);
 end
 
@@ -121,9 +96,13 @@ else
     % Print details of failed tests
     fprintf('\nFailed examples:\n');
     for i = 1:totalTests
-        testField = sprintf('test%d', i);
-        if strcmp(testResults.(testField).status, 'FAILED')
-            fprintf('  - %s: %s (%.3f seconds)\n', testResults.(testField).name, testResults.(testField).error, testResults.(testField).time);
+        if strcmp(testResults(i).status, 'FAILED')
+            if isnan(testResults(i).time)
+                timeLabel = 'N/A';
+            else
+                timeLabel = sprintf('%.3f seconds', testResults(i).time);
+            end
+            fprintf('  - %s: %s (%s)\n', testResults(i).name, testResults(i).error, timeLabel);
         end
     end
 end
@@ -132,24 +111,56 @@ end
 fprintf('\nExecution Time Breakdown:\n');
 fprintf('=========================\n');
 for i = 1:totalTests
-    testField = sprintf('test%d', i);
-    result = testResults.(testField);
+    result = testResults(i);
     status = result.status;
     if strcmp(status, 'PASSED')
         statusIcon = '✓';
     else
         statusIcon = '✗';
     end
-    fprintf('  %s %s: %.3f seconds\n', statusIcon, result.name, result.time);
+    if isnan(result.time)
+        timeLabel = 'N/A';
+    else
+        timeLabel = sprintf('%.3f seconds', result.time);
+    end
+    fprintf('  %s %s: %s\n', statusIcon, result.name, timeLabel);
 end
 fprintf('  Total: %.3f seconds\n', totalTime);
 
-% Restore original figure visibility setting
-set(0, 'DefaultFigureVisible', originalVisibility);
-
-fprintf('\nFigure visibility restored to: %s\n', originalVisibility);
+fprintf('\nFigure visibility restored to: %s\n', restoredVisibility);
 fprintf('You can now run examples normally and figures will be displayed.\n');
 
+clear visibilityCleanup projectRootCleanup;
+
+end
+
+function testResult = runSingleExample(exampleFile)
+% RUNSINGLEEXAMPLE Execute one example file in an isolated function workspace.
+
+narginchk(1, 1);
+nargoutchk(1, 1);
+
+parser = inputParser;
+addRequired(parser, 'exampleFile', @(value) ischar(value) || (isstring(value) && isscalar(value)));
+parse(parser, exampleFile);
+
+exampleFile = char(parser.Results.exampleFile);
+exampleStartTime = tic;
+
+[exampleDir, exampleFunction, ~] = fileparts(exampleFile);
+originalDir = pwd;
+dirCleanup = onCleanup(@() cd(originalDir));
+figureCleanup = onCleanup(@() close('all'));
+
+cd(exampleDir);
+
+% Execute the script in this local function workspace so it cannot overwrite
+% loop counters or result variables in runExamplesTest.
+evalc(exampleFunction);
+
+testResult = struct('name', exampleFile, 'status', 'PASSED', 'error', '', 'time', toc(exampleStartTime));
+
+clear dirCleanup figureCleanup;
 end
 
 function exampleFiles = findExampleFiles()
@@ -157,6 +168,9 @@ function exampleFiles = findExampleFiles()
 %
 % Returns a cell array of relative paths to files ending in 'Example.m' or
 % 'Workflow.m' found in the examples directory and its subdirectories.
+
+narginchk(0, 0);
+nargoutchk(1, 1);
 
 exampleFiles = {};
 

@@ -136,6 +136,8 @@ for signalIdx = 1:numSignals
     % If maxgap is specified, interpolate small gaps
     if ~isempty(maxgap)
         interpolatedSignal = interpgap(trimmedSignal, maxgap);
+    else
+        interpolatedSignal = trimmedSignal;
     end
 
     % Find continuous segments of valid data after interpolation

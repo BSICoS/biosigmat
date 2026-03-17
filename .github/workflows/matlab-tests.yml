@@ -29,6 +29,7 @@ jobs:
         products: |
           MATLAB
           Signal_Processing_Toolbox
+          Curve_Fitting_Toolbox
     
     - name: Verify MATLAB installation
       uses: matlab-actions/run-command@v2

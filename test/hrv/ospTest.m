@@ -30,6 +30,20 @@ classdef ospTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testEmptySignalsReturnEmptyOutputs(tc)
+            f = (0:0.1:tc.fs / 2)';
+            respPxx = zeros(size(f));
+
+            [mResp, mUnrelated, delay] = osp([], [], respPxx, f, tc.fs);
+
+            tc.verifyEmpty(mResp, ...
+                'Empty input signals should return an empty respiratory component.');
+            tc.verifyEmpty(mUnrelated, ...
+                'Empty input signals should return an empty unrelated component.');
+            tc.verifyEmpty(delay, ...
+                'Empty input signals should return an empty delay.');
+        end
+
         function testFixtureBasedDecompositionReconstructsDelayedSignal(tc)
             [~, m] = ipfm(tc.tk, tc.fs);
             tm = (tc.tk(1):1/tc.fs:tc.tk(end))';
@@ -37,7 +51,7 @@ classdef ospTest < matlab.unittest.TestCase
             windowLength = min(256, length(resp));
             [respPxx, f] = pwelch(resp, hamming(windowLength), floor(windowLength / 2), [], tc.fs);
 
-            [mResp, mUnrelated, delay] = osp(resp, respPxx, f, m, tc.fs);
+            [mResp, mUnrelated, delay] = osp(m, resp, respPxx, f, tc.fs);
 
             tc.verifyEqual(length(mResp), length(m(delay:end)), ...
                 'The respiratory component should match the delayed signal length.');
@@ -53,6 +67,44 @@ classdef ospTest < matlab.unittest.TestCase
                 'The residual should be approximately orthogonal to the respiratory subspace.');
         end
 
+        function testNanSignalsReturnNanVectorsMatchingMSize(tc)
+            [~, m] = ipfm(tc.tk, tc.fs);
+            tm = (tc.tk(1):1/tc.fs:tc.tk(end))';
+            resp = interp1(tc.respTime, detrend(tc.respSignal), tm, 'pchip');
+            windowLength = min(256, length(resp));
+            [respPxx, f] = pwelch(resp, hamming(windowLength), floor(windowLength / 2), [], tc.fs);
+
+            mWithNan = m;
+            mWithNan(5) = nan;
+            [mRespFromM, mUnrelatedFromM, delayFromM] = osp(mWithNan, resp, respPxx, f, tc.fs);
+
+            tc.verifySize(mRespFromM, size(mWithNan), ...
+                'NaN in m should return a respiratory component with the same size as m.');
+            tc.verifySize(mUnrelatedFromM, size(mWithNan), ...
+                'NaN in m should return an unrelated component with the same size as m.');
+            tc.verifyTrue(all(isnan(mRespFromM)), ...
+                'NaN in m should produce a respiratory component filled with NaNs.');
+            tc.verifyTrue(all(isnan(mUnrelatedFromM)), ...
+                'NaN in m should produce an unrelated component filled with NaNs.');
+            tc.verifyEmpty(delayFromM, ...
+                'NaN in the input signal should return an empty delay.');
+
+            respWithNan = resp;
+            respWithNan(7) = nan;
+            [mRespFromResp, mUnrelatedFromResp, delayFromResp] = osp(m, respWithNan, respPxx, f, tc.fs);
+
+            tc.verifySize(mRespFromResp, size(m), ...
+                'NaN in resp should return a respiratory component with the same size as m.');
+            tc.verifySize(mUnrelatedFromResp, size(m), ...
+                'NaN in resp should return an unrelated component with the same size as m.');
+            tc.verifyTrue(all(isnan(mRespFromResp)), ...
+                'NaN in resp should produce a respiratory component filled with NaNs.');
+            tc.verifyTrue(all(isnan(mUnrelatedFromResp)), ...
+                'NaN in resp should produce an unrelated component filled with NaNs.');
+            tc.verifyEmpty(delayFromResp, ...
+                'NaN in the input signal should return an empty delay.');
+        end
+
         function testShortSignalsReturnNanOutputs(tc)
             [~, m] = ipfm(tc.tk, tc.fs);
             tm = (tc.tk(1):1/tc.fs:tc.tk(end))';
@@ -64,7 +116,7 @@ classdef ospTest < matlab.unittest.TestCase
             respPxx = zeros(size(f));
             respPxx(2) = 1;
 
-            [mResp, mUnrelated, delay] = osp(shortResp, respPxx, f, shortM, tc.fs);
+            [mResp, mUnrelated, delay] = osp(shortM, shortResp, respPxx, f, tc.fs);
 
             tc.verifyTrue(isnan(mResp), ...
                 'Short signals should return NaN for the respiratory component.');

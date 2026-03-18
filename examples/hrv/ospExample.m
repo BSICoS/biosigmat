@@ -25,7 +25,7 @@ windowLength = min(256, length(resp));
 [respPxx, f] = pwelch(resp, hamming(windowLength), floor(windowLength / 2), [], fs);
 
 % Decompose the modulating signal using orthogonal subspace projection
-[mResp, mUnrelated, delay] = osp(resp, respPxx, f, m, fs);
+[mResp, mUnrelated, delay] = osp(m, resp, respPxx, f, fs);
 tmDelayed = tm(delay:end);
 
 % Visualize the decomposition

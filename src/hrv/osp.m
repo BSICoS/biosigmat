@@ -1,14 +1,16 @@
-function [mResp, mUnrelated, delay] = osp(resp, respPxx, f, m, fs, varargin)
+function [mResp, mUnrelated, delay] = osp(m, resp, respPxx, f, fs, varargin)
 % OSP Decompose the HRV modulating signal into respiratory and unrelated components.
 %
-%   [MRESP, MUNRELATED, DELAY] = OSP(RESP, RESPPXX, F, M, FS) decomposes the
+%   [MRESP, MUNRELATED, DELAY] = OSP(M, RESP, RESPPXX, F, FS) decomposes the
 %   HRV modulating signal M into a component linearly related to the respiration
 %   signal RESP and a residual component containing the remaining dynamics.
 %   RESP must be sampled at the same sampling frequency FS and aligned in time
 %   with M. RESPPXX is the respiratory power spectral density evaluated on the
 %   frequency vector F. MRESP and MUNRELATED correspond to the delayed segment
 %   M(DELAY:END), where DELAY is the model order estimated from the dominant
-%   respiratory frequency.
+%   respiratory frequency. If M or RESP is empty, MRESP and MUNRELATED are
+%   returned as empty vectors. If either input signal contains NaN values,
+%   MRESP and MUNRELATED are returned as NaN vectors with the same size as M.
 %
 %   [MRESP, MUNRELATED, DELAY] = OSP(..., 'MinRespFrequency', MINRESPFREQUENCY)
 %   enforces a lower bound in hertz for the dominant respiratory frequency used
@@ -28,8 +30,8 @@ function [mResp, mUnrelated, delay] = osp(resp, respPxx, f, m, fs, varargin)
 %
 %     % Estimate the respiratory spectrum and decompose the modulating signal
 %     windowLength = min(256, length(resp));
-%     [respPxx, f] = pwelch(resp, hamming(windowLength), fLowor(windowLength / 2), [], fs);
-%     [mResp, mUnrelated, delay] = osp(resp, respPxx, f, m, fs);
+%     [respPxx, f] = pwelch(resp, hamming(windowLength), floor(windowLength / 2), [], fs);
+%     [mResp, mUnrelated, delay] = osp(m, resp, respPxx, f, fs);
 %
 %   See also IPFM, PWELCH, FINDPEAKS, HANKEL
 %
@@ -43,21 +45,37 @@ nargoutchk(0, 3);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'osp';
-addRequired(parser, 'resp', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)));
+addRequired(parser, 'm', @(x) isnumeric(x) && (isempty(x) || isvector(x)));
+addRequired(parser, 'resp', @(x) isnumeric(x) && (isempty(x) || isvector(x)));
 addRequired(parser, 'respPxx', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)) && all(x >= 0));
 addRequired(parser, 'f', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)));
-addRequired(parser, 'm', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x > 0);
 addParameter(parser, 'MinRespFrequency', 0.1, @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x > 0);
 
-parse(parser, resp, respPxx, f, m, fs, varargin{:});
+parse(parser, m, resp, respPxx, f, fs, varargin{:});
 
-resp = parser.Results.resp(:);
+mInput = parser.Results.m;
+respInput = parser.Results.resp;
+m = mInput(:);
+resp = respInput(:);
 respPxx = parser.Results.respPxx(:);
 f = parser.Results.f(:);
-m = parser.Results.m(:);
 fs = parser.Results.fs;
 minRespFrequency = parser.Results.MinRespFrequency;
+
+if isempty(mInput) || isempty(respInput)
+    mResp = [];
+    mUnrelated = [];
+    delay = [];
+    return;
+end
+
+if any(isnan(mInput)) || any(isnan(respInput))
+    mResp = nan(size(mInput));
+    mUnrelated = nan(size(mInput));
+    delay = [];
+    return;
+end
 
 if numel(resp) ~= numel(m)
     error('osp:LengthMismatch', ...

@@ -18,6 +18,7 @@ This section contains practical examples and workflows demonstrating the usage o
 
 - [`fillgapsExample`](fillgapsExample.md)
 - [`ipfmExample`](ipfmExample.md)
+- [`ospExample`](ospExample.md)
 - [`removefpExample`](removefpExample.md)
 - [`tdmetricsExample`](tdmetricsExample.md)
 
@@ -43,4 +44,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 12 | **Workflows**: 2 | **Last Updated**: 2026-03-17
+**Examples**: 13 | **Workflows**: 2 | **Last Updated**: 2026-03-18

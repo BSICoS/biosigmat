@@ -7,6 +7,7 @@ title: HRV Module Overview
 
 - [`fillgaps`](fillgaps.md)
 - [`ipfm`](ipfm.md)
+- [`osp`](osp.md)
 - [`removefp`](removefp.md)
 - [`tdmetrics`](tdmetrics.md)
 
@@ -14,6 +15,7 @@ title: HRV Module Overview
 
 - [`fillgapsExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m)
 - [`ipfmExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ipfmExample.m)
+- [`ospExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ospExample.m)
 - [`removefpExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m)
 - [`tdmetricsExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m)
 
@@ -23,4 +25,4 @@ title: HRV Module Overview
 
 ---
 
-**Functions**: 4 | **Examples**: 4 | **Last Updated**: 2026-03-17
+**Functions**: 5 | **Examples**: 5 | **Last Updated**: 2026-03-18

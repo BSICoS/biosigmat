@@ -18,4 +18,4 @@ This example demonstrates how to estimate instantaneous heart rate and the norma
 
 ---
 
-**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-03-17
+**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-03-18

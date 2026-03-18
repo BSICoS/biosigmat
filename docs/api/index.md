@@ -22,6 +22,7 @@ Functions for heart rate variability analysis and metrics calculation.
 | -------- | ----------- | -------- | ------ |
 | [`fillgaps`](hrv/fillgaps.md) | Fill gaps in HRV event series using iterative interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m) | :material-alpha: Alpha |
 | [`ipfm`](hrv/ipfm.md) | Estimate instantaneous heart rate using the integral pulse frequency modulation model. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ipfmExample.m) | :material-alpha: Alpha |
+| [`osp`](hrv/osp.md) | Decompose the HRV modulating signal into respiratory and unrelated components. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ospExample.m) | :material-alpha: Alpha |
 | [`removefp`](hrv/removefp.md) | Remove false positive detections from HRV event series. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m) | :material-alpha: Alpha |
 | [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :material-beta: Beta |
 
@@ -88,6 +89,7 @@ All functions sorted alphabetically:
 - [`nanfilter`](tools/nanfilter.md)
 - [`nanfiltfilt`](tools/nanfiltfilt.md)
 - [`nanpwelch`](tools/nanpwelch.md)
+- [`osp`](hrv/osp.md)
 - [`pantompkins`](ecg/pantompkins.md)
 - [`peakedness`](tools/peakedness.md)
 - [`pulsedelineation`](ppg/pulsedelineation.md)
@@ -112,4 +114,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2026-03-17 | Total functions: 28*
+*Last updated: 2026-03-18 | Total functions: 29*

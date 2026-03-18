@@ -16,6 +16,7 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ### HRV
 
+- [`fdmetricsExample`](fdmetricsExample.md)
 - [`fillgapsExample`](fillgapsExample.md)
 - [`ipfmExample`](ipfmExample.md)
 - [`ospExample`](ospExample.md)
@@ -44,4 +45,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 13 | **Workflows**: 2 | **Last Updated**: 2026-03-18
+**Examples**: 14 | **Workflows**: 2 | **Last Updated**: 2026-03-18

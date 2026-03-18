@@ -20,6 +20,7 @@ Functions for heart rate variability analysis and metrics calculation.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
+| [`fdmetrics`](hrv/fdmetrics.md) | Compute standard frequency-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fdmetricsExample.m) | :material-alpha: Alpha |
 | [`fillgaps`](hrv/fillgaps.md) | Fill gaps in HRV event series using iterative interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m) | :material-alpha: Alpha |
 | [`ipfm`](hrv/ipfm.md) | Estimate instantaneous heart rate using the integral pulse frequency modulation model. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ipfmExample.m) | :material-alpha: Alpha |
 | [`osp`](hrv/osp.md) | Decompose the HRV modulating signal into respiratory and unrelated components. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ospExample.m) | :material-alpha: Alpha |
@@ -76,6 +77,7 @@ All functions sorted alphabetically:
 
 - [`baselineremove`](ecg/baselineremove.md)
 - [`expandnans`](tools/expandnans.md)
+- [`fdmetrics`](hrv/fdmetrics.md)
 - [`fillgaps`](hrv/fillgaps.md)
 - [`findsequences`](tools/findsequences.md)
 - [`hjorth`](tools/hjorth.md)
@@ -114,4 +116,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2026-03-18 | Total functions: 29*
+*Last updated: 2026-03-18 | Total functions: 30*

@@ -67,7 +67,7 @@ classdef ospTest < matlab.unittest.TestCase
                 'The residual should be approximately orthogonal to the respiratory subspace.');
         end
 
-        function testNanSignalsReturnNanVectorsMatchingMSize(tc)
+        function testNanSignalsReturnEmptyOutputs(tc)
             [~, m] = ipfm(tc.tk, tc.fs);
             tm = (tc.tk(1):1/tc.fs:tc.tk(end))';
             resp = interp1(tc.respTime, detrend(tc.respSignal), tm, 'pchip');
@@ -78,14 +78,10 @@ classdef ospTest < matlab.unittest.TestCase
             mWithNan(5) = nan;
             [mRespFromM, mUnrelatedFromM, delayFromM] = osp(mWithNan, resp, respPxx, f, tc.fs);
 
-            tc.verifySize(mRespFromM, size(mWithNan), ...
-                'NaN in m should return a respiratory component with the same size as m.');
-            tc.verifySize(mUnrelatedFromM, size(mWithNan), ...
-                'NaN in m should return an unrelated component with the same size as m.');
-            tc.verifyTrue(all(isnan(mRespFromM)), ...
-                'NaN in m should produce a respiratory component filled with NaNs.');
-            tc.verifyTrue(all(isnan(mUnrelatedFromM)), ...
-                'NaN in m should produce an unrelated component filled with NaNs.');
+            tc.verifyEmpty(mRespFromM, ...
+                'NaN in m should return an empty respiratory component.');
+            tc.verifyEmpty(mUnrelatedFromM, ...
+                'NaN in m should return an empty unrelated component.');
             tc.verifyEmpty(delayFromM, ...
                 'NaN in the input signal should return an empty delay.');
 
@@ -93,14 +89,10 @@ classdef ospTest < matlab.unittest.TestCase
             respWithNan(7) = nan;
             [mRespFromResp, mUnrelatedFromResp, delayFromResp] = osp(m, respWithNan, respPxx, f, tc.fs);
 
-            tc.verifySize(mRespFromResp, size(m), ...
-                'NaN in resp should return a respiratory component with the same size as m.');
-            tc.verifySize(mUnrelatedFromResp, size(m), ...
-                'NaN in resp should return an unrelated component with the same size as m.');
-            tc.verifyTrue(all(isnan(mRespFromResp)), ...
-                'NaN in resp should produce a respiratory component filled with NaNs.');
-            tc.verifyTrue(all(isnan(mUnrelatedFromResp)), ...
-                'NaN in resp should produce an unrelated component filled with NaNs.');
+            tc.verifyEmpty(mRespFromResp, ...
+                'NaN in resp should return an empty respiratory component.');
+            tc.verifyEmpty(mUnrelatedFromResp, ...
+                'NaN in resp should return an empty unrelated component.');
             tc.verifyEmpty(delayFromResp, ...
                 'NaN in the input signal should return an empty delay.');
         end

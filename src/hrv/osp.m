@@ -10,7 +10,7 @@ function [mResp, mUnrelated, delay] = osp(m, resp, respPxx, f, fs, varargin)
 %   M(DELAY:END), where DELAY is the model order estimated from the dominant
 %   respiratory frequency. If M or RESP is empty, MRESP and MUNRELATED are
 %   returned as empty vectors. If either input signal contains NaN values,
-%   MRESP and MUNRELATED are returned as NaN vectors with the same size as M.
+%   MRESP and MUNRELATED are also returned as empty vectors.
 %
 %   [MRESP, MUNRELATED, DELAY] = OSP(..., 'MinRespFrequency', MINRESPFREQUENCY)
 %   enforces a lower bound in hertz for the dominant respiratory frequency used
@@ -71,8 +71,8 @@ if isempty(mInput) || isempty(respInput)
 end
 
 if any(isnan(mInput)) || any(isnan(respInput))
-    mResp = nan(size(mInput));
-    mUnrelated = nan(size(mInput));
+    mResp = [];
+    mUnrelated = [];
     delay = [];
     return;
 end

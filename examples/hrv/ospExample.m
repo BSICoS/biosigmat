@@ -26,23 +26,21 @@ windowLength = min(256, length(resp));
 
 % Decompose the modulating signal using orthogonal subspace projection
 [mResp, mUnrelated, delay] = osp(resp, respPxx, f, m, fs);
+tmDelayed = tm(delay:end);
 
-% Visualize the original delayed signal and the two components
-figure;
-subplot(2,1,1);
-plot(tm, resp, 'b');
-xlabel('Time (s)');
-ylabel('Respiration');
-title('Respiration Aligned to the HRV Sampling Grid');
-grid on;
-
-subplot(2,1,2);
-plot(tm(delay:end), m(delay:end), 'k', 'DisplayName', 'm(t)');
-hold on;
-plot(tm(delay:end), mResp, 'b', 'DisplayName', 'Respiratory component');
-plot(tm(delay:end), mUnrelated, 'r', 'DisplayName', 'Unrelated component');
-xlabel('Time (s)');
-ylabel('Modulating signal');
-title('Orthogonal Subspace Projection Decomposition');
-legend('Location', 'best');
-grid on;
+% Visualize the decomposition
+figure
+subplot(4,1,1);
+plot(tm, resp, 'Color', [0.24 0.35 0.74], 'LineWidth', 1.4);
+ylabel('$r(n)$', 'Interpreter', 'latex');
+title('OSP Decomposition of HRV Modulating Signal');
+subplot(4,1,2);
+plot(tm, m, 'Color', [0.70 0.70 0.72], 'LineWidth', 2.2);
+ylabel('$m(n)$', 'Interpreter', 'latex');
+subplot(4,1,3);
+plot(tmDelayed, mUnrelated, 'Color', [0.20 0.20 0.20], 'LineWidth', 1.5);
+ylabel('$\hat{m}_{\perp}(n)$', 'Interpreter', 'latex');
+subplot(4,1,4);
+plot(tmDelayed, mResp, 'Color', [0.20 0.20 0.20], 'LineWidth', 1.5, 'LineStyle', ':');
+ylabel('$\hat{m}_{r}(n)$', 'Interpreter', 'latex');
+xlabel('Time (seconds)');

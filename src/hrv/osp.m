@@ -31,18 +31,6 @@ function [mResp, mUnrelated, delay] = osp(resp, respPxx, f, m, fs, varargin)
 %     [respPxx, f] = pwelch(resp, hamming(windowLength), fLowor(windowLength / 2), [], fs);
 %     [mResp, mUnrelated, delay] = osp(resp, respPxx, f, m, fs);
 %
-%     % Plot the delayed decomposition results
-%     figure;
-%     plot(tm(delay:end), m(delay:end), 'k', 'DisplayName', 'm(t)');
-%     hold on;
-%     plot(tm(delay:end), mResp, 'b', 'DisplayName', 'Respiratory component');
-%     plot(tm(delay:end), mUnrelated, 'r', 'DisplayName', 'Unrelated component');
-%     xlabel('Time (s)');
-%     ylabel('Modulating signal');
-%     title('Orthogonal Subspace Projection Decomposition');
-%     legend('Location', 'best');
-%     grid on;
-%
 %   See also IPFM, PWELCH, FINDPEAKS, HANKEL
 %
 %   Status: Alpha

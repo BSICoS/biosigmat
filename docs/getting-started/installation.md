@@ -13,8 +13,8 @@ This guide will help you install and set up the biosigmat toolbox in your MATLAB
 !!! warning "Required MATLAB Toolboxes"
     The following MATLAB toolboxes are required for full functionality:
 
-    :material-sine-wave:{ .middle } **Signal Processing Toolbox** - Required for filtering and spectral analysis
-    :material-chart-bell-curve:{ .middle } **Curve Fitting Toolbox** - Required for spline handling
+    - :material-sine-wave:{ .middle } **Signal Processing Toolbox** - Required for filtering and spectral analysis
+    - :material-chart-bell-curve:{ .middle } **Curve Fitting Toolbox** - Required for spline handling
 
 ## :material-download-multiple: Installation Methods
 

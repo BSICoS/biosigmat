@@ -44,7 +44,7 @@ dtk = parser.Results.tk(:);
 ddtk = diff(dtk);
 
 % Compute time-domain metrics
-mhr = mean(60 ./ dtk, 'omitnan');
+mhr = 60 / mean(dtk, 'omitnan');
 sdnn = 1000 * std(dtk, 'omitnan');
 rmssd = 1000 * norm(ddtk(~isnan(ddtk))) / sqrt(length(ddtk(~isnan(ddtk))));
 sdsd = 1000 * std(ddtk, 'omitnan');

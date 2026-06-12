@@ -44,8 +44,6 @@ function [tdvol, upper, lower] = tidalvolume(resp, varargin)
 %     ylabel('Amplitude');
 %
 %   See also ENVELOPE, INTERP1
-%
-%   Status: Alpha
 
 
 % Check number of input and output arguments

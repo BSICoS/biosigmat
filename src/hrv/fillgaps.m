@@ -51,8 +51,6 @@ function [tn, dtn] = fillgaps(tk, varargin)
 %     xlabel('Beat Index');
 %
 %   See also TDMETRICS, MEDFILTTHRESHOLD, REMOVEFP
-%
-%   Status: Alpha
 
 
 % Check number of input and output arguments

@@ -52,8 +52,6 @@ function [artifactVector, artifactMatrix] = hjorthArtifacts(signal, fs, seg, ste
 %         margins, 'minSegmentSeparation', 1, 'medfiltOrder', 15, 'plotflag', true);
 %
 %   See also HJORTH, MEDFILT1
-%
-%   Status: Alpha
 
 
 % Check number of input and output arguments

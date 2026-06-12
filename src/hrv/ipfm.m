@@ -45,8 +45,6 @@ function [outputSignal, m] = ipfm(tn, varargin)
 %     title('IPFM Modulating Signal');
 %
 %   See also SPAPI, SPVAL, FNDER
-%
-%   Status: Alpha
 
 
 % Check number of input and output arguments

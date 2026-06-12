@@ -21,8 +21,6 @@ function [ecgDetrended, baseline] = baselineremove(ecg, tk, offset, varargin)
 %     legend('Original', 'Detrended');
 %
 %   See also PAMTOMPKINS
-%
-%   Status: Beta
 
 
 % Check number of input and output arguments

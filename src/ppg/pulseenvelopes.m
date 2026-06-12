@@ -39,8 +39,6 @@ function [lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, nD, varargin)
 %     xlabel('Time (s)'); ylabel('Amplitude');
 %
 %   See also PULSEDETECTION, PULSEDELINEATION, INTERP1
-%
-%   Status: Beta
 
 
 % Check number of input and output arguments

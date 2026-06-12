@@ -23,9 +23,6 @@ function signalClean = expandnans(signal, fs, seconds)
 %     title('EXPANDNANS example');
 %
 %   See also ISNAN, DIFF
-%
-%   Status: Beta
-
 
 % Check number of input and output arguments
 narginchk(3, 3);

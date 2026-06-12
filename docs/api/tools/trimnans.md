@@ -37,4 +37,4 @@ trimmed = trimnans(signal);
 
 ---
 
-**Module**: [TOOLS](index.md) | **Last Updated**: 2026-03-18
+**Module**: [TOOLS](index.md) | **Last Updated**: 2026-06-12

@@ -43,8 +43,6 @@ function [maxValue, maxLoc] = localmax(X, varargin)
 %     title('Signal 2 with Local Maximum');
 %
 %   See also ISLOCALMAX, MAX, FINDPEAKS
-%
-%   Status: Beta
 
 
 % Check number of input and output arguments

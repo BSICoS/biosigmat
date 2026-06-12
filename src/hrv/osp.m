@@ -34,8 +34,6 @@ function [mResp, mUnrelated, delay] = osp(m, resp, respPxx, f, fs, varargin)
 %     [mResp, mUnrelated, delay] = osp(m, resp, respPxx, f, fs);
 %
 %   See also IPFM, PWELCH, FINDPEAKS, HANKEL
-%
-%   Status: Alpha
 
 
 % Check number of input and output arguments

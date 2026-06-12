@@ -27,8 +27,6 @@ function varargout = sloperange(decg, tk, fs)
 %     ylabel('EDR Amplitude');
 %
 %   See also PANTOMPKINS, BASELINEREMOVE
-%
-%   Status: Beta
 
 % Argument validation
 narginchk(3, 3);

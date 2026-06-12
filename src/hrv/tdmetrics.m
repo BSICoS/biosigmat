@@ -25,8 +25,6 @@ function metrics = tdmetrics(dtk)
 %     fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 %
 %   See also PANTOMPKINS
-%
-%   Status: Beta
 
 
 % Check number of input and output arguments

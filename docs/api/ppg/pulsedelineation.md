@@ -67,4 +67,4 @@ title('PPG Pulse Delineation');
 
 ---
 
-**Module**: [PPG](index.md) | **Last Updated**: 2026-03-18
+**Module**: [PPG](index.md) | **Last Updated**: 2026-06-12

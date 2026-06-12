@@ -34,8 +34,6 @@ function tk = removefp(tk)
 %     xlabel('Beat Index');
 %
 %   See also FILLGAPS, MEDFILTTHRESHOLD
-%
-%   Status: Alpha
 
 
 % Check number of input and output arguments

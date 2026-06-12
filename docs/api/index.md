@@ -10,9 +10,9 @@ Functions for electrocardiography signal analysis and QRS detection.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
-| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/baselineremoveExample.m) | :material-beta: Beta |
+| [`baselineremove`](ecg/baselineremove.md) | Removes baseline wander from biosignals using cubic spline interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/baselineremoveExample.m) | :white_check_mark: Stable |
 | [`pantompkins`](ecg/pantompkins.md) | Algorithm for R-wave detection in ECG signals. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/pantompkinsExample.m) | :white_check_mark: Stable |
-| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/sloperangeExample.m) | :material-beta: Beta |
+| [`sloperange`](ecg/sloperange.md) | Compute ECG-derived respiration (EDR) using slope range method. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ecg/sloperangeExample.m) | :white_check_mark: Stable |
 
 ### [HRV Analysis](hrv/index.md)
 
@@ -20,12 +20,12 @@ Functions for heart rate variability analysis and metrics calculation.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
-| [`fdmetrics`](hrv/fdmetrics.md) | Compute standard frequency-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fdmetricsExample.m) | :material-alpha: Alpha |
-| [`fillgaps`](hrv/fillgaps.md) | Fill gaps in HRV event series using iterative interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m) | :material-alpha: Alpha |
-| [`ipfm`](hrv/ipfm.md) | Estimate instantaneous heart rate using the integral pulse frequency modulation model. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ipfmExample.m) | :material-alpha: Alpha |
-| [`osp`](hrv/osp.md) | Decompose the HRV modulating signal into respiratory and unrelated components. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ospExample.m) | :material-alpha: Alpha |
-| [`removefp`](hrv/removefp.md) | Remove false positive detections from HRV event series. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m) | :material-alpha: Alpha |
-| [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :material-beta: Beta |
+| [`fdmetrics`](hrv/fdmetrics.md) | Compute standard frequency-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fdmetricsExample.m) | :white_check_mark: Stable |
+| [`fillgaps`](hrv/fillgaps.md) | Fill gaps in HRV event series using iterative interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/fillgapsExample.m) | :white_check_mark: Stable |
+| [`ipfm`](hrv/ipfm.md) | Estimate instantaneous heart rate using the integral pulse frequency modulation model. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ipfmExample.m) | :white_check_mark: Stable |
+| [`osp`](hrv/osp.md) | Decompose the HRV modulating signal into respiratory and unrelated components. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ospExample.m) | :white_check_mark: Stable |
+| [`removefp`](hrv/removefp.md) | Remove false positive detections from HRV event series. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m) | :white_check_mark: Stable |
+| [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :white_check_mark: Stable |
 
 ### [PPG Processing](ppg/index.md)
 
@@ -33,10 +33,10 @@ Functions for photoplethysmography signal analysis and pulse detection.
 
 | Function | Description | Examples | Status |
 | -------- | ----------- | -------- | ------ |
-| [`hjorthArtifacts`](ppg/hjorthArtifacts.md) | Detects artifacts in physiological signals using Hjorth parameters. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/hjorthArtifactsExample.m) | :material-alpha: Alpha |
-| [`pulsedelineation`](ppg/pulsedelineation.md) | Performs pulse delineation in PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :material-beta: Beta |
-| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using configurable algorithms. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :material-beta: Beta |
-| [`pulseenvelopes`](ppg/pulseenvelopes.md) | Estimates lower and upper PPG envelopes using pulse-anchored interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulseenvelopesExample.m) | :material-beta: Beta |
+| [`hjorthArtifacts`](ppg/hjorthArtifacts.md) | Detects artifacts in physiological signals using Hjorth parameters. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/hjorthArtifactsExample.m) | :white_check_mark: Stable |
+| [`pulsedelineation`](ppg/pulsedelineation.md) | Performs pulse delineation in PPG signals using adaptive thresholding. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedelineationExample.m) | :white_check_mark: Stable |
+| [`pulsedetection`](ppg/pulsedetection.md) | Pulse detection in LPD-filtered PPG signals using configurable algorithms. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulsedetectionExample.m) | :white_check_mark: Stable |
+| [`pulseenvelopes`](ppg/pulseenvelopes.md) | Estimates lower and upper PPG envelopes using pulse-anchored interpolation. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/ppg/pulseenvelopesExample.m) | :white_check_mark: Stable |
 
 ### [RESP](resp/index.md)
 
@@ -52,12 +52,12 @@ Utility functions for signal processing and data manipulation.
 
 | Function | Description | Status |
 | -------- | ----------- | ------ |
-| [`expandnans`](tools/expandnans.md) | Expands NaN segments by a time window. | :material-beta: Beta |
+| [`expandnans`](tools/expandnans.md) | Expands NaN segments by a time window. | :white_check_mark: Stable |
 | [`findsequences`](tools/findsequences.md) | Find sequences of repeated (adjacent/consecutive) numeric values. | :white_check_mark: Stable |
 | [`hjorth`](tools/hjorth.md) | Computes Hjorth parameters (activity, mobility, and complexity) from a signal. | :white_check_mark: Stable |
 | [`interpgap`](tools/interpgap.md) | Interpolate small NaN gaps in a signal. | :white_check_mark: Stable |
 | [`ispeaky`](tools/ispeaky.md) | Determines if spectra are considered peaky based on peakedness thresholds. | :white_check_mark: Stable |
-| [`localmax`](tools/localmax.md) | Finds local maxima in matrix rows or columns. | :material-beta: Beta |
+| [`localmax`](tools/localmax.md) | Finds local maxima in matrix rows or columns. | :white_check_mark: Stable |
 | [`lpdfilter`](tools/lpdfilter.md) | Low-pass derivative filter. | :white_check_mark: Stable |
 | [`medfiltThreshold`](tools/medfiltThreshold.md) | Compute median-filtered adaptive threshold. | :white_check_mark: Stable |
 | [`nanfilter`](tools/nanfilter.md) | Implements filter function with support for NaN values. | :white_check_mark: Stable |
@@ -116,4 +116,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2026-03-18 | Total functions: 30*
+*Last updated: 2026-06-12 | Total functions: 30*

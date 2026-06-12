@@ -38,8 +38,6 @@ function metrics = fdmetrics(pxx, varargin)
 %     title(sprintf('LF/HF = %.2f', metrics.lfhf));
 %
 %   See also NANPWELCH, PWELCH, OSP
-%
-%   Status: Alpha
 
 
 % Check number of input and output arguments

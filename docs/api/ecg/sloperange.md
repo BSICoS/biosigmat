@@ -50,4 +50,4 @@ ylabel('EDR Amplitude');
 
 ---
 
-**Module**: [ECG](index.md) | **Last Updated**: 2026-03-18
+**Module**: [ECG](index.md) | **Last Updated**: 2026-06-12

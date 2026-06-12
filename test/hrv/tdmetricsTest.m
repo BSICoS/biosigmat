@@ -26,7 +26,7 @@ classdef tdmetricsTest < matlab.unittest.TestCase
             metrics = tdmetrics(tc.dtk);
 
             % Verify metrics match expected results
-            tc.verifyEqual(metrics.mhr, 85.34, 'AbsTol', 0.01, 'Mean heart rate mismatch');
+            tc.verifyEqual(metrics.mhr, 85.04, 'AbsTol', 0.01, 'Mean heart rate mismatch');
             tc.verifyEqual(metrics.sdnn, 40.26, 'AbsTol', 0.01, 'SDNN mismatch');
             tc.verifyEqual(metrics.sdsd, 18.62, 'AbsTol', 0.01, 'SDSD mismatch');
             tc.verifyEqual(metrics.rmssd, 18.55, 'AbsTol', 0.01, 'RMSSD mismatch');

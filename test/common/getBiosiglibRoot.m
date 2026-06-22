@@ -23,6 +23,7 @@ end
 requiredFiles = {
     fullfile('fixtures', 'catalog.json')
     fullfile('conformance', 'hrv', 'tdmetrics', 'ecg_tk_001.json')
+    fullfile('conformance', 'ecg', 'pantompkins', 'edr_signals_001.json')
     fullfile('schemas', 'implementation-manifest.schema.json')
 };
 for fileIndex = 1:numel(requiredFiles)

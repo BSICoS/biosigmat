@@ -15,16 +15,21 @@ classdef pantompkinsTest < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function addCodeToPath(tc)
-            addpath(fullfile('..', '..', 'src', 'ecg'));
-            addpath(fullfile('..', '..', 'src', 'tools'));
-            addpath(fullfile(pwd, '..', '..', 'fixtures', 'ecg'));
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            fixturesPath = fullfile(repositoryRoot, 'fixtures', 'ecg');
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'ecg'));
+            addpath(fullfile(repositoryRoot, 'src', 'tools'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
+            addpath(fixturesPath);
 
             % Verify functions are available
             tc.verifyTrue(~isempty(which('pantompkins')), 'pantompkins function not found in path');
             tc.verifyTrue(~isempty(which('snaptopeak')), 'snaptopeak dependency not found in path');
 
             % Check fixture files exist
-            fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
             tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
                 'edr_signals.csv not found in fixtures path');
             tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
@@ -34,7 +39,9 @@ classdef pantompkinsTest < matlab.unittest.TestCase
 
     methods (Access = private)
         function [ecg, tk] = loadFixtureData(~)
-            fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            fixturesPath = fullfile(repositoryRoot, 'fixtures', 'ecg');
 
             % Load ECG signal and expected R-wave times from CSV files
             signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
@@ -48,19 +55,24 @@ classdef pantompkinsTest < matlab.unittest.TestCase
 
     methods (Test)
         function testBasicFunctionality(tc)
-            try
-                [ecg, expectedTk] = tc.loadFixtureData();
-                tk = pantompkins(ecg, tc.fs);
+            caseDefinition = loadBiosiglibConformanceCase( ...
+                'ecg.pantompkins.edr_signals_001');
+            ecg = loadBiosiglibFixtureColumn(caseDefinition, 'ecg');
+            samplingFrequency = caseDefinition.parameters.sampling_frequency;
 
-                % Verify output format
-                tc.verifySize(tk, [length(tk), 1], 'Output tk should be a column vector');
-                tc.verifyClass(tk, 'double', 'Output tk should be double precision');
-                tc.verifyTrue(all(tk >= 0), 'All R-wave times should be non-negative');
-                tc.verifyTrue(issorted(tk), 'R-wave times should be sorted in ascending order');
-                tc.verifyEqual(tk, expectedTk, sprintf('Detected R-wave times do not match expected values'));
-            catch e
-                tc.verifyTrue(false, ['Error in basic functionality test: ' e.message]);
-            end
+            rPeakTimes = pantompkins(ecg, samplingFrequency);
+
+            tc.verifySize(rPeakTimes, [length(rPeakTimes), 1], ...
+                'R-peak times should be a column vector.');
+            tc.verifyClass(rPeakTimes, 'double', ...
+                'R-peak times should be double precision.');
+            tc.verifyTrue(all(rPeakTimes >= 0), ...
+                'All R-peak times should be non-negative.');
+            tc.verifyTrue(issorted(rPeakTimes), ...
+                'R-peak times should be sorted in ascending order.');
+
+            actualOutputs = struct('r_peak_times', rPeakTimes);
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
         end
 
         function testMultipleOutputs(tc)

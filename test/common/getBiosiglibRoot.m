@@ -1,6 +1,8 @@
 function biosiglibRoot = getBiosiglibRoot()
 %GETBIOSIGLIBROOT Resolve and validate the pinned Biosiglib checkout.
 
+persistent cachedRoot cachedExpectedCommit
+
 helperDirectory = fileparts(mfilename('fullpath'));
 repositoryRoot = fileparts(fileparts(helperDirectory));
 
@@ -36,18 +38,17 @@ for fileIndex = 1:numel(requiredFiles)
 end
 
 manifestPath = fullfile(repositoryRoot, 'conformance.json');
-try
-    manifest = jsondecode(fileread(manifestPath));
-    expectedCommit = manifest.biosiglib.commit;
-catch exception
-    error('biosigmat:ConformanceManifestInvalid', ...
-        'Unable to load the pinned Biosiglib commit from %s: %s', ...
-        manifestPath, exception.message);
-end
+manifest = loadBiosigmatConformanceManifest();
+expectedCommit = manifest.biosiglib.commit;
 
 if ~ischar(expectedCommit) || isempty(regexp(expectedCommit, '^[0-9a-fA-F]{40}$', 'once'))
     error('biosigmat:ConformanceManifestInvalid', ...
         'The Biosiglib commit in %s must be a valid 40-character SHA.', manifestPath);
+end
+
+if ~isempty(cachedRoot) && strcmp(cachedRoot, biosiglibRoot) && ...
+        strcmp(cachedExpectedCommit, expectedCommit)
+    return;
 end
 
 gitCommand = sprintf('git -C "%s" rev-parse HEAD', biosiglibRoot);
@@ -64,4 +65,7 @@ if ~strcmp(actualCommit, expectedCommit)
         'Biosiglib commit mismatch at %s: expected %s from conformance.json, actual %s.', ...
         biosiglibRoot, expectedCommit, actualCommit);
 end
+
+cachedRoot = biosiglibRoot;
+cachedExpectedCommit = expectedCommit;
 end

@@ -20,6 +20,44 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
+
+    - name: Read pinned Biosiglib commit
+      id: biosiglib-pin
+      shell: bash
+      run: |
+        commit="$(python - <<'PY'
+        import json
+        from pathlib import Path
+
+        manifest = json.loads(Path('conformance.json').read_text(encoding='utf-8'))
+        commit = manifest['biosiglib']['commit']
+        if len(commit) != 40 or any(c not in '0123456789abcdefABCDEF' for c in commit):
+            raise SystemExit(f'Invalid Biosiglib commit in conformance.json: {commit}')
+        print(commit)
+        PY
+        )"
+        echo "commit=${commit}" >> "$GITHUB_OUTPUT"
+        echo "Pinned Biosiglib commit: ${commit}"
+
+    - name: Checkout Biosiglib
+      uses: actions/checkout@v4
+      with:
+        repository: BSICoS/biosiglib
+        ref: ${{ steps.biosiglib-pin.outputs.commit }}
+        path: biosiglib
+        persist-credentials: false
+
+    - name: Verify Biosiglib checkout
+      shell: bash
+      run: |
+        actual_commit="$(git -C biosiglib rev-parse HEAD)"
+        expected_commit="${{ steps.biosiglib-pin.outputs.commit }}"
+        echo "Biosiglib checkout: ${GITHUB_WORKSPACE}/biosiglib"
+        echo "Biosiglib commit: ${actual_commit}"
+        if [ "${actual_commit}" != "${expected_commit}" ]; then
+          echo "Biosiglib commit mismatch: expected ${expected_commit}, actual ${actual_commit}" >&2
+          exit 1
+        fi
     
     - name: Setup MATLAB
       uses: matlab-actions/setup-matlab@v2
@@ -60,9 +98,12 @@ jobs:
     
     - name: Run tests
       uses: matlab-actions/run-command@v2
+      env:
+        BIOSIGLIB_ROOT: ${{ github.workspace }}/biosiglib
       with:
         command: |
           try
+            fprintf('Using BIOSIGLIB_ROOT=%s\n', getenv('BIOSIGLIB_ROOT'));
             run('scripts/ci/runTestsCI.m');
             fprintf('All tests passed successfully!\n');
           catch ME

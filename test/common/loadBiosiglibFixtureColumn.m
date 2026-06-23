@@ -2,15 +2,13 @@ function values = loadBiosiglibFixtureColumn(caseDefinition, inputId)
 %LOADBIOSIGLIBFIXTURECOLUMN Load an input column declared by a conformance case.
 
 inputId = char(inputId);
-inputIds = {caseDefinition.inputs.id};
-inputIndex = find(strcmp(inputIds, inputId));
-if numel(inputIndex) ~= 1
-    error('biosigmat:ConformanceInputNotFound', ...
-        'Expected exactly one input "%s" in case "%s"; found %d.', ...
-        inputId, caseDefinition.id, numel(inputIndex));
+inputDefinition = getBiosiglibConformanceInput(caseDefinition, inputId);
+requiredFixtureFields = {'fixture_id', 'file_role', 'column'};
+if ~all(isfield(inputDefinition, requiredFixtureFields))
+    error('biosigmat:ConformanceInputNotFixtureBacked', ...
+        'Case "%s" input "%s" is not fixture-backed.', ...
+        caseDefinition.id, inputId);
 end
-
-inputDefinition = caseDefinition.inputs(inputIndex);
 columnName = inputDefinition.column;
 fixtureTable = loadBiosiglibFixtureTable( ...
     inputDefinition.fixture_id, inputDefinition.file_role, columnName);

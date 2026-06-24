@@ -33,22 +33,29 @@ jobs:
           path: biosigmat
 
       - name: Validate propagation inputs
+        id: propagation-inputs
         shell: bash
         run: |
           if [[ ! "$BIOSIGLIB_RELEASE" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Biosiglib release must match vMAJOR.MINOR.PATCH: $BIOSIGLIB_RELEASE" >&2
             exit 1
           fi
-          if [[ ! "$BIOSIGLIB_COMMIT" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "Biosiglib commit must be a lowercase 40-character SHA: $BIOSIGLIB_COMMIT" >&2
+          if [[ ! "$BIOSIGLIB_COMMIT" =~ ^[0-9a-fA-F]{40}$ ]]; then
+            echo "Biosiglib commit must be a 40-character SHA: $BIOSIGLIB_COMMIT" >&2
             exit 1
           fi
+          normalized_commit="$(echo "$BIOSIGLIB_COMMIT" | tr '[:upper:]' '[:lower:]')"
+          release_semver="${BIOSIGLIB_RELEASE#v}"
+          echo "BIOSIGLIB_COMMIT=$normalized_commit" >> "$GITHUB_ENV"
+          echo "BIOSIGLIB_RELEASE_SEMVER=$release_semver" >> "$GITHUB_ENV"
+          echo "biosiglib_commit=$normalized_commit" >> "$GITHUB_OUTPUT"
+          echo "biosiglib_release_semver=$release_semver" >> "$GITHUB_OUTPUT"
 
       - name: Check out Biosiglib
         uses: actions/checkout@v4
         with:
           repository: BSICoS/biosiglib
-          ref: ${{ env.BIOSIGLIB_COMMIT }}
+          ref: ${{ steps.propagation-inputs.outputs.biosiglib_commit }}
           path: biosiglib
           fetch-depth: 0
           persist-credentials: false
@@ -56,8 +63,8 @@ jobs:
       - name: Verify Biosiglib release
         shell: bash
         run: |
-          actual_commit="$(git -C biosiglib rev-parse HEAD)"
-          release_commit="$(git -C biosiglib rev-list -n 1 "$BIOSIGLIB_RELEASE")"
+          actual_commit="$(git -C biosiglib rev-parse HEAD | tr '[:upper:]' '[:lower:]')"
+          release_commit="$(git -C biosiglib rev-list -n 1 "$BIOSIGLIB_RELEASE" | tr '[:upper:]' '[:lower:]')"
           if [[ "$actual_commit" != "$BIOSIGLIB_COMMIT" ]]; then
             echo "Biosiglib checkout mismatch: expected $BIOSIGLIB_COMMIT, got $actual_commit" >&2
             exit 1
@@ -92,10 +99,10 @@ jobs:
 
           path = Path("conformance.json")
           manifest = json.loads(path.read_text(encoding="utf-8"))
-          release_tag = os.environ["BIOSIGLIB_RELEASE"]
-          commit = os.environ["BIOSIGLIB_COMMIT"]
+          release_semver = os.environ["BIOSIGLIB_RELEASE_SEMVER"]
+          commit = os.environ["BIOSIGLIB_COMMIT"].lower()
 
-          manifest["biosiglib"]["release"] = release_tag.removeprefix("v")
+          manifest["biosiglib"]["release"] = release_semver
           manifest["biosiglib"]["commit"] = commit
           manifest["$schema"] = re.sub(
               r"/[0-9a-fA-F]{40}/",
@@ -174,7 +181,7 @@ jobs:
             Propagates a validated Biosiglib release into Biosigmat.
 
             - Biosiglib release tag: `${{ env.BIOSIGLIB_RELEASE }}`
-            - Biosiglib commit: `${{ env.BIOSIGLIB_COMMIT }}`
+            - Biosiglib commit: `${{ steps.propagation-inputs.outputs.biosiglib_commit }}`
             - Manifest statuses: ${{ steps.manifest-update.outputs.manifest-statuses }}
             - Validation: external manifest, `tdmetricsTest`, `pantompkinsTest`, full MATLAB suite, and `git diff --check` passed.
             - Shared fixtures and conformance cases were consumed from Biosiglib and were not copied into Biosigmat.

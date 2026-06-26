@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/BSICoS/biosiglib/1d3b019a5e882c2c302f593bfd4f7beeb01ea285/schemas/implementation-manifest.schema.json",
+  "$schema": "https://raw.githubusercontent.com/BSICoS/biosiglib/e0eb2ba229a51254603f7592bc76eea0c5f8c9fd/schemas/implementation-manifest.schema.json",
   "implementation": {
     "name": "biosigmat",
     "language": "MATLAB",
@@ -7,8 +7,8 @@
   },
   "biosiglib": {
     "repository": "https://github.com/BSICoS/biosiglib",
-    "commit": "1d3b019a5e882c2c302f593bfd4f7beeb01ea285",
-    "release": "0.1.0"
+    "commit": "e0eb2ba229a51254603f7592bc76eea0c5f8c9fd",
+    "release": "0.1.1"
   },
   "specifications": {
     "hrv.tdmetrics": {

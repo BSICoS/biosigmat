@@ -1,5 +1,26 @@
 function metrics = tdmetrics(dtk)
-% TDMETRICS Compute standard time-domain indices for heart rate variability analysis.
+% TDMETRICS Compute time-domain HRV metrics from interval series.
+%
+%   METRICS = TDMETRICS(DTK) computes standard time-domain heart-rate
+%   variability metrics from the interval series DTK, expressed in seconds.
+%
+%   DTK must be a non-empty numeric vector. Positive finite values are treated
+%   as valid intervals. NaN values are allowed as missing-interval markers and
+%   are omitted before computing the metrics. Inf, zero and negative values are
+%   rejected.
+%
+%   METRICS is a structure with fields:
+%     mhr   - Mean heart rate in beats per minute.
+%     sdnn  - Standard deviation of intervals in milliseconds.
+%     sdsd  - Standard deviation of successive interval differences in ms.
+%     rmssd - Root mean square of successive interval differences in ms.
+%     pNN50 - Percentage of successive interval differences greater than 50 ms.
+%
+%   Example:
+%     dtk = [0.80 0.82 NaN 0.79 0.81];
+%     metrics = tdmetrics(dtk);
+%
+%   See also PANTOMPKINS
 
 narginchk(1, 1);
 nargoutchk(0, 1);

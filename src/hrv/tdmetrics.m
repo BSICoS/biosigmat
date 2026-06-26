@@ -33,13 +33,13 @@ parse(parser, dtk);
 dtk = parser.Results.dtk(:);
 
 if any(isinf(dtk)) || any(dtk(~isnan(dtk)) <= 0)
-    error('biosigmat:TdmetricsInvalidInterval', ...
+    error('tdmetrics:InvalidInterval', ...
         'DTK must contain positive finite intervals or NaN markers.');
 end
 
 validDtk = dtk(~isnan(dtk));
 if numel(validDtk) < 2
-    error('biosigmat:TdmetricsInsufficientIntervals', ...
+    error('tdmetrics:InsufficientIntervals', ...
         'DTK must contain at least two valid intervals.');
 end
 

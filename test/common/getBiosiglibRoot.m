@@ -22,18 +22,18 @@ if ~isfolder(biosiglibRoot)
         checkoutSource, biosiglibRoot);
 end
 
-requiredFiles = {
+requiredPaths = {
     fullfile('fixtures', 'catalog.json')
-    fullfile('conformance', 'hrv', 'tdmetrics', 'ecg_tk_001.json')
-    fullfile('conformance', 'ecg', 'pantompkins', 'edr_signals_001.json')
+    'conformance'
+    'specs'
     fullfile('schemas', 'implementation-manifest.schema.json')
 };
-for fileIndex = 1:numel(requiredFiles)
-    requiredPath = fullfile(biosiglibRoot, requiredFiles{fileIndex});
-    if ~isfile(requiredPath)
+for pathIndex = 1:numel(requiredPaths)
+    requiredPath = fullfile(biosiglibRoot, requiredPaths{pathIndex});
+    if ~(isfile(requiredPath) || isfolder(requiredPath))
         error('biosigmat:BiosiglibCheckoutIncomplete', ...
-            'Invalid Biosiglib checkout at %s: missing required file %s.', ...
-            biosiglibRoot, requiredFiles{fileIndex});
+            'Invalid Biosiglib checkout at %s: missing required path %s.', ...
+            biosiglibRoot, requiredPaths{pathIndex});
     end
 end
 

@@ -3,12 +3,16 @@
 
 classdef tdmetricsTest < matlab.unittest.TestCase
     properties (TestParameter)
+        validCaseId = {
+            'hrv.tdmetrics.valid_dtk_001'
+            'hrv.tdmetrics.valid_dtk_with_nan_001'
+        }
         expectedErrorCaseId = {
-            'hrv.tdmetrics.invalid_tk_non_numeric'
-            'hrv.tdmetrics.invalid_tk_matrix'
-            'hrv.tdmetrics.invalid_tk_non_monotonic'
-            'hrv.tdmetrics.invalid_tk_repeated'
-            'hrv.tdmetrics.invalid_tk_negative'
+            'hrv.tdmetrics.invalid_dtk_non_numeric'
+            'hrv.tdmetrics.invalid_dtk_matrix'
+            'hrv.tdmetrics.invalid_dtk_negative'
+            'hrv.tdmetrics.invalid_dtk_zero'
+            'hrv.tdmetrics.invalid_dtk_inf'
         }
     end
 
@@ -24,11 +28,9 @@ classdef tdmetricsTest < matlab.unittest.TestCase
     end
 
     methods (Test)
-        function testBasicFunctionality(tc)
-            caseDefinition = loadBiosiglibConformanceCase( ...
-                'hrv.tdmetrics.ecg_tk_001');
-            tk = loadBiosiglibConformanceInput(caseDefinition, 'tk');
-            dtk = diff(tk);
+        function testBasicFunctionality(tc, validCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(validCaseId);
+            dtk = loadBiosiglibConformanceInput(caseDefinition, 'dtk');
 
             metrics = tdmetrics(dtk);
 
@@ -38,29 +40,10 @@ classdef tdmetricsTest < matlab.unittest.TestCase
 
         function testExpectedError(tc, expectedErrorCaseId)
             caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
-            tk = loadBiosiglibConformanceInput(caseDefinition, 'tk');
+            dtk = loadBiosiglibConformanceInput(caseDefinition, 'dtk');
 
             verifyBiosiglibExpectedError(tc, ...
-                @() tdmetricsFromCanonicalTk(tk), caseDefinition);
+                @() tdmetrics(dtk), caseDefinition);
         end
     end
-end
-
-function metrics = tdmetricsFromCanonicalTk(tk)
-%TDMETRICSFROMCANONICALTK Adapt canonical event times to interval input.
-
-if ~isnumeric(tk)
-    error('biosigmat:TdmetricsInvalidCanonicalType', ...
-        'Canonical tk input must be numeric.');
-end
-if ~isvector(tk)
-    error('biosigmat:TdmetricsInvalidCanonicalShape', ...
-        'Canonical tk input must be a vector.');
-end
-if any(~isfinite(tk)) || any(tk < 0) || any(diff(tk) <= 0)
-    error('biosigmat:TdmetricsInvalidCanonicalValue', ...
-        'Canonical tk input must be finite, non-negative, and strictly increasing.');
-end
-
-metrics = tdmetrics(diff(tk));
 end

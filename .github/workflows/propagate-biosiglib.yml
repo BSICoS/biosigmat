@@ -27,11 +27,6 @@ jobs:
       BIOSIGLIB_ROOT: ${{ github.workspace }}/biosiglib
 
     steps:
-      - name: Check out Biosigmat
-        uses: actions/checkout@v4
-        with:
-          path: biosigmat
-
       - name: Validate propagation inputs
         id: propagation-inputs
         shell: bash
@@ -50,6 +45,11 @@ jobs:
           echo "BIOSIGLIB_RELEASE_SEMVER=$release_semver" >> "$GITHUB_ENV"
           echo "biosiglib_commit=$normalized_commit" >> "$GITHUB_OUTPUT"
           echo "biosiglib_release_semver=$release_semver" >> "$GITHUB_OUTPUT"
+
+      - name: Check out Biosigmat
+        uses: actions/checkout@v4
+        with:
+          path: biosigmat
 
       - name: Check out Biosiglib
         uses: actions/checkout@v4
@@ -73,18 +73,6 @@ jobs:
             echo "Release $BIOSIGLIB_RELEASE points to $release_commit, not $BIOSIGLIB_COMMIT" >&2
             exit 1
           fi
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
-          cache-dependency-path: biosiglib/requirements-dev.txt
-
-      - name: Install Biosiglib validation dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r biosiglib/requirements-dev.txt
 
       - name: Update conformance manifest
         id: manifest-update
@@ -121,6 +109,50 @@ jobs:
           PY
           git diff -- conformance.json
 
+      - name: Detect manifest change
+        id: manifest-change
+        working-directory: biosigmat
+        shell: bash
+        run: |
+          if git diff --quiet -- conformance.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "conformance.json already pins $BIOSIGLIB_RELEASE at $BIOSIGLIB_COMMIT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Open propagation pull request
+        if: steps.manifest-change.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          path: biosigmat
+          add-paths: conformance.json
+          commit-message: Propagate Biosiglib ${{ env.BIOSIGLIB_RELEASE }}
+          branch: chore/biosiglib-${{ env.BIOSIGLIB_RELEASE }}
+          delete-branch: true
+          base: main
+          title: Propagate Biosiglib ${{ env.BIOSIGLIB_RELEASE }}
+          body: |
+            Propagates a Biosiglib release into Biosigmat.
+
+            - Biosiglib release tag: `${{ env.BIOSIGLIB_RELEASE }}`
+            - Biosiglib commit: `${{ steps.propagation-inputs.outputs.biosiglib_commit }}`
+            - Manifest statuses: ${{ steps.manifest-update.outputs.manifest-statuses }}
+            - Validation status is reported by this workflow run and the pull request checks.
+            - Shared fixtures and conformance cases were consumed from Biosiglib and were not copied into Biosigmat.
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: biosiglib/requirements-dev.txt
+
+      - name: Install Biosiglib validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r biosiglib/requirements-dev.txt
+
       - name: Validate conformance manifest
         working-directory: biosigmat
         run: python ../biosiglib/tools/validate_specs.py --manifest conformance.json
@@ -153,35 +185,3 @@ jobs:
       - name: Check whitespace
         working-directory: biosigmat
         run: git diff --check
-
-      - name: Detect manifest change
-        id: manifest-change
-        working-directory: biosigmat
-        shell: bash
-        run: |
-          if git diff --quiet -- conformance.json; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "conformance.json already pins $BIOSIGLIB_RELEASE at $BIOSIGLIB_COMMIT"
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Open propagation pull request
-        if: steps.manifest-change.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          path: biosigmat
-          add-paths: conformance.json
-          commit-message: Propagate Biosiglib ${{ env.BIOSIGLIB_RELEASE }}
-          branch: chore/biosiglib-${{ env.BIOSIGLIB_RELEASE }}
-          delete-branch: true
-          base: main
-          title: Propagate Biosiglib ${{ env.BIOSIGLIB_RELEASE }}
-          body: |
-            Propagates a validated Biosiglib release into Biosigmat.
-
-            - Biosiglib release tag: `${{ env.BIOSIGLIB_RELEASE }}`
-            - Biosiglib commit: `${{ steps.propagation-inputs.outputs.biosiglib_commit }}`
-            - Manifest statuses: ${{ steps.manifest-update.outputs.manifest-statuses }}
-            - Validation: external manifest, `tdmetricsTest`, `pantompkinsTest`, full MATLAB suite, and `git diff --check` passed.
-            - Shared fixtures and conformance cases were consumed from Biosiglib and were not copied into Biosigmat.

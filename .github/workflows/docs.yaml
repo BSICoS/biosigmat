@@ -36,6 +36,28 @@ jobs:
             mkdocs-redirects \
             mkdocs-git-revision-date-localized-plugin
 
+      - name: Setup MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: R2025a
+          cache: true
+          products: |
+            MATLAB
+            Signal_Processing_Toolbox
+            Curve_Fitting_Toolbox
+
+      - name: Regenerate docs from MATLAB headers
+        uses: matlab-actions/run-command@v2
+        with:
+          command: |
+            try
+              addpath('scripts/local');
+              updateDocs;
+            catch ME
+              fprintf('Documentation generation failed: %s\n', ME.message);
+              exit(1);
+            end
+
       - name: Build site
         run: mkdocs build --strict
 

@@ -14,3 +14,18 @@
 - Resolve the Biosiglib checkout from `BIOSIGLIB_ROOT`, falling back to a sibling `../biosiglib` checkout.
 - Code, comments, filenames, and technical documentation must be in English.
 - Avoid generic resource APIs and unnecessary cross-language infrastructure.
+
+## Local change workflow
+
+- Work in a local checkout for multi-file changes.
+- Do not edit files one-by-one through the GitHub web/API connector except for tiny metadata-only changes.
+- Make related changes locally, run validation locally where possible, and push one coherent commit or a small coherent commit series.
+
+## Generated documentation
+
+- Documentation under `docs/api/` and generated `docs/examples/` is generated from MATLAB headers and example source files.
+- Do not manually edit generated documentation files.
+- Edit the relevant MATLAB function headers and example `.m` files instead.
+- Regenerate documentation with `scripts/local/updateDocs.m`.
+- If generated docs change in a PR, the PR description must state that `updateDocs` was run.
+- If `updateDocs` cannot be run, do not hand-edit generated docs as a substitute; document the blocker.

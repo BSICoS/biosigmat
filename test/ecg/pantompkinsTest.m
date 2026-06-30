@@ -1,6 +1,6 @@
 % Tests covering:
 %   - Basic functionality with real ECG fixtures and R-wave detection accuracy
-%   - Multiple output arguments (tk, ecgFiltered, decg, decgEnvelope)
+%   - Multiple output arguments (rWaveTimes, ecgFiltered, decg, decgEnvelope)
 %   - Edge cases (empty input, scalar input, all-NaN signals)
 %   - Parameter validation for all optional parameters
 %   - Invalid input error handling (non-numeric, character arrays, string inputs)
@@ -27,61 +27,50 @@ classdef pantompkinsTest < matlab.unittest.TestCase
         function addCodeToPath(tc)
             testDirectory = fileparts(mfilename('fullpath'));
             repositoryRoot = fileparts(fileparts(testDirectory));
-            fixturesPath = fullfile(repositoryRoot, 'fixtures', 'ecg');
             originalPath = path;
             tc.addTeardown(@() path(originalPath));
             addpath(fullfile(repositoryRoot, 'src', 'ecg'));
             addpath(fullfile(repositoryRoot, 'src', 'tools'));
             addpath(fullfile(repositoryRoot, 'test', 'common'));
-            addpath(fixturesPath);
 
             % Verify functions are available
             tc.verifyTrue(~isempty(which('pantompkins')), 'pantompkins function not found in path');
             tc.verifyTrue(~isempty(which('snaptopeak')), 'snaptopeak dependency not found in path');
 
-            % Check fixture files exist
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
-                'edr_signals.csv not found in fixtures path');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
-                'ecg_tk.csv not found in fixtures path');
         end
     end
 
     methods (Access = private)
-        function [ecg, tk] = loadFixtureData(~)
-            testDirectory = fileparts(mfilename('fullpath'));
-            repositoryRoot = fileparts(fileparts(testDirectory));
-            fixturesPath = fullfile(repositoryRoot, 'fixtures', 'ecg');
+        function [ecg, rWaveTimes] = loadFixtureData(~)
+            signalsData = loadBiosiglibFixtureTable( ...
+                'ecg.medicom_mtd.ecg_respiration', 'signal_table', 'ecg');
+            timingData = loadBiosiglibFixtureTable( ...
+                'ecg.medicom_mtd.r_wave_timing', 'beat_timing_table', 'r_wave_times');
 
-            % Load ECG signal and expected R-wave times from CSV files
-            signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
-            peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
-
-            % Extract signals - ensure column vector
             ecg = signalsData.ecg(:);
-            tk = peaksData.tk(:);
+            rWaveTimes = timingData.r_wave_times(:);
         end
     end
 
     methods (Test)
         function testBasicFunctionality(tc)
             caseDefinition = loadBiosiglibConformanceCase( ...
-                'ecg.pantompkins.edr_signals_001');
+                'ecg.pantompkins.medicom_mtd_r_wave_times');
             ecg = loadBiosiglibConformanceInput(caseDefinition, 'ecg');
             samplingFrequency = loadBiosiglibConformanceInput( ...
                 caseDefinition, 'sampling_frequency');
 
-            [tk, ecgFiltered, decg, decgEnvelope] = ...
+            [rWaveTimes, ecgFiltered, decg, decgEnvelope] = ...
                 pantompkins(ecg, samplingFrequency);
 
-            tc.verifySize(tk, [length(tk), 1], ...
-                'R-peak times should be a column vector.');
-            tc.verifyClass(tk, 'double', ...
-                'R-peak times should be double precision.');
-            tc.verifyTrue(all(tk >= 0), ...
-                'All R-peak times should be non-negative.');
-            tc.verifyTrue(issorted(tk), ...
-                'R-peak times should be sorted in ascending order.');
+            tc.verifySize(rWaveTimes, [length(rWaveTimes), 1], ...
+                'R-wave times should be a column vector.');
+            tc.verifyClass(rWaveTimes, 'double', ...
+                'R-wave times should be double precision.');
+            tc.verifyTrue(all(rWaveTimes >= 0), ...
+                'All R-wave times should be non-negative.');
+            tc.verifyTrue(issorted(rWaveTimes), ...
+                'R-wave times should be sorted in ascending order.');
 
             tc.verifyTrue(isnumeric(ecgFiltered) && isvector(ecgFiltered), ...
                 'ecg_filtered must exist as a numeric vector.');
@@ -97,13 +86,13 @@ classdef pantompkinsTest < matlab.unittest.TestCase
                 'decg_envelope must preserve the input ECG sample order and length.');
 
             actualOutputs = struct( ...
-                'tk', tk, ...
+                'rWaveTimes', rWaveTimes, ...
                 'ecgFiltered', ecgFiltered, ...
                 'decg', decg, ...
                 'decgEnvelope', decgEnvelope);
             outputIdMap = containers.Map( ...
-                {'r_peak_times', 'ecg_filtered', 'decg', 'decg_envelope'}, ...
-                {'tk', 'ecgFiltered', 'decg', 'decgEnvelope'});
+                {'r_wave_times', 'ecg_filtered', 'decg', 'decg_envelope'}, ...
+                {'rWaveTimes', 'ecgFiltered', 'decg', 'decgEnvelope'});
             verifyBiosiglibExpectedOutputs( ...
                 tc, actualOutputs, caseDefinition, outputIdMap);
         end
@@ -121,16 +110,16 @@ classdef pantompkinsTest < matlab.unittest.TestCase
         function testMultipleOutputs(tc)
             try
                 [ecg, ~] = tc.loadFixtureData();
-                [tk, ecgFiltered, decg, decgEnvelope] = pantompkins(ecg, tc.fs);
+                [rWaveTimes, ecgFiltered, decg, decgEnvelope] = pantompkins(ecg, tc.fs);
 
                 % Verify all outputs have correct dimensions
-                tc.verifySize(tk, [length(tk), 1], 'tk should be a column vector');
+                tc.verifySize(rWaveTimes, [length(rWaveTimes), 1], 'rWaveTimes should be a column vector');
                 tc.verifySize(ecgFiltered, size(ecg), 'ecgFiltered should have same size as input ECG');
                 tc.verifySize(decg, size(ecg), 'decg should have same size as input ECG');
                 tc.verifySize(decgEnvelope, size(ecg), 'decgEnvelope should have same size as input ECG');
 
                 % Verify data types
-                tc.verifyClass(tk, 'double', 'tk should be double');
+                tc.verifyClass(rWaveTimes, 'double', 'rWaveTimes should be double');
                 tc.verifyClass(ecgFiltered, 'double', 'ecgFiltered should be double');
                 tc.verifyClass(decg, 'double', 'decg should be double');
                 tc.verifyClass(decgEnvelope, 'double', 'decgEnvelope should be double');
@@ -150,21 +139,21 @@ classdef pantompkinsTest < matlab.unittest.TestCase
                 [ecg, ~] = tc.loadFixtureData();
 
                 % Test custom bandpass frequencies
-                tk1 = pantompkins(ecg, tc.fs, 'BandpassFreq', [8, 20]);
-                tc.verifyClass(tk1, 'double', 'Custom bandpass should work');
-                tc.verifyTrue(~isempty(tk1), 'Custom bandpass should detect peaks');
+                rWaveTimes1 = pantompkins(ecg, tc.fs, 'BandpassFreq', [8, 20]);
+                tc.verifyClass(rWaveTimes1, 'double', 'Custom bandpass should work');
+                tc.verifyTrue(~isempty(rWaveTimes1), 'Custom bandpass should detect peaks');
 
                 % Test custom window size
-                tk2 = pantompkins(ecg, tc.fs, 'WindowSize', 0.1);
-                tc.verifyClass(tk2, 'double', 'Custom window size should work');
+                rWaveTimes2 = pantompkins(ecg, tc.fs, 'WindowSize', 0.1);
+                tc.verifyClass(rWaveTimes2, 'double', 'Custom window size should work');
 
                 % Test custom minimum peak distance
-                tk3 = pantompkins(ecg, tc.fs, 'MinPeakDistance', 0.3);
-                tc.verifyClass(tk3, 'double', 'Custom min peak distance should work');
+                rWaveTimes3 = pantompkins(ecg, tc.fs, 'MinPeakDistance', 0.3);
+                tc.verifyClass(rWaveTimes3, 'double', 'Custom min peak distance should work');
 
                 % Test custom snaptopeak window size
-                tk5 = pantompkins(ecg, tc.fs, 'SnapTopeakWindowSize', 15);
-                tc.verifyClass(tk5, 'double', 'Custom snaptopeak window should work');
+                rWaveTimes5 = pantompkins(ecg, tc.fs, 'SnapTopeakWindowSize', 15);
+                tc.verifyClass(rWaveTimes5, 'double', 'Custom snaptopeak window should work');
 
             catch e
                 tc.verifyTrue(false, ['Error in parameter validation test: ' e.message]);
@@ -172,12 +161,12 @@ classdef pantompkinsTest < matlab.unittest.TestCase
         end
 
         function testSignalWithNaN(tc)
-            [ecg, expectedTk] = tc.loadFixtureData();
+            [ecg, expectedRWaveTimes] = tc.loadFixtureData();
             ecg(10000:13000) = NaN;
-            expectedTk(expectedTk > 10000/tc.fs & expectedTk < 13000/tc.fs) = [];
-            tk = pantompkins(ecg, tc.fs);
+            expectedRWaveTimes(expectedRWaveTimes > 10000/tc.fs & expectedRWaveTimes < 13000/tc.fs) = [];
+            rWaveTimes = pantompkins(ecg, tc.fs);
 
-            tc.verifyEqual(tk, expectedTk, ...
+            tc.verifyEqual(rWaveTimes, expectedRWaveTimes, ...
                 'Detected R-wave times should match expected values in ECG signal (NaN case)');
         end
 

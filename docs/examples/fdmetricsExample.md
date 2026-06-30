@@ -18,4 +18,4 @@ This example demonstrates how to compute frequency-domain heart rate variability
 
 ---
 
-**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-06-12
+**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-06-30

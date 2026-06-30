@@ -1,10 +1,10 @@
-function varargout = sloperange(decg, tk, fs)
+function varargout = sloperange(decg, rWaveTimes, fs)
 % SLOPERANGE Compute ECG-derived respiration (EDR) using slope range method.
 %
-%   EDR = SLOPERANGE(DECG, TK, FS) computes ECG-derived respiration (EDR) signal using
+%   EDR = SLOPERANGE(DECG, RWAVETIMES, FS) computes ECG-derived respiration (EDR) signal using
 %   the slope range method. This method analyzes the derivative of the ECG signal
-%   (DECG) around R-wave peaks (TK) to extract respiratory information.
-%   EDR is a column vector with the same length as TK.
+%   (DECG) around ECG R-wave occurrence times (RWAVETIMES) to extract respiratory
+%   information. EDR is a column vector with the same length as RWAVETIMES.
 %
 %   [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = SLOPERANGE(...) returns
 %   additional outputs:
@@ -17,11 +17,11 @@ function varargout = sloperange(decg, tk, fs)
 %     % Derive respiratory signal from ECG using slope range method
 %     load('ecg_data.mat'); % Load ECG signal and R-wave positions
 %     decg = diff(ecg); % Calculate ECG derivative
-%     edr = sloperange(decg, tk, fs);
+%     edr = sloperange(decg, rWaveTimes, fs);
 %
 %     % Plot results
 %     figure;
-%     plot(tk, edr);
+%     plot(rWaveTimes, edr);
 %     title('ECG-derived Respiration');
 %     xlabel('Time (s)');
 %     ylabel('EDR Amplitude');
@@ -36,17 +36,21 @@ nargoutchk(0, 5);
 parser = inputParser;
 parser.FunctionName = 'sloperange';
 addRequired(parser, 'decg', @(x) isnumeric(x) && isvector(x) && ~isscalar(x));
-addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x));
+addRequired(parser, 'rWaveTimes', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 
-parse(parser, decg, tk, fs);
+parse(parser, decg, rWaveTimes, fs);
 
 decg = parser.Results.decg;
-tk = parser.Results.tk;
+rWaveTimes = parser.Results.rWaveTimes;
 fs = parser.Results.fs;
 
 decg = decg(:);
-nk = round(tk * fs) + 1;
+rWaveTimes = rWaveTimes(:);
+if any(diff(rWaveTimes) <= 0)
+    error('R-wave times must be strictly increasing');
+end
+nk = round(rWaveTimes * fs) + 1;
 numBeats = length(nk);
 
 if any(nk < 1) || any(nk > length(decg))
@@ -103,7 +107,7 @@ downslopes(downslopeIndices) = decg(downslopeIndices);
 % Compute EDR signal as difference between maximum upslope and minimum downslope
 edr = upslopeMax(:) - downslopeMin(:);
 
-% Complete EDR signal to match the length of tk by adding NaN for removed beats
+% Complete EDR signal to match rWaveTimes by adding NaN for removed beats
 if firstBeatRemoved
     edr = [nan; edr];
     upslopeMaxPosition = [nan; upslopeMaxPosition];

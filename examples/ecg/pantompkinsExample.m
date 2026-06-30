@@ -3,11 +3,12 @@
 % This example demonstrates the implementation of the Pan-Tompkins algorithm for
 % reliable R-wave detection in ECG signals. The process begins by loading ECG data
 % sampled at 256 Hz from fixture files. The Pan-Tompkins algorithm is then applied
-% to detect R-wave peaks through a series of filtering and processing steps including
-% bandpass filtering, differentiation, squaring, and integration. The example provides
-% comprehensive visualization of all intermediate processing steps, showing the
-% filtered signal, squared derivative, integrated envelope, and final R-wave detection
-% results, allowing users to understand each stage of the algorithm's operation.
+% to detect ECG R-wave occurrence times through a series of filtering and processing
+% steps including bandpass filtering, differentiation, squaring, and integration.
+% The example provides comprehensive visualization of all intermediate processing
+% steps, showing the filtered signal, squared derivative, integrated envelope, and
+% final R-wave detection results, allowing users to understand each stage of the
+% algorithm's operation.
 
 
 % Add required paths for source code and fixtures
@@ -32,7 +33,7 @@ t = (0:length(ecg) - 1) / fs;
 ecg = ecg(:);
 
 % Apply the PANTOMPKINS algorithm to detect R-waves and get all intermediate signals
-[tk, ecgFiltered, decg, decgEnvelope] = pantompkins(ecg, fs);
+[rWaveTimes, ecgFiltered, decg, decgEnvelope] = pantompkins(ecg, fs);
 
 
 %% Create visualization of results with multiple subplots
@@ -42,7 +43,7 @@ figure;
 ax(1) = subplot(4, 1, 1);
 plot(t, ecg, 'b-', 'LineWidth', 1);
 hold on;
-plot(tk, ecg(round(tk * fs) + 1), 'ro', 'MarkerFaceColor', 'r', 'MarkerSize', 6);
+plot(rWaveTimes, ecg(round(rWaveTimes * fs) + 1), 'ro', 'MarkerFaceColor', 'r', 'MarkerSize', 6);
 axis tight;
 ylabel('ECG');
 title('Original ECG Signal with Detected R-waves');
@@ -52,7 +53,7 @@ grid on;
 ax(2) = subplot(4, 1, 2);
 plot(t, ecgFiltered, 'g-', 'LineWidth', 1);
 hold on;
-plot(tk, ecgFiltered(round(tk * fs) + 1), 'ro', 'MarkerFaceColor', 'r', 'MarkerSize', 6);
+plot(rWaveTimes, ecgFiltered(round(rWaveTimes * fs) + 1), 'ro', 'MarkerFaceColor', 'r', 'MarkerSize', 6);
 axis tight;
 ylabel('Filtered ECG');
 title('Bandpass Filtered ECG Signal (5-15 Hz)');
@@ -71,8 +72,8 @@ ax(4) = subplot(4, 1, 4);
 plot(t, decgEnvelope, 'r-', 'LineWidth', 1);
 hold on;
 % Plot detected peak locations on the envelope
-peakIndices = round(tk * fs);
-plot(tk, decgEnvelope(peakIndices), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 6);
+peakIndices = round(rWaveTimes * fs);
+plot(rWaveTimes, decgEnvelope(peakIndices), 'ko', 'MarkerFaceColor', 'k', 'MarkerSize', 6);
 axis tight;
 ylabel('Envelope');
 xlabel('Time (s)');

@@ -13,7 +13,7 @@ function varargout = pantompkins(ecg, fs, varargin)
 %     'WindowSize'           -  Integration window size in seconds. Default: 0.15
 %     'MinPeakDistance'      -  Minimum distance between peaks in seconds. Default: 0.5
 %     'SnapTopeakWindowSize' -  Window size in samples for peak refinement. Default: 20
-
+%
 %   [RWAVETIMES, ECGFILTERED, DECG, DECGENVELOPE] = PANTOMPKINS(...) returns additional outputs:
 %     ECGFILTERED  - Bandpass filtered ECG signal
 %     DECG         - Squared derivative of the filtered ECG signal

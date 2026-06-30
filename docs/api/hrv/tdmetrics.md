@@ -1,6 +1,6 @@
 # `tdmetrics`
 
-Compute standard time-domain indices for heart rate variability analysis.
+Compute time-domain HRV metrics from interval series.
 
 ## Syntax
 
@@ -10,14 +10,11 @@ function metrics = tdmetrics(dtk)
 
 ## Description
 
-METRICS = TDMETRICS(DTK) computes standard time-domain metrics used in heart rate
-variability (HRV) analysis from interval series (DTK). METRICS is a structure
-containing the following time-domain metrics:
-- MHR   - Mean heart rate (beats/min)
-- SDNN  - Standard deviation of normal-to-normal (NN) intervals (ms)
-- SDSD  - Standard deviation of differences between adjacent NN intervals (ms)
-- RMSSD - Root mean square of successive differences of NN intervals (ms)
-- PNN50 - Proportion of interval differences > 50ms with respect to all NN intervals ()
+METRICS = TDMETRICS(DTK) computes standard time-domain heart-rate variability metrics from the interval series DTK, expressed in seconds.
+
+DTK must be a non-empty numeric vector. Positive finite values are treated as valid intervals. NaN values are allowed as missing-interval markers and are omitted before computing the metrics. Inf, zero and negative values are rejected.
+
+METRICS is a structure with fields: mhr   - Mean heart rate in beats per minute. sdnn  - Standard deviation of intervals in milliseconds. sdsd  - Standard deviation of successive interval differences in ms. rmssd - Root mean square of successive interval differences in ms. pNN50 - Percentage of successive interval differences greater than 50 ms.
 
 ## Source Code
 
@@ -26,18 +23,8 @@ containing the following time-domain metrics:
 ## Examples
 
 ```matlab
-% Compute time domain metrics from R-R interval series
-load('ecg_data.mat'); % Load ECG data
-rpeaks = pantompkins(ecg, fs); % Detect R-peaks
-dtk = diff(rpeaks); % Compute R-R intervals
+dtk = [0.80 0.82 NaN 0.79 0.81];
 metrics = tdmetrics(dtk);
-
-% Display results
-fprintf('Mean HR: %.1f bpm\n', metrics.mhr);
-fprintf('SDNN: %.1f ms\n', metrics.sdnn);
-fprintf('RMSSD: %.1f ms\n', metrics.rmssd);
-fprintf('SDSD: %.1f ms\n', metrics.sdsd);
-fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 ```
 
 [View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m)
@@ -50,4 +37,4 @@ fprintf('pNN50: %.1f %%\n', metrics.pNN50);
 
 ---
 
-**Module**: [HRV](index.md) | **Last Updated**: 2026-06-12
+**Module**: [HRV](index.md) | **Last Updated**: 2026-06-30

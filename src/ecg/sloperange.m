@@ -6,8 +6,6 @@ function varargout = sloperange(decg, rWaveTimes, fs)
 %   (DECG) around ECG R-wave occurrence times (RWAVETIMES) to extract respiratory
 %   information. EDR is a column vector with the same length as RWAVETIMES.
 %
-%   RWAVETIMES contains ECG R-wave occurrence times in seconds.
-%
 %   [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = SLOPERANGE(...) returns
 %   additional outputs:
 %     UPSLOPES   - Matrix containing upslope values around R-waves

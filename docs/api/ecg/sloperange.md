@@ -12,8 +12,6 @@ function varargout = sloperange(decg, rWaveTimes, fs)
 
 EDR = SLOPERANGE(DECG, RWAVETIMES, FS) computes ECG-derived respiration (EDR) signal using the slope range method. This method analyzes the derivative of the ECG signal (DECG) around ECG R-wave occurrence times (RWAVETIMES) to extract respiratory information. EDR is a column vector with the same length as RWAVETIMES.
 
-rWaveTimes: ECG R-wave occurrence times in seconds.
-
 [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = SLOPERANGE(...) returns
 additional outputs:
 - UPSLOPES   - Matrix containing upslope values around R-waves
@@ -52,4 +50,4 @@ ylabel('EDR Amplitude');
 
 ---
 
-**Module**: [ECG](index.md) | **Last Updated**: 2026-06-12
+**Module**: [ECG](index.md) | **Last Updated**: 2026-06-30

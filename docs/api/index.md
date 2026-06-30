@@ -25,7 +25,7 @@ Functions for heart rate variability analysis and metrics calculation.
 | [`ipfm`](hrv/ipfm.md) | Estimate instantaneous heart rate using the integral pulse frequency modulation model. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ipfmExample.m) | :white_check_mark: Stable |
 | [`osp`](hrv/osp.md) | Decompose the HRV modulating signal into respiratory and unrelated components. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/ospExample.m) | :white_check_mark: Stable |
 | [`removefp`](hrv/removefp.md) | Remove false positive detections from HRV event series. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/removefpExample.m) | :white_check_mark: Stable |
-| [`tdmetrics`](hrv/tdmetrics.md) | Compute standard time-domain indices for heart rate variability analysis. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :white_check_mark: Stable |
+| [`tdmetrics`](hrv/tdmetrics.md) | Compute time-domain HRV metrics from interval series. | [View code](https://github.com/BSICoS/biosigmat/tree/main/examples/hrv/tdmetricsExample.m) | :white_check_mark: Stable |
 
 ### [PPG Processing](ppg/index.md)
 
@@ -116,4 +116,4 @@ All functions sorted alphabetically:
 
 ---
 
-*Last updated: 2026-06-12 | Total functions: 30*
+*Last updated: 2026-06-30 | Total functions: 30*

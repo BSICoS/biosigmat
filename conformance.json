@@ -18,6 +18,10 @@
     "ecg.pantompkins": {
       "status": "conformant",
       "entry_point": "pantompkins"
+    },
+    "ecg.sloperange": {
+      "status": "conformant",
+      "entry_point": "sloperange"
     }
   }
 }

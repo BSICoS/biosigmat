@@ -3,7 +3,7 @@ function varargout = sloperange(decg, tk, fs)
 %
 %   EDR = SLOPERANGE(DECG, TK, FS) computes ECG-derived respiration (EDR) signal using
 %   the slope range method. This method analyzes the derivative of the ECG signal
-%   (DECG) around R-wave peaks (TK) to extract respiratory information.
+%   (DECG) around R-wave times (TK) to extract respiratory information.
 %   EDR is a column vector with the same length as TK.
 %
 %   [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = SLOPERANGE(...) returns
@@ -46,6 +46,10 @@ tk = parser.Results.tk;
 fs = parser.Results.fs;
 
 decg = decg(:);
+tk = tk(:);
+if any(diff(tk) <= 0)
+    error('R-wave times must be strictly increasing');
+end
 nk = round(tk * fs) + 1;
 numBeats = length(nk);
 

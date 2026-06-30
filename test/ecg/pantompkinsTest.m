@@ -39,21 +39,21 @@ classdef pantompkinsTest < matlab.unittest.TestCase
             tc.verifyTrue(~isempty(which('pantompkins')), 'pantompkins function not found in path');
             tc.verifyTrue(~isempty(which('snaptopeak')), 'snaptopeak dependency not found in path');
 
-            % Check fixture files exist
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
-                'edr_signals.csv not found in fixtures path');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
-                'ecg_tk.csv not found in fixtures path');
         end
     end
 
     methods (Access = private)
-        function [ecg, tk] = loadFixtureData(~)
+        function [ecg, tk] = loadFixtureData(tc)
             testDirectory = fileparts(mfilename('fullpath'));
             repositoryRoot = fileparts(fileparts(testDirectory));
             fixturesPath = fullfile(repositoryRoot, 'fixtures', 'ecg');
 
-            % Load ECG signal and expected R-wave times from CSV files
+            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
+                'edr_signals.csv not found in implementation-local legacy fixtures path');
+            tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
+                'ecg_tk.csv not found in implementation-local legacy fixtures path');
+
+            % Load ECG signal and expected R-wave times from legacy local CSV files
             signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
             peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
 
@@ -66,7 +66,7 @@ classdef pantompkinsTest < matlab.unittest.TestCase
     methods (Test)
         function testBasicFunctionality(tc)
             caseDefinition = loadBiosiglibConformanceCase( ...
-                'ecg.pantompkins.edr_signals_001');
+                'ecg.pantompkins.medicom_mtd_r_wave_times');
             ecg = loadBiosiglibConformanceInput(caseDefinition, 'ecg');
             samplingFrequency = loadBiosiglibConformanceInput( ...
                 caseDefinition, 'sampling_frequency');
@@ -75,13 +75,13 @@ classdef pantompkinsTest < matlab.unittest.TestCase
                 pantompkins(ecg, samplingFrequency);
 
             tc.verifySize(tk, [length(tk), 1], ...
-                'R-peak times should be a column vector.');
+                'R-wave times should be a column vector.');
             tc.verifyClass(tk, 'double', ...
-                'R-peak times should be double precision.');
+                'R-wave times should be double precision.');
             tc.verifyTrue(all(tk >= 0), ...
-                'All R-peak times should be non-negative.');
+                'All R-wave times should be non-negative.');
             tc.verifyTrue(issorted(tk), ...
-                'R-peak times should be sorted in ascending order.');
+                'R-wave times should be sorted in ascending order.');
 
             tc.verifyTrue(isnumeric(ecgFiltered) && isvector(ecgFiltered), ...
                 'ecg_filtered must exist as a numeric vector.');
@@ -102,7 +102,7 @@ classdef pantompkinsTest < matlab.unittest.TestCase
                 'decg', decg, ...
                 'decgEnvelope', decgEnvelope);
             outputIdMap = containers.Map( ...
-                {'r_peak_times', 'ecg_filtered', 'decg', 'decg_envelope'}, ...
+                {'r_wave_times', 'ecg_filtered', 'decg', 'decg_envelope'}, ...
                 {'tk', 'ecgFiltered', 'decg', 'decgEnvelope'});
             verifyBiosiglibExpectedOutputs( ...
                 tc, actualOutputs, caseDefinition, outputIdMap);

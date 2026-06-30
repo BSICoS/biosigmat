@@ -12,21 +12,27 @@ classdef sloperangeTest < matlab.unittest.TestCase
         fs = 256;
     end
 
+    properties (TestParameter)
+        validConformanceCaseId = {
+            'ecg.sloperange.synthetic_positive_001'
+            'ecg.sloperange.synthetic_boundary_nan_001'
+        }
+        expectedErrorCaseId = {
+            'ecg.sloperange.invalid_r_wave_time_out_of_bounds'
+            'ecg.sloperange.invalid_r_wave_times_not_strict'
+        }
+    end
+
     methods (TestClassSetup)
         function addCodeToPath(tc)
             addpath(fullfile('..', '..', 'src', 'ecg'));
             addpath(fullfile('..', '..', 'src', 'tools'));
+            addpath(fullfile('..', '..', 'test', 'common'));
             addpath(fullfile(pwd, '..', '..', 'fixtures', 'ecg'));
 
             % Verify functions are available
             tc.verifyTrue(~isempty(which('sloperange')), 'sloperange function not found in path');
 
-            % Check fixture files exist
-            fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
-                'edr_signals.csv not found in fixtures path');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
-                'ecg_tk.csv not found in fixtures path');
         end
     end
 
@@ -38,7 +44,12 @@ classdef sloperangeTest < matlab.unittest.TestCase
         function [decg, tk, resp] = loadFixtureData(tc)
             fixturesPath = tc.getFixturesPath();
 
-            % Load the signals and R-peaks from CSV files
+            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
+                'edr_signals.csv not found in implementation-local legacy fixtures path');
+            tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
+                'ecg_tk.csv not found in implementation-local legacy fixtures path');
+
+            % Load the signals and R-wave times from legacy local CSV files
             signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
             peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
 
@@ -54,6 +65,30 @@ classdef sloperangeTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(validConformanceCaseId);
+            decg = loadBiosiglibConformanceInput(caseDefinition, 'decg');
+            rWaveTimes = loadBiosiglibConformanceInput(caseDefinition, 'r_wave_times');
+            samplingFrequency = loadBiosiglibConformanceInput( ...
+                caseDefinition, 'sampling_frequency');
+
+            edr = sloperange(decg, rWaveTimes, samplingFrequency);
+
+            actualOutputs = struct('edr', edr);
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
+        end
+
+        function testBiosiglibExpectedError(tc, expectedErrorCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
+            decg = loadBiosiglibConformanceInput(caseDefinition, 'decg');
+            rWaveTimes = loadBiosiglibConformanceInput(caseDefinition, 'r_wave_times');
+            samplingFrequency = loadBiosiglibConformanceInput( ...
+                caseDefinition, 'sampling_frequency');
+
+            verifyBiosiglibExpectedError(tc, ...
+                @() sloperange(decg, rWaveTimes, samplingFrequency), caseDefinition);
+        end
+
         function testBasicFunctionality(tc)
             try
                 [decg, tk, ~] = tc.loadFixtureData();

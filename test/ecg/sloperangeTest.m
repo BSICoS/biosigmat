@@ -8,7 +8,6 @@
 
 classdef sloperangeTest < matlab.unittest.TestCase
     properties
-        fixturesDir = fullfile('..', '..', 'fixtures', 'ecg');
         fs = 256;
     end
 
@@ -28,7 +27,6 @@ classdef sloperangeTest < matlab.unittest.TestCase
             addpath(fullfile('..', '..', 'src', 'ecg'));
             addpath(fullfile('..', '..', 'src', 'tools'));
             addpath(fullfile('..', '..', 'test', 'common'));
-            addpath(fullfile(pwd, '..', '..', 'fixtures', 'ecg'));
 
             % Verify functions are available
             tc.verifyTrue(~isempty(which('sloperange')), 'sloperange function not found in path');
@@ -37,26 +35,15 @@ classdef sloperangeTest < matlab.unittest.TestCase
     end
 
     methods (Access = private)
-        function fixturesPath = getFixturesPath(~)
-            fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
-        end
+        function [decg, rWaveTimes, respiration] = loadFixtureData(tc)
+            signalsData = loadBiosiglibFixtureTable( ...
+                'ecg.medicom_mtd.ecg_respiration', 'signal_table');
+            timingData = loadBiosiglibFixtureTable( ...
+                'ecg.medicom_mtd.r_wave_timing', 'beat_timing_table', 'r_wave_times');
 
-        function [decg, tk, resp] = loadFixtureData(tc)
-            fixturesPath = tc.getFixturesPath();
-
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
-                'edr_signals.csv not found in implementation-local legacy fixtures path');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
-                'ecg_tk.csv not found in implementation-local legacy fixtures path');
-
-            % Load the signals and R-wave times from legacy local CSV files
-            signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
-            peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
-
-            % Extract signals
             ecg = signalsData.ecg(:);
-            resp = signalsData.resp(:);
-            tk = peaksData.tk(:);
+            respiration = signalsData.respiration(:);
+            rWaveTimes = timingData.r_wave_times(:);
 
             % Compute derivative of ECG (sloperange expects decg, not ecg)
             b = lpdfilter(tc.fs, 50, 'Order', 4);
@@ -91,18 +78,18 @@ classdef sloperangeTest < matlab.unittest.TestCase
 
         function testBasicFunctionality(tc)
             try
-                [decg, tk, ~] = tc.loadFixtureData();
+                [decg, rWaveTimes, ~] = tc.loadFixtureData();
 
-                edr = sloperange(decg, tk, tc.fs);
+                edr = sloperange(decg, rWaveTimes, tc.fs);
 
                 % Verify results
-                tc.verifySize(edr, [length(tk), 1], 'EDR should have same length as number of peaks');
+                tc.verifySize(edr, [length(rWaveTimes), 1], 'EDR should have same length as number of R-waves');
                 tc.verifyGreaterThan(edr(~isnan(edr)), 0, 'EDR values should be positive');
                 tc.verifyEqual(length(unique(edr)) > 1, true, 'EDR values should not all be identical');
 
                 % Check for expected respiration pattern
                 fsInterp = 4;
-                tEdr = tk;
+                tEdr = rWaveTimes;
                 tInterp = (tEdr(1):1/fsInterp:tEdr(end))';
 
                 edrInterp = interp1(tEdr(~isnan(edr)), edr(~isnan(edr)), tInterp, 'pchip');
@@ -133,21 +120,21 @@ classdef sloperangeTest < matlab.unittest.TestCase
 
         function testIOValidation(tc)
             try
-                [decg, tk, ~] = tc.loadFixtureData();
+                [decg, rWaveTimes, ~] = tc.loadFixtureData();
 
                 % Test column vector conversion
                 decgRow = decg';
-                edr1 = sloperange(decg, tk, tc.fs);
-                edr2 = sloperange(decgRow, tk, tc.fs);
+                edr1 = sloperange(decg, rWaveTimes, tc.fs);
+                edr2 = sloperange(decgRow, rWaveTimes, tc.fs);
                 tc.verifyEqual(edr1, edr2, 'Function should handle row vectors correctly');
 
                 % Test with multiple outputs
-                [edr3, upslopes, downslopes, upmaxpos, downminpos] = sloperange(decg, tk, tc.fs);
-                tc.verifyEqual(size(edr3), [length(tk), 1], 'Function should work with multiple outputs');
+                [edr3, upslopes, downslopes, upmaxpos, downminpos] = sloperange(decg, rWaveTimes, tc.fs);
+                tc.verifyEqual(size(edr3), [length(rWaveTimes), 1], 'Function should work with multiple outputs');
                 tc.verifySize(upslopes, size(decg), 'Upslopes should have same size as input signal');
                 tc.verifySize(downslopes, size(decg), 'Downslopes should have same size as input signal');
-                tc.verifySize(upmaxpos, [length(tk), 1], 'Upmaxpos should have same length as peaks');
-                tc.verifySize(downminpos, [length(tk), 1], 'Downminpos should have same length as peaks');
+                tc.verifySize(upmaxpos, [length(rWaveTimes), 1], 'Upmaxpos should have same length as R-wave times');
+                tc.verifySize(downminpos, [length(rWaveTimes), 1], 'Downminpos should have same length as R-wave times');
             catch e
                 tc.verifyTrue(false, ['Error in input validation test: ' e.message]);
             end
@@ -155,30 +142,30 @@ classdef sloperangeTest < matlab.unittest.TestCase
 
         function testComparisonWithRespSignal(tc)
             try
-                [decg, tk, resp] = tc.loadFixtureData();
+                [decg, rWaveTimes, respiration] = tc.loadFixtureData();
 
                 t = (0:length(decg)-1)' / tc.fs;
-                edr = sloperange(decg, tk, tc.fs);
+                edr = sloperange(decg, rWaveTimes, tc.fs);
 
                 fsInterp = 4;
                 tInterp = (0:1/fsInterp:t(end))';
 
-                % Create time vector only within the range of tk values
-                validIdx = (tInterp >= tk(1)) & (tInterp <= tk(end));
+                % Create time vector only within the range of rWaveTimes values
+                validIdx = (tInterp >= rWaveTimes(1)) & (tInterp <= rWaveTimes(end));
                 tValid = tInterp(validIdx);
 
-                respResampled = interp1(t, resp, tValid, 'pchip');
-                edrResampled = interp1(tk(~isnan(edr)), edr(~isnan(edr)), tValid, 'pchip');
+                respirationResampled = interp1(t, respiration, tValid, 'pchip');
+                edrResampled = interp1(rWaveTimes(~isnan(edr)), edr(~isnan(edr)), tValid, 'pchip');
 
                 % Detrend both signals to remove slow drifts
-                respDetrended = detrend(respResampled);
+                respirationDetrended = detrend(respirationResampled);
                 edrDetrended = detrend(edrResampled);
 
                 % Compute Power Spectral Density (PSD) of both signals
-                windowLength = min(round(fsInterp * 30), length(respDetrended));
+                windowLength = min(round(fsInterp * 30), length(respirationDetrended));
                 noverlap = round(windowLength * 0.5);
                 nfft = 2^nextpow2(windowLength * 2);
-                [pxxResp, fResp] = pwelch(respDetrended, windowLength, noverlap, nfft, fsInterp);
+                [pxxResp, fResp] = pwelch(respirationDetrended, windowLength, noverlap, nfft, fsInterp);
                 [pxxEdr, fEdr] = pwelch(edrDetrended, windowLength, noverlap, nfft, fsInterp);
 
                 % Find dominant frequencies in respiratory range (0.1-0.5 Hz)
@@ -201,23 +188,23 @@ classdef sloperangeTest < matlab.unittest.TestCase
 
         function testIncompleteWindowsAtBoundaries(tc)
             try
-                [decg, tk, ~] = tc.loadFixtureData();
+                [decg, rWaveTimes, ~] = tc.loadFixtureData();
 
                 longWindow = round(tc.fs * 0.05);  % 50 ms window (same as in sloperange)
-                nk = round(tk * tc.fs) + 1;
+                nk = round(rWaveTimes * tc.fs) + 1;
 
-                % Truncate the signal so that first and last peaks have incomplete windows
+                % Truncate the signal so that first and last R-waves have incomplete windows
                 startSample = nk(1) - longWindow + 5; % Leave only 5 samples before upslope window
                 endSample = nk(end) + longWindow - 5; % Leave only 5 samples after downslope window
 
                 truncatedDecg = decg(max(1,startSample):min(length(decg),endSample));
-                adjustedTk = tk - (startSample - 1) / tc.fs;
+                adjustedRWaveTimes = rWaveTimes - (startSample - 1) / tc.fs;
 
-                edr = sloperange(truncatedDecg, adjustedTk, tc.fs);
+                edr = sloperange(truncatedDecg, adjustedRWaveTimes, tc.fs);
 
-                % Verify EDR has same length as tk
-                tc.verifySize(edr, [length(adjustedTk), 1], ...
-                    'EDR should have same length as tk even with boundary incomplete windows');
+                % Verify EDR has same length as rWaveTimes
+                tc.verifySize(edr, [length(adjustedRWaveTimes), 1], ...
+                    'EDR should have same length as rWaveTimes even with boundary incomplete windows');
 
                 % Verify first and last values are NaN
                 tc.verifyTrue(isnan(edr(1)), ...
@@ -237,32 +224,32 @@ classdef sloperangeTest < matlab.unittest.TestCase
         end
 
         function testEmptyInput(tc)
-            [decg, tk, ~] = tc.loadFixtureData();
-            tc.verifyError(@() sloperange([], tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            [decg, rWaveTimes, ~] = tc.loadFixtureData();
+            tc.verifyError(@() sloperange([], rWaveTimes, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Empty DECG input should throw inputParser validation error');
             tc.verifyError(@() sloperange(decg, [], tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
-                'Empty TK input should throw inputParser validation error');
+                'Empty rWaveTimes input should throw inputParser validation error');
         end
 
         function testInvalidInputTypes(tc)
-            [decg, tk, ~] = tc.loadFixtureData();
-            tc.verifyError(@() sloperange('string', tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            [decg, rWaveTimes, ~] = tc.loadFixtureData();
+            tc.verifyError(@() sloperange('string', rWaveTimes, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Non-numeric DECG input should throw inputParser validation error');
-            tc.verifyError(@() sloperange(['a', 'b', 'c'], tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            tc.verifyError(@() sloperange(['a', 'b', 'c'], rWaveTimes, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Character array DECG input should throw inputParser validation error');
-            tc.verifyError(@() sloperange(decg > 0, tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            tc.verifyError(@() sloperange(decg > 0, rWaveTimes, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Logical DECG input should throw inputParser validation error');
-            tc.verifyError(@() sloperange(1, tk, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+            tc.verifyError(@() sloperange(1, rWaveTimes, tc.fs), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Scalar DECG input should throw inputParser validation error');
         end
 
         function testInvalidSamplingFrequency(tc)
             try
-                [decg, tk, ~] = tc.loadFixtureData();
-                tc.verifyError(@() sloperange(decg, tk, 0), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                [decg, rWaveTimes, ~] = tc.loadFixtureData();
+                tc.verifyError(@() sloperange(decg, rWaveTimes, 0), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                     'Zero sampling frequency must throw inputParser validation error');
 
-                tc.verifyError(@() sloperange(decg, tk, -100), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                tc.verifyError(@() sloperange(decg, rWaveTimes, -100), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                     'Negative sampling frequency must throw inputParser validation error');
             catch e
                 tc.verifyTrue(false, ['Error in invalid sampling frequency test: ' e.message]);
@@ -274,10 +261,10 @@ classdef sloperangeTest < matlab.unittest.TestCase
                 [decg, ~, ~] = tc.loadFixtureData();
                 shortDecg = decg(1:1000); % Short signal (about 4 seconds at 256 Hz)
 
-                % TK values that exceed signal duration
-                invalidTk = [1.0, 2.0, 10.0]; % 10 seconds exceeds signal length
+                % R-wave time values that exceed signal duration
+                invalidRWaveTimes = [1.0, 2.0, 10.0]; % 10 seconds exceeds signal length
 
-                tc.verifyError(@() sloperange(shortDecg, invalidTk, tc.fs), '', ...
+                tc.verifyError(@() sloperange(shortDecg, invalidRWaveTimes, tc.fs), '', ...
                     'R-wave indices must be within the bounds of the ECG signal');
             catch e
                 tc.verifyTrue(false, ['Error in mismatched input sizes test: ' e.message]);

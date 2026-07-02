@@ -45,4 +45,4 @@ This section contains practical examples and workflows demonstrating the usage o
 
 ---
 
-**Examples**: 14 | **Workflows**: 2 | **Last Updated**: 2026-06-30
+**Examples**: 14 | **Workflows**: 2 | **Last Updated**: 2026-07-02

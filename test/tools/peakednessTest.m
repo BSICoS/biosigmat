@@ -19,7 +19,7 @@ classdef peakednessTest < matlab.unittest.TestCase
 
     methods (TestMethodSetup)
         function loadFixtures(tc)
-            data = readmatrix('../../fixtures/ecg/edr_signals.csv');
+            data = readmatrix('../../fixtures/ecg/medicom_mtd_ecg_respiration.csv');
             tc.resp = detrend(data(2:end, 3));
             tc.fs = 256;
         end

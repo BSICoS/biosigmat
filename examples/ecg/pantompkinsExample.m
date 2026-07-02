@@ -20,7 +20,7 @@ addpath(fullfile('..', '..', 'fixtures', 'ecg'));
 fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
 
 % Load ECG signals from CSV files
-signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
+signalsData = readtable(fullfile(fixturesPath, 'medicom_mtd_ecg_respiration.csv'));
 
 % Sampling frequency for the CSV data
 fs = 256;

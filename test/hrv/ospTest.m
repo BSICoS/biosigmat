@@ -19,12 +19,12 @@ classdef ospTest < matlab.unittest.TestCase
 
     methods (TestMethodSetup)
         function loadFixtures(tc)
-            tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
-            respData = readtable('../../fixtures/ecg/edr_signals.csv');
+            tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+            respData = readtable('../../fixtures/ecg/medicom_mtd_ecg_respiration.csv');
 
-            tc.tk = tkData.tk(1:100);
-            tc.respTime = respData.t;
-            tc.respSignal = respData.resp;
+            tc.tk = tkData.r_wave_times(1:100);
+            tc.respTime = respData.time;
+            tc.respSignal = respData.respiration;
             tc.fs = 4;
         end
     end

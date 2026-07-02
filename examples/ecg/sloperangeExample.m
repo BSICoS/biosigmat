@@ -20,16 +20,16 @@ addpath(fullfile('..', '..', 'fixtures', 'ecg'));
 fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
 
 % Load ECG signals and R-wave timing data from CSV files
-signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
-peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
+signalsData = readtable(fullfile(fixturesPath, 'medicom_mtd_ecg_respiration.csv'));
+peaksData = readtable(fullfile(fixturesPath, 'medicom_mtd_r_wave_timing.csv'));
 
 % Sampling frequency for the CSV data
 fs = 256;
 
 % Extract signals from loaded data
-resp = signalsData.resp;
+resp = signalsData.respiration;
 ecg = signalsData.ecg;
-rWaveTimes = peaksData.tk;  % Pre-calculated ECG R-wave occurrence times in seconds
+rWaveTimes = peaksData.r_wave_times;  % Pre-calculated ECG R-wave occurrence times in seconds
 rWaveSamples = round(rWaveTimes * fs) + 1;  % Convert to sample indices
 
 % Ensure ECG is a column vector

@@ -18,4 +18,4 @@ This example demonstrates how to fill gaps in RR interval time series using the 
 
 ---
 
-**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-06-30
+**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-07-02

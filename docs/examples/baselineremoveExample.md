@@ -18,4 +18,4 @@ This example demonstrates how to effectively remove baseline wander from real EC
 
 ---
 
-**Module**: [ECG](../api/ecg/index.md) | **Last Updated**: 2026-06-30
+**Module**: [ECG](../api/ecg/index.md) | **Last Updated**: 2026-07-02

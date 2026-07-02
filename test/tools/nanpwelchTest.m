@@ -20,15 +20,15 @@ classdef nanpwelchTest < matlab.unittest.TestCase
 
             % Check fixture files exist
             fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
-                'edr_signals.csv not found in fixtures path');
+            tc.verifyTrue(exist(fullfile(fixturesPath, 'medicom_mtd_ecg_respiration.csv'), 'file') > 0, ...
+                'medicom_mtd_ecg_respiration.csv not found in fixtures path');
         end
     end
 
     methods (Access = private)
         function ecg = loadFixtureData(~)
             fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
-            signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
+            signalsData = readtable(fullfile(fixturesPath, 'medicom_mtd_ecg_respiration.csv'));
             ecg = signalsData.ecg(:);
         end
     end

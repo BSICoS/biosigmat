@@ -18,4 +18,4 @@ This example demonstrates how to decompose an HRV modulating signal into a compo
 
 ---
 
-**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-06-30
+**Module**: [HRV](../api/hrv/index.md) | **Last Updated**: 2026-07-02

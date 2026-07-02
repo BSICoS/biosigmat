@@ -17,8 +17,8 @@ classdef ipfmTest < matlab.unittest.TestCase
 
     methods (TestMethodSetup)
         function loadFixtures(tc)
-            tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
-            tc.tn = tkData.tk(1:100);
+            tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+            tc.tn = tkData.r_wave_times(1:100);
             tc.fs = 4;
         end
     end

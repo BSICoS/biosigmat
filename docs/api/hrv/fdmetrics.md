@@ -48,4 +48,4 @@ title(sprintf('LF/HF = %.2f', metrics.lfhf));
 
 ---
 
-**Module**: [HRV](index.md) | **Last Updated**: 2026-06-30
+**Module**: [HRV](index.md) | **Last Updated**: 2026-07-02

@@ -11,8 +11,8 @@
 addpath('../../src/hrv');
 
 % Load beat occurrence times from fixture data
-tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
-tn = tkData.tk(1:100);
+tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+tn = tkData.r_wave_times(1:100);
 fs = 4;
 
 % Build the spline representation and evaluate it on a regular grid

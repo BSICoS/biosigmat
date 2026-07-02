@@ -13,8 +13,8 @@ addpath('../../src/tools');
 addpath('../../src/hrv');
 
 % Load ECG timing data from CSV file
-data = readtable('../../fixtures/ecg/ecg_tk.csv');
-tk = data.tk;
+data = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+tk = data.r_wave_times;
 tk = tk(1:50);
 
 % Insert synthetic false positives to demonstrate the algorithm

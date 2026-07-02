@@ -17,8 +17,8 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
 
     methods (TestMethodSetup)
         function loadFixtures(tc)
-            tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
-            tc.tk = tkData.tk;
+            tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+            tc.tk = tkData.r_wave_times;
             tc.dtk = diff(tc.tk);
         end
     end

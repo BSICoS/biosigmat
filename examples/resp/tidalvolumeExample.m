@@ -15,8 +15,8 @@ addpath('../../src/resp');
 addpath('../../src/tools');
 
 % Load respiration signal from fixtures
-respData = readtable('../../fixtures/ecg/edr_signals.csv');
-resp = respData.resp;
+respData = readtable('../../fixtures/ecg/medicom_mtd_ecg_respiration.csv');
+resp = respData.respiration;
 fs = 256;
 t = (0:length(resp)-1) / fs;
 

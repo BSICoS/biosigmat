@@ -28,8 +28,8 @@ IHR = IPFM(TN, FS, 'SplineOrder', SPLINEORDER) evaluates the IPFM spline using t
 
 ```matlab
 % Estimate instantaneous heart rate from beat occurrence times
-tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
-tn = tkData.tk(1:100);
+tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+tn = tkData.r_wave_times(1:100);
 fs = 4;
 
 % Evaluate the IPFM spline and compute the modulating signal
@@ -62,4 +62,4 @@ title('IPFM Modulating Signal');
 
 ---
 
-**Module**: [HRV](index.md) | **Last Updated**: 2026-06-30
+**Module**: [HRV](index.md) | **Last Updated**: 2026-07-02

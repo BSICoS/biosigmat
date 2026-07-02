@@ -14,13 +14,13 @@
 % Add required paths for source code
 addpath(fullfile('..', '..', 'src', 'tools'));
 
-% Load the respiratory signal from edr_signals.csv
-dataFile = fullfile('..', '..', 'fixtures', 'ecg', 'edr_signals.csv');
+% Load the respiratory signal from medicom_mtd_ecg_respiration.csv
+dataFile = fullfile('..', '..', 'fixtures', 'ecg', 'medicom_mtd_ecg_respiration.csv');
 data = readtable(dataFile);
 
 % Extract respiratory signal and time vector
-respSignal = data.resp;
-timeVector = data.t;
+respSignal = data.respiration;
+timeVector = data.time;
 
 % Calculate sampling frequency from time vector
 fs = 1 / (timeVector(2) - timeVector(1));

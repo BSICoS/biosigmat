@@ -20,10 +20,10 @@ classdef snaptopeakTest < matlab.unittest.TestCase
 
             % Check fixture files exist
             fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'edr_signals.csv'), 'file') > 0, ...
-                'edr_signals.csv not found in fixtures path');
-            tc.verifyTrue(exist(fullfile(fixturesPath, 'ecg_tk.csv'), 'file') > 0, ...
-                'ecg_tk.csv not found in fixtures path');
+            tc.verifyTrue(exist(fullfile(fixturesPath, 'medicom_mtd_ecg_respiration.csv'), 'file') > 0, ...
+                'medicom_mtd_ecg_respiration.csv not found in fixtures path');
+            tc.verifyTrue(exist(fullfile(fixturesPath, 'medicom_mtd_r_wave_timing.csv'), 'file') > 0, ...
+                'medicom_mtd_r_wave_timing.csv not found in fixtures path');
         end
     end
 
@@ -36,13 +36,13 @@ classdef snaptopeakTest < matlab.unittest.TestCase
             fixturesPath = tc.getFixturesPath();
 
             % Load the signals and R-peaks from CSV files
-            signalsData = readtable(fullfile(fixturesPath, 'edr_signals.csv'));
-            peaksData = readtable(fullfile(fixturesPath, 'ecg_tk.csv'));
+            signalsData = readtable(fullfile(fixturesPath, 'medicom_mtd_ecg_respiration.csv'));
+            peaksData = readtable(fullfile(fixturesPath, 'medicom_mtd_r_wave_timing.csv'));
 
             ecg = signalsData.ecg(:);
 
             % Convert time-based detections to sample indices
-            tkSamples = peaksData.tkSamples(:);
+            tkSamples = peaksData.r_wave_samples(:);
         end
     end
 

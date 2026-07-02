@@ -15,12 +15,12 @@ addpath('../../src/tools');
 addpath('../../fixtures/ecg');
 
 % Load ECG signal data
-edrData = readmatrix('../../fixtures/ecg/edr_signals.csv');
+edrData = readmatrix('../../fixtures/ecg/medicom_mtd_ecg_respiration.csv');
 t = edrData(:, 1);
 ecg = edrData(:, 2);
 
 % Load R-peak detection data
-tkData = readmatrix('../../fixtures/ecg/ecg_tk.csv');
+tkData = readmatrix('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
 rPeakTimes = tkData(:, 1);
 tk = tkData(:, 2);
 

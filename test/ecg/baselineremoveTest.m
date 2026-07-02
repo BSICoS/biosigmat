@@ -22,10 +22,10 @@ classdef baselineremoveTest < matlab.unittest.TestCase
 
     methods (TestMethodSetup)
         function loadFixtures(tc)
-            edrData = readmatrix('../../fixtures/ecg/edr_signals.csv');
+            edrData = readmatrix('../../fixtures/ecg/medicom_mtd_ecg_respiration.csv');
             tc.ecg = edrData(:, 2);
 
-            tkData = readmatrix('../../fixtures/ecg/ecg_tk.csv');
+            tkData = readmatrix('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
             tc.tk = tkData(:, 2);
 
             tc.fs = 256;

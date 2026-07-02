@@ -20,8 +20,8 @@ classdef removefpTest < matlab.unittest.TestCase
     methods (TestMethodSetup)
         function loadFixtures(tc)
             % Load ECG timing data from fixture
-            tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
-            tc.originalTk = tkData.tk;
+            tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+            tc.originalTk = tkData.r_wave_times;
             tc.tolerance = 0.01; % 10ms tolerance for timing differences
         end
     end

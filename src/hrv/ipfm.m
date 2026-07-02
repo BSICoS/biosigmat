@@ -23,8 +23,8 @@ function [outputSignal, m] = ipfm(tn, varargin)
 %
 %   Example:
 %     % Estimate instantaneous heart rate from beat occurrence times
-%     tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
-%     tn = tkData.tk(1:100);
+%     tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+%     tn = tkData.r_wave_times(1:100);
 %     fs = 4;
 %
 %     % Evaluate the IPFM spline and compute the modulating signal

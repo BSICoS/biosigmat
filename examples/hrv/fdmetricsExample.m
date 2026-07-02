@@ -11,15 +11,15 @@
 addpath('../../src/hrv');
 
 % Load beat occurrence times and respiration fixture data
-tkData = readtable('../../fixtures/ecg/ecg_tk.csv');
-respData = readtable('../../fixtures/ecg/edr_signals.csv');
+tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+respData = readtable('../../fixtures/ecg/medicom_mtd_ecg_respiration.csv');
 fs = 4;
 
 % Compute the HRV modulating signal and align respiration to the same grid
-tn = tkData.tk(1:100);
+tn = tkData.r_wave_times(1:100);
 [~, m] = ipfm(tn, fs);
 tm = (tn(1):1/fs:tn(end))';
-resp = interp1(respData.t, detrend(respData.resp), tm, 'pchip');
+resp = interp1(respData.time, detrend(respData.respiration), tm, 'pchip');
 
 % Estimate the total and respiratory spectra on a common grid
 windowLength = min(256, length(m));

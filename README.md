@@ -25,39 +25,21 @@ addpath(genpath('path/to/biosigmat'));
 
 ## Biosiglib conformance
 
-Biosigmat is the MATLAB implementation of the language-independent [Biosiglib](https://github.com/BSICoS/biosiglib) specifications. The root `conformance.json` pins the exact Biosiglib revision used by shared conformance tests. Tests resolve Biosiglib from `BIOSIGLIB_ROOT` when it is set and otherwise use a sibling `../biosiglib` checkout.
+Biosigmat is the MATLAB implementation of the language-independent [Biosiglib](https://github.com/BSICoS/biosiglib) specifications. The root `conformance.json` pins the exact Biosiglib revision used by shared conformance tests.
 
-Run the complete MATLAB suite from the Biosigmat repository root with the existing runner:
+See [Conformance](docs/conformance.md) for validation commands and local checkout details.
 
-```powershell
-matlab -batch "addpath('scripts/local'); runTests"
-```
-
-Validate the manifest with the pinned Biosiglib checkout and its repository-local virtual environment:
-
-```powershell
-$biosiglibRoot = if ($env:BIOSIGLIB_ROOT) { $env:BIOSIGLIB_ROOT } else { (Resolve-Path ..\biosiglib).Path }
-& "$biosiglibRoot\.venv\Scripts\python.exe" "$biosiglibRoot\tools\validate_specs.py" --manifest "$PWD\conformance.json"
-```
-
-## 📚 Documentation
+## Documentation
 
 > **Documentation site**  
-> 🌐 **Visit**: [https://bsicos.github.io/biosigmat/](https://bsicos.github.io/biosigmat/)
+> Visit: [https://bsicos.github.io/biosigmat/](https://bsicos.github.io/biosigmat/)
 
-Our documentation includes:
-
-- 🚀 **Getting Started Guide** - Quick setup and first steps
-- 📖 **Complete API Reference** - Detailed function documentation
-- 💡 **Examples & Tutorials** - Practical use cases with code
-- 🔧 **Contributing Guidelines** - How to contribute to the project
-- 📋 **Code Style Guide** - Standards and best practices
+The documentation includes getting-started material, API reference pages, examples, contribution guidance, and code-style notes.
 
 ## Support
 
-- 🐛 Report issues on [GitHub Issues](https://github.com/BSICoS/biosigmat/issues)
-- 📧 Contact the development team for additional support
-
+- Report issues on [GitHub Issues](https://github.com/BSICoS/biosigmat/issues)
+- Contact the development team for additional support
 
 ## License
 

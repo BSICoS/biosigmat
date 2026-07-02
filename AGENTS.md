@@ -14,6 +14,9 @@
 - Resolve the Biosiglib checkout from `BIOSIGLIB_ROOT`, falling back to a sibling `../biosiglib` checkout.
 - Code, comments, filenames, and technical documentation must be in English.
 - Avoid generic resource APIs and unnecessary cross-language infrastructure.
+- Do not change scientific or computational behavior without explicit maintainer review. This includes filtering direction and phase behavior, NaN handling, default filters, default parameters, units, physiological interpretation, and reference-result provenance.
+- Treat Biosigmat as the mature starting implementation, not as automatically correct. If Biosigmat and Biosigpy disagree in a scientifically meaningful way, document the disagreement and ask the maintainer before changing either implementation or the Biosiglib specification.
+- Do not ask about purely idiomatic differences unless they affect scientific behavior. Examples: zero-based versus one-based internal indexing, exception class names, plotting library choices, or local variable names normally do not require maintainer escalation.
 
 ## Local change workflow
 

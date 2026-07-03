@@ -14,7 +14,7 @@ function metrics = tdmetrics(dtk)
 %     sdnn  - Standard deviation of intervals in milliseconds.
 %     sdsd  - Standard deviation of successive interval differences in ms.
 %     rmssd - Root mean square of successive interval differences in ms.
-%     pNN50 - Percentage of successive interval differences greater than 50 ms.
+%     pnn50 - Percentage of successive interval differences greater than 50 ms.
 %
 %   Example:
 %     dtk = [0.80 0.82 NaN 0.79 0.81];
@@ -49,6 +49,6 @@ metrics.mhr = 60 / mean(validDtk);
 metrics.sdnn = 1000 * std(validDtk);
 metrics.sdsd = 1000 * std(ddtk);
 metrics.rmssd = 1000 * norm(ddtk) / sqrt(length(ddtk));
-metrics.pNN50 = 100 * sum(abs(ddtk) > 0.05) / length(ddtk);
+metrics.pnn50 = 100 * sum(abs(ddtk) > 0.05) / length(ddtk);
 
 end

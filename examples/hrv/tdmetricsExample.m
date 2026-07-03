@@ -36,4 +36,4 @@ fprintf('Mean Heart Rate (mhr):    %.2f beats/min\n', metrics.mhr);
 fprintf('SDNN:                     %.2f ms\n', metrics.sdnn);
 fprintf('SDSD:                     %.2f ms\n', metrics.sdsd);
 fprintf('RMSSD:                    %.2f ms\n', metrics.rmssd);
-fprintf('pNN50:                    %.2f %%\n', metrics.pNN50);
+fprintf('pNN50:                    %.2f %%\n', metrics.pnn50);

@@ -4,8 +4,8 @@
 classdef tdmetricsTest < matlab.unittest.TestCase
     properties (TestParameter)
         validCaseId = {
-            'hrv.tdmetrics.valid_dtk_001'
-            'hrv.tdmetrics.valid_dtk_with_nan_001'
+            'hrv.tdmetrics.valid_dtk'
+            'hrv.tdmetrics.valid_dtk_with_nan'
             }
         expectedErrorCaseId = {
             'hrv.tdmetrics.invalid_dtk_non_numeric'
@@ -34,7 +34,7 @@ classdef tdmetricsTest < matlab.unittest.TestCase
 
             metrics = tdmetrics(dtk);
 
-            verifyBiosiglibExpectedOutputs(tc, metrics, caseDefinition, outputIdMap);
+            verifyBiosiglibExpectedOutputs(tc, metrics, caseDefinition);
         end
 
         function testExpectedError(tc, expectedErrorCaseId)

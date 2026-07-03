@@ -13,8 +13,8 @@ classdef sloperangeTest < matlab.unittest.TestCase
 
     properties (TestParameter)
         validConformanceCaseId = {
-            'ecg.sloperange.synthetic_positive_001'
-            'ecg.sloperange.synthetic_boundary_nan_001'
+            'ecg.sloperange.synthetic_positive'
+            'ecg.sloperange.synthetic_boundary_nan'
         }
         expectedErrorCaseId = {
             'ecg.sloperange.invalid_r_wave_time_out_of_bounds'

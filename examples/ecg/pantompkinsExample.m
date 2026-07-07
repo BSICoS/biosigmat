@@ -56,7 +56,7 @@ hold on;
 plot(rWaveTimes, ecgFiltered(round(rWaveTimes * fs) + 1), 'ro', 'MarkerFaceColor', 'r', 'MarkerSize', 6);
 axis tight;
 ylabel('Filtered ECG');
-title('Bandpass Filtered ECG Signal (5-15 Hz)');
+title('Bandpass Filtered ECG Signal (5-12 Hz)');
 grid on;
 
 % Subplot 3: Squared derivative

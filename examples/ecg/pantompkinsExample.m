@@ -33,7 +33,9 @@ t = (0:length(ecg) - 1) / fs;
 ecg = ecg(:);
 
 % Apply the PANTOMPKINS algorithm to detect R-waves and get all intermediate signals
-[rWaveTimes, ecgFiltered, decg, decgEnvelope] = pantompkins(ecg, fs);
+[rWaveTimes, ecgFiltered, decgSquared, decgEnvelope] = pantompkins(ecg, fs, ...
+	'BandpassFreq', [5, 12], 'WindowSize', 0.15, ...
+	'MinPeakDistance', 0.5, 'SnapTopeakWindowSize', 20);
 
 
 %% Create visualization of results with multiple subplots
@@ -61,7 +63,7 @@ grid on;
 
 % Subplot 3: Squared derivative
 ax(3) = subplot(4, 1, 3);
-plot(t, decg, 'm-', 'LineWidth', 1);
+plot(t, decgSquared, 'm-', 'LineWidth', 1);
 axis tight;
 ylabel('Squared Derivative');
 title('Squared Derivative of Filtered ECG');

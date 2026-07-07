@@ -14,14 +14,15 @@ function varargout = pantompkins(ecg, fs, varargin)
 %     'MinPeakDistance'      -  Minimum distance between peaks in seconds. Default: 0.5
 %     'SnapTopeakWindowSize' -  Window size in samples for peak refinement. Default: 20
 %
-%   [RWAVETIMES, ECGFILTERED, DECG, DECGENVELOPE] = PANTOMPKINS(...) returns additional outputs:
+%   [RWAVETIMES, ECGFILTERED, DECGSQUARED, DECGENVELOPE] = PANTOMPKINS(...) returns additional outputs:
 %     ECGFILTERED  - Bandpass filtered ECG signal
-%     DECG         - Squared derivative of the filtered ECG signal
+%     DECGSQUARED  - Squared derivative of the filtered ECG signal
 %     DECGENVELOPE - Integrated envelope signal used for peak detection
 %
 %   Example:
-%     % Load ECG data and sampling frequency
-%     rWaveTimes = pantompkins(ecg, fs);
+%     rWaveTimes = pantompkins(ecg, fs, 'BandpassFreq', [5, 12], ...
+%         'WindowSize', 0.15, 'MinPeakDistance', 0.5, ...
+%         'SnapTopeakWindowSize', 20);
 %     plot(t, ecg); hold on;
 %     plot(rWaveTimes, ecg(round(rWaveTimes*fs)), 'ro');
 %     title('Detected R-waves in ECG Signal');
@@ -63,11 +64,11 @@ b = lpdfilter(fs, bandpassFreq(2), 'Order', 4);
 decg = nanfilter(b, 1, ecgFiltered, 0);
 
 % Square the derivative to enhance R-wave peaks
-decg = decg .^ 2;
+decgSquared = decg .^ 2;
 
 % Integrate the squared derivative to obtain the R-wave envelope
 windowSize = round(fs * windowSizeSeconds);
-decgEnvelope = conv(decg, ones(windowSize, 1) / windowSize, 'same');
+decgEnvelope = conv(decgSquared, ones(windowSize, 1) / windowSize, 'same');
 
 % Find peaks in the R-wave envelope
 [~, locs] = findpeaks(decgEnvelope, 'MinPeakDistance', round(fs * minPeakDistanceSeconds));
@@ -83,6 +84,6 @@ end
 rWaveTimes = (locs - 1) / fs;
 
 % Format output based on requested number of output arguments
-varargout = {rWaveTimes, ecgFiltered, decg, decgEnvelope};
+varargout = {rWaveTimes, ecgFiltered, decgSquared, decgEnvelope};
 
 end

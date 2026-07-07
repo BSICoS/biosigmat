@@ -1,6 +1,6 @@
 % Tests covering:
 %   - Basic functionality with real ECG fixtures and R-wave detection accuracy
-%   - Multiple output arguments (rWaveTimes, ecgFiltered, decg, decgEnvelope)
+%   - Multiple output arguments (rWaveTimes, ecgFiltered, decgSquared, decgEnvelope)
 %   - Edge cases (empty input, scalar input, all-NaN signals)
 %   - Parameter validation for all optional parameters
 %   - Invalid input error handling (non-numeric, character arrays, string inputs)
@@ -60,7 +60,7 @@ classdef pantompkinsTest < matlab.unittest.TestCase
             samplingFrequency = loadBiosiglibConformanceInput( ...
                 caseDefinition, 'sampling_frequency');
 
-            [rWaveTimes, ecgFiltered, decg, decgEnvelope] = ...
+            [rWaveTimes, ecgFiltered, decgSquared, decgEnvelope] = ...
                 pantompkins(ecg, samplingFrequency);
 
             tc.verifySize(rWaveTimes, [length(rWaveTimes), 1], ...
@@ -74,25 +74,25 @@ classdef pantompkinsTest < matlab.unittest.TestCase
 
             tc.verifyTrue(isnumeric(ecgFiltered) && isvector(ecgFiltered), ...
                 'ecg_filtered must exist as a numeric vector.');
-            tc.verifyTrue(isnumeric(decg) && isvector(decg), ...
-                'decg must exist as a numeric vector.');
+            tc.verifyTrue(isnumeric(decgSquared) && isvector(decgSquared), ...
+                'decgSquared must exist as a numeric vector.');
             tc.verifyTrue(isnumeric(decgEnvelope) && isvector(decgEnvelope), ...
                 'decg_envelope must exist as a numeric vector.');
             tc.verifySize(ecgFiltered, size(ecg), ...
                 'ecg_filtered must preserve the input ECG sample order and length.');
-            tc.verifySize(decg, size(ecg), ...
-                'decg must preserve the input ECG sample order and length.');
+            tc.verifySize(decgSquared, size(ecg), ...
+                'decgSquared must preserve the input ECG sample order and length.');
             tc.verifySize(decgEnvelope, size(ecg), ...
                 'decg_envelope must preserve the input ECG sample order and length.');
 
             actualOutputs = struct( ...
                 'rWaveTimes', rWaveTimes, ...
                 'ecgFiltered', ecgFiltered, ...
-                'decg', decg, ...
+                'decgSquared', decgSquared, ...
                 'decgEnvelope', decgEnvelope);
             outputIdMap = containers.Map( ...
                 {'r_wave_times', 'ecg_filtered', 'decg', 'decg_envelope'}, ...
-                {'rWaveTimes', 'ecgFiltered', 'decg', 'decgEnvelope'});
+                {'rWaveTimes', 'ecgFiltered', 'decgSquared', 'decgEnvelope'});
             verifyBiosiglibExpectedOutputs( ...
                 tc, actualOutputs, caseDefinition, outputIdMap);
         end
@@ -110,22 +110,22 @@ classdef pantompkinsTest < matlab.unittest.TestCase
         function testMultipleOutputs(tc)
             try
                 [ecg, ~] = tc.loadFixtureData();
-                [rWaveTimes, ecgFiltered, decg, decgEnvelope] = pantompkins(ecg, tc.fs);
+                [rWaveTimes, ecgFiltered, decgSquared, decgEnvelope] = pantompkins(ecg, tc.fs);
 
                 % Verify all outputs have correct dimensions
                 tc.verifySize(rWaveTimes, [length(rWaveTimes), 1], 'rWaveTimes should be a column vector');
                 tc.verifySize(ecgFiltered, size(ecg), 'ecgFiltered should have same size as input ECG');
-                tc.verifySize(decg, size(ecg), 'decg should have same size as input ECG');
+                tc.verifySize(decgSquared, size(ecg), 'decgSquared should have same size as input ECG');
                 tc.verifySize(decgEnvelope, size(ecg), 'decgEnvelope should have same size as input ECG');
 
                 % Verify data types
                 tc.verifyClass(rWaveTimes, 'double', 'rWaveTimes should be double');
                 tc.verifyClass(ecgFiltered, 'double', 'ecgFiltered should be double');
-                tc.verifyClass(decg, 'double', 'decg should be double');
+                tc.verifyClass(decgSquared, 'double', 'decgSquared should be double');
                 tc.verifyClass(decgEnvelope, 'double', 'decgEnvelope should be double');
 
                 % Verify processing chain properties
-                tc.verifyTrue(all(decg >= 0), 'Squared derivative should be non-negative');
+                tc.verifyTrue(all(decgSquared >= 0), 'Squared derivative should be non-negative');
                 tc.verifyTrue(all(decgEnvelope >= 0), 'Integrated envelope should be non-negative');
                 tc.verifyTrue(max(ecgFiltered) < max(ecg), 'Filtered signal should have reduced amplitude');
 

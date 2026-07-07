@@ -32,10 +32,16 @@ t = (0:length(ecg) - 1) / fs;
 % Ensure ECG is a column vector
 ecg = ecg(:);
 
+% Algorithm parameters for Pan-Tompkins
+bandpassFreq = [5, 12]; % Bandpass filter frequency range in Hz
+windowSize = 0.15; % Window size for peak detection in seconds
+minPeakDistance = 0.5; % Minimum distance between peaks in seconds
+snapToPeakWindowSize = 20; % Window size for snapping to peaks
+
 % Apply the PANTOMPKINS algorithm to detect R-waves and get all intermediate signals
 [rWaveTimes, ecgFiltered, decgSquared, decgEnvelope] = pantompkins(ecg, fs, ...
-	'BandpassFreq', [5, 12], 'WindowSize', 0.15, ...
-	'MinPeakDistance', 0.5, 'SnapTopeakWindowSize', 20);
+	'BandpassFreq', bandpassFreq, 'WindowSize', windowSize, ...
+	'MinPeakDistance', minPeakDistance, 'SnapTopeakWindowSize', snapToPeakWindowSize);
 
 
 %% Create visualization of results with multiple subplots

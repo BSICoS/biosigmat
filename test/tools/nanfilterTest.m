@@ -9,7 +9,23 @@
 
 classdef nanfilterTest < NanFilterTestBase
 
+    properties (TestParameter)
+        validConformanceCaseId = {
+            'tools.nan_filter.no_nan_equivalent_filter'
+            'tools.nan_filter.short_nan_gap_interpolation'
+            'tools.nan_filter.long_nan_gap_segmentation'
+            'tools.nan_filter.row_vector_orientation'
+            'tools.nan_filter.boundary_nan_preserved'
+            'tools.nan_filter.too_short_segments_nan'
+        }
+    end
+
     methods (Test)
+        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
+            tc.verifyBiosiglibNanFilteringCase( ...
+                @nanfilter, validConformanceCaseId);
+        end
+
         function testNoNanSignal(tc)
             tc.verifyNoNaNSignal(@nanfilter, @filter);
         end

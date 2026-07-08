@@ -16,13 +16,13 @@ function y = nanfiltfilt(b, a, x, maxgap)
 %   Y = NANFILTFILT(B, A, X, MAXGAP) allows specifying a maximum gap size MAXGAP.
 %
 %   Algorithm:
-%     1. For each column, identify NaN sequences and classify them as long (> MAXGAP)
-%        or short (<= MAXGAP).
-%     2. If no long NaN sequences exist, process the entire column with interpolation.
-%     3. If long NaN sequences exist, divide the column into valid segments.
-%     4. Process each valid segment independently using filter after interpolating
-%        any short NaN gaps within the segment.
-%     5. Restore the original long NaN gaps in the final result.
+%     1. For each column, classify NaN sequences as boundary gaps, internal
+%        short gaps (<= MAXGAP), or preserved internal long gaps (> MAXGAP).
+%     2. Preserve boundary and long internal gaps as NaN and use them to
+%        split the signal into candidate finite segments.
+%     3. Interpolate short internal gaps within each candidate segment.
+%     4. Process filterable segments independently using filtfilt.
+%     5. Leave segments too short for MATLAB-style filtfilt as NaN.
 %
 %   NANFILTFILT should not be used when the intent of a filter is to modify
 %   signal phase, as is the case with differentiators and Hilbert filters.
@@ -53,6 +53,8 @@ else
 end
 
 % Use common NaN filtering logic
-y = processNanSignal(b, a, x, maxgap, @filtfilt);
+filterOrder = max(length(b) - 1, length(a) - 1);
+minimumSegmentLength = 3 * filterOrder + 1;
+y = processNanSignal(b, a, x, maxgap, @filtfilt, minimumSegmentLength);
 
 end

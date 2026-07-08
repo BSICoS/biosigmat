@@ -13,13 +13,29 @@ classdef lpdfilterTest < matlab.unittest.TestCase
         t;
     end
 
+    properties (TestParameter)
+        validConformanceCaseId = {
+            'tools.lpd_filter.fs256_stop12_order4_coefficients'
+            'tools.lpd_filter.explicit_pass_frequency_order4_coefficients'
+        }
+        expectedErrorCaseId = {
+            'tools.lpd_filter.invalid_pass_frequency_not_less_than_stop'
+            'tools.lpd_filter.invalid_stop_frequency_at_nyquist'
+        }
+    end
+
     methods (TestClassSetup)
         function addPathsAndData(tc)
-            % Add required paths
-            addpath(fullfile(pwd, '..', '..', 'src', 'tools'));
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'tools'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
 
             % Load real PPG data from fixtures
-            data = readtable(fullfile(pwd, '..', '..', 'fixtures', 'ppg', 'ppg_signals.csv'));
+            data = readtable(fullfile( ...
+                repositoryRoot, 'fixtures', 'ppg', 'ppg_signals.csv'));
 
             % Use 30 seconds of data
             duration = 30;
@@ -31,7 +47,43 @@ classdef lpdfilterTest < matlab.unittest.TestCase
         end
     end
 
+    methods (Access = private)
+        function [b, delay] = callLpdFilterFromCase(~, caseDefinition)
+            samplingFrequency = loadBiosiglibConformanceInput( ...
+                caseDefinition, 'sampling_frequency');
+            stopFrequency = loadBiosiglibConformanceInput( ...
+                caseDefinition, 'stop_frequency');
+            parameters = caseDefinition.parameters;
+            optionalArgs = {};
+
+            if isfield(parameters, 'pass_frequency')
+                optionalArgs = [optionalArgs, {'PassFreq', parameters.pass_frequency}]; %#ok<AGROW>
+            end
+            if isfield(parameters, 'order')
+                optionalArgs = [optionalArgs, {'Order', parameters.order}]; %#ok<AGROW>
+            end
+
+            [b, delay] = lpdfilter(samplingFrequency, stopFrequency, optionalArgs{:});
+        end
+    end
+
     methods (Test)
+        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(validConformanceCaseId);
+
+            [b, delay] = tc.callLpdFilterFromCase(caseDefinition);
+
+            actualOutputs = struct('filter_coefficients', b, 'delay', delay);
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
+        end
+
+        function testBiosiglibExpectedError(tc, expectedErrorCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
+
+            verifyBiosiglibExpectedError(tc, ...
+                @() tc.callLpdFilterFromCase(caseDefinition), caseDefinition);
+        end
+
         function testBasicFunctionality(tc)
             stopFreq = 8.0;
             [b, delay] = lpdfilter(tc.fs, stopFreq);

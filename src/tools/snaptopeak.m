@@ -8,7 +8,8 @@ function refinedDetections = snaptopeak(ecg, detections, varargin)
 %   positions in samples. This improves the precision of R-wave peak
 %   localization by ensuring detections align with actual signal peaks.
 %   Returns REFINEDDETECTIONS as a column vector of refined positions with
-%   the same length as DETECTIONS.
+%   the same length as DETECTIONS. NaN values in ECG act as hard segment
+%   boundaries, and NaN detections produce NaN outputs at the same positions.
 %
 %   REFINEDDETECTIONS = SNAPTOPEAK(..., 'WindowSize', WINDOWSIZE)
 %   specifies the search window size WINDOWSIZE in samples around each
@@ -42,9 +43,9 @@ nargoutchk(0, 1);
 % Parse input arguments
 parser = inputParser;
 parser.FunctionName = 'snaptopeak';
-addRequired(parser, 'ecg', @(x) isnumeric(x) && ~ischar(x) && isvector(x) && ~isscalar(x) && ~isempty(x));
-addRequired(parser, 'detections', @(x) isnumeric(x) && ~ischar(x));
-addParameter(parser, 'WindowSize', 20, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'ecg', @(x) isnumeric(x) && ~ischar(x) && isvector(x) && numel(x) >= 2 && all(~isinf(x(:))));
+addRequired(parser, 'detections', @(x) isnumeric(x) && ~ischar(x) && (isempty(x) || isvector(x)) && all(~isinf(x(:))));
+addParameter(parser, 'WindowSize', 20, @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x > 0);
 
 parse(parser, ecg, detections, varargin{:});
 
@@ -62,21 +63,49 @@ end
 ecg = ecg(:);
 detections = detections(:);
 
-% Validate detection positions are within ECG signal bounds
-if any(detections < 1) || any(detections > length(ecg))
+finiteDetections = detections(~isnan(detections));
+
+% Validate finite detection positions are within ECG signal bounds
+if any(finiteDetections < 1) || any(finiteDetections > length(ecg))
     error('Detection positions must be within ECG signal bounds (1 to %d)', length(ecg));
 end
 
 % Initialize output
-refinedDetections = zeros(size(detections));
+refinedDetections = NaN(size(detections));
+
+finiteEcg = isfinite(ecg);
+finiteTransitions = diff([false; finiteEcg; false]);
+finiteSegmentStarts = find(finiteTransitions == 1);
+finiteSegmentEnds = find(finiteTransitions == -1) - 1;
 
 % Process each detection
 for i = 1:length(detections)
     currentDetection = detections(i);
 
-    % Define search window boundaries
-    windowStart = max(1, currentDetection - windowSize);
-    windowEnd = min(length(ecg), currentDetection + windowSize);
+    if isnan(currentDetection)
+        continue;
+    end
+
+    detectionSample = round(currentDetection);
+    if isnan(ecg(detectionSample))
+        continue;
+    end
+
+    segmentIndex = find( ...
+        finiteSegmentStarts <= detectionSample & ...
+        finiteSegmentEnds >= detectionSample, 1);
+
+    % This should only happen for invalid finite values, already rejected.
+    if isempty(segmentIndex)
+        continue;
+    end
+
+    segmentStart = finiteSegmentStarts(segmentIndex);
+    segmentEnd = finiteSegmentEnds(segmentIndex);
+
+    % Define search window boundaries without crossing NaN gaps
+    windowStart = max([1, segmentStart, detectionSample - windowSize]);
+    windowEnd = min([length(ecg), segmentEnd, detectionSample + windowSize]);
 
     % Extract signal window
     windowSignal = ecg(windowStart:windowEnd);

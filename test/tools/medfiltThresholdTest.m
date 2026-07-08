@@ -9,21 +9,68 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
         dtk
     end
 
+    properties (TestParameter)
+        validConformanceCaseId = {
+            'tools.medfilt_threshold.normal_outlier'
+            'tools.medfilt_threshold.window_larger_than_signal'
+            'tools.medfilt_threshold.even_window_behavior'
+            'tools.medfilt_threshold.odd_window_behavior'
+            'tools.medfilt_threshold.row_vector_orientation'
+            'tools.medfilt_threshold.max_threshold_cap'
+            'tools.medfilt_threshold.include_nan_window'
+        }
+        expectedErrorCaseId = {
+            'tools.medfilt_threshold.invalid_window_one'
+            'tools.medfilt_threshold.invalid_single_sample'
+        }
+    end
+
     methods (TestClassSetup)
-        function addCodeToPath(~)
-            addpath('../../src/tools');
+        function addCodeToPath(tc)
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'tools'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
         end
     end
 
     methods (TestMethodSetup)
         function loadFixtures(tc)
-            tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            tkData = readtable(fullfile( ...
+                repositoryRoot, 'fixtures', 'ecg', 'medicom_mtd_r_wave_timing.csv'));
             tc.tk = tkData.r_wave_times;
             tc.dtk = diff(tc.tk);
         end
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(validConformanceCaseId);
+            x = loadBiosiglibConformanceInput(caseDefinition, 'x');
+            parameters = caseDefinition.parameters;
+
+            threshold = medfiltThreshold( ...
+                x, parameters.window, parameters.factor, parameters.max_threshold);
+
+            actualOutputs = struct('threshold', threshold);
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
+        end
+
+        function testBiosiglibExpectedError(tc, expectedErrorCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
+            x = loadBiosiglibConformanceInput(caseDefinition, 'x');
+            parameters = caseDefinition.parameters;
+
+            verifyBiosiglibExpectedError(tc, ...
+                @() medfiltThreshold( ...
+                    x, parameters.window, parameters.factor, parameters.max_threshold), ...
+                caseDefinition);
+        end
+
         function testBasicFuntionality(tc)
             % Create modified tk with 4 gaps
             tkWithGaps = tc.tk;

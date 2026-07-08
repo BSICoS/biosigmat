@@ -11,8 +11,13 @@ classdef NanFilterTestBase < matlab.unittest.TestCase
     end
 
     methods (TestClassSetup)
-        function addCodeToPath(~)
-            addpath('../../src/tools');
+        function addCodeToPath(tc)
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'tools'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
         end
     end
 
@@ -117,6 +122,26 @@ classdef NanFilterTestBase < matlab.unittest.TestCase
             expectedMat = standardFunc(tc.b, tc.a, signalMat);
 
             tc.verifyEqual(filteredMat, expectedMat, 'Multi-column filtering failed', 'AbsTol', 1e-6);
+        end
+
+        function verifyBiosiglibNanFilteringCase(tc, filterFunc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+            b = loadBiosiglibConformanceInput( ...
+                caseDefinition, 'numerator_coefficients');
+            a = loadBiosiglibConformanceInput( ...
+                caseDefinition, 'denominator_coefficients');
+            signal = loadBiosiglibConformanceInput(caseDefinition, 'signal');
+
+            if isfield(caseDefinition, 'parameters') && ...
+                    isfield(caseDefinition.parameters, 'max_gap')
+                filteredSignal = filterFunc( ...
+                    b, a, signal, caseDefinition.parameters.max_gap);
+            else
+                filteredSignal = filterFunc(b, a, signal);
+            end
+
+            actualOutputs = struct('filtered_signal', filteredSignal);
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
         end
     end
 

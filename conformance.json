@@ -8,7 +8,7 @@
   "biosiglib": {
     "repository": "https://github.com/BSICoS/biosiglib",
     "commit": "867e5aa8d73c7c96260a5769f6a5b667d7e65a57",
-    "release": "0.5.2"
+    "release": "0.5.3"
   },
   "specifications": {
     "hrv.tdmetrics": {

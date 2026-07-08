@@ -78,6 +78,7 @@ locs = unique(locs);
 % Refine peak locations using snaptopeak if enabled
 if ~isempty(locs)
     locs = snaptopeak(ecg, locs, 'WindowSize', snapTopeakWindowSize);
+    locs = locs(~isnan(locs));
 end
 
 % Convert peak locations to ECG R-wave occurrence times in seconds

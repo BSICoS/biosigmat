@@ -5,8 +5,13 @@ if nargin < 4
     outputIdMap = containers.Map('KeyType', 'char', 'ValueType', 'char');
 end
 
-for outputIndex = 1:numel(caseDefinition.expected_outputs)
-    expectedOutput = caseDefinition.expected_outputs(outputIndex);
+expectedOutputs = caseDefinition.expected_outputs;
+for outputIndex = 1:numel(expectedOutputs)
+    if iscell(expectedOutputs)
+        expectedOutput = expectedOutputs{outputIndex};
+    else
+        expectedOutput = expectedOutputs(outputIndex);
+    end
     outputId = expectedOutput.id;
 
     if isKey(outputIdMap, outputId)

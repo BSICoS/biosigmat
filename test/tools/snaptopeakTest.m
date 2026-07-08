@@ -16,11 +16,12 @@ classdef snaptopeakTest < matlab.unittest.TestCase
             'tools.snap_to_peak.boundary_clipping'
             'tools.snap_to_peak.configurable_window_small'
             'tools.snap_to_peak.configurable_window_large'
+            'tools.snap_to_peak.ecg_nan_segment_boundary'
+            'tools.snap_to_peak.detection_nan_returns_nan'
+            'tools.snap_to_peak.detection_on_nan_ecg_returns_nan'
         }
         expectedErrorCaseId = {
             'tools.snap_to_peak.invalid_detection_out_of_bounds'
-            'tools.snap_to_peak.invalid_ecg_nan'
-            'tools.snap_to_peak.invalid_detections_nan'
         }
     end
 
@@ -141,6 +142,14 @@ classdef snaptopeakTest < matlab.unittest.TestCase
                 'Large window detections should be within bounds');
         end
 
+        function testFirstMaximumWinsForTies(tc)
+            ecg = [0, 2, 1, 2, 0];
+            actual = snaptopeak(ecg, 3, 'WindowSize', 2);
+
+            tc.verifyEqual(actual, 2, ...
+                'The first maximum in the clipped search window should win ties');
+        end
+
         function testInputValidation(tc)
             [ecg, ~] = tc.loadFixtureData();
 
@@ -151,6 +160,16 @@ classdef snaptopeakTest < matlab.unittest.TestCase
             % Character detections input
             tc.verifyError(@() snaptopeak(ecg, 'invalid'), 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Should error for character detections input');
+
+            % Infinite ECG and detection values remain invalid
+            tc.verifyError(@() snaptopeak([0, Inf, 1], 2), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Should error for Inf ECG input');
+            tc.verifyError(@() snaptopeak([0, -Inf, 1], 2), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Should error for -Inf ECG input');
+            tc.verifyError(@() snaptopeak(ecg, Inf), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Should error for Inf detections input');
+            tc.verifyError(@() snaptopeak(ecg, -Inf), 'MATLAB:InputParser:ArgumentFailedValidation', ...
+                'Should error for -Inf detections input');
 
             % Invalid window size
             tc.verifyError(@() snaptopeak(ecg, 100, 'WindowSize', -1), 'MATLAB:InputParser:ArgumentFailedValidation', ...

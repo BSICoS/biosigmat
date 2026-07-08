@@ -10,16 +10,35 @@ classdef snaptopeakTest < matlab.unittest.TestCase
         fs = 256;
     end
 
+    properties (TestParameter)
+        validConformanceCaseId = {
+            'tools.snap_to_peak.local_maxima'
+            'tools.snap_to_peak.boundary_clipping'
+            'tools.snap_to_peak.configurable_window_small'
+            'tools.snap_to_peak.configurable_window_large'
+        }
+        expectedErrorCaseId = {
+            'tools.snap_to_peak.invalid_detection_out_of_bounds'
+            'tools.snap_to_peak.invalid_ecg_nan'
+            'tools.snap_to_peak.invalid_detections_nan'
+        }
+    end
+
     methods (TestClassSetup)
         function addCodeToPath(tc)
-            addpath(fullfile('..', '..', 'src', 'tools'));
-            addpath(fullfile(pwd, '..', '..', 'fixtures', 'ecg'));
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'tools'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
+            addpath(fullfile(repositoryRoot, 'fixtures', 'ecg'));
 
             % Verify functions are available
             tc.verifyTrue(~isempty(which('snaptopeak')), 'snaptopeak function not found in path');
 
             % Check fixture files exist
-            fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
+            fixturesPath = fullfile(repositoryRoot, 'fixtures', 'ecg');
             tc.verifyTrue(exist(fullfile(fixturesPath, 'medicom_mtd_ecg_respiration.csv'), 'file') > 0, ...
                 'medicom_mtd_ecg_respiration.csv not found in fixtures path');
             tc.verifyTrue(exist(fullfile(fixturesPath, 'medicom_mtd_r_wave_timing.csv'), 'file') > 0, ...
@@ -29,7 +48,9 @@ classdef snaptopeakTest < matlab.unittest.TestCase
 
     methods (Access = private)
         function fixturesPath = getFixturesPath(~)
-            fixturesPath = fullfile(pwd, '..', '..', 'fixtures', 'ecg');
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            fixturesPath = fullfile(repositoryRoot, 'fixtures', 'ecg');
         end
 
         function [ecg, tkSamples] = loadFixtureData(tc)
@@ -44,9 +65,38 @@ classdef snaptopeakTest < matlab.unittest.TestCase
             % Convert time-based detections to sample indices
             tkSamples = peaksData.r_wave_samples(:);
         end
+
+        function refinedDetections = callSnaptopeakFromCase(~, caseDefinition)
+            ecg = loadBiosiglibConformanceInput(caseDefinition, 'ecg');
+            detections = loadBiosiglibConformanceInput(caseDefinition, 'detections');
+
+            if isfield(caseDefinition, 'parameters') && ...
+                    isfield(caseDefinition.parameters, 'window_size')
+                refinedDetections = snaptopeak( ...
+                    ecg, detections, 'WindowSize', caseDefinition.parameters.window_size);
+            else
+                refinedDetections = snaptopeak(ecg, detections);
+            end
+        end
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(validConformanceCaseId);
+
+            refinedDetections = tc.callSnaptopeakFromCase(caseDefinition);
+
+            actualOutputs = struct('refined_detections', refinedDetections);
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
+        end
+
+        function testBiosiglibExpectedError(tc, expectedErrorCaseId)
+            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
+
+            verifyBiosiglibExpectedError(tc, ...
+                @() tc.callSnaptopeakFromCase(caseDefinition), caseDefinition);
+        end
+
         function testPeakRefinementAccuracy(tc)
             [ecg, originalDetections] = tc.loadFixtureData();
 

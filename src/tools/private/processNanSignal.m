@@ -1,8 +1,8 @@
-function y = processNanSignal(b, a, x, maxgap, filterFunc)
+function y = processNanSignal(b, a, x, maxgap, filterFunc, minimumSegmentLength)
 % PROCESSNANSIGNAL Common function for processing signals with NaN values
 %
 % This function implements the common logic for both nanFilter and nanFiltFilt
-% by processing signals in segments separated by long NaN gaps.
+% by processing signals in segments separated by preserved NaN gaps.
 %
 % Inputs:
 %   b          - Numerator coefficients of the filter
@@ -10,12 +10,13 @@ function y = processNanSignal(b, a, x, maxgap, filterFunc)
 %   x          - Input matrix with signals in columns that can include NaN values
 %   maxgap     - Maximum gap size to interpolate
 %   filterFunc - Function handle (@filter or @filtfilt)
+%   minimumSegmentLength - Minimum samples required to filter a segment
 %
 % Outputs:
 %   y          - Matrix of processed signals in columns with NaN values preserved
 
 % Check number of input and output arguments
-narginchk(5, 5);
+narginchk(6, 6);
 nargoutchk(0, 1);
 
 % Parse and validate inputs
@@ -26,24 +27,24 @@ addRequired(parser, 'a', @(v) isnumeric(v) && isvector(v));
 addRequired(parser, 'x', @(v) ismatrix(v));
 addRequired(parser, 'maxgap', @(v) isnumeric(v) && isscalar(v) && v >= 0);
 addRequired(parser, 'filterFunc', @(v) isa(v, 'function_handle'));
-parse(parser, b, a, x, maxgap, filterFunc);
+addRequired(parser, 'minimumSegmentLength', @(v) isnumeric(v) && isscalar(v) && v >= 1);
+parse(parser, b, a, x, maxgap, filterFunc, minimumSegmentLength);
 
 b = parser.Results.b;
 a = parser.Results.a;
 x = parser.Results.x;
 maxgap = parser.Results.maxgap;
 filterFunc = parser.Results.filterFunc;
-
-% Find NaNs
-idxNan = isnan(x);
+minimumSegmentLength = parser.Results.minimumSegmentLength;
 
 % Handle row vectors by transposing
 wasRowVector = false;
 if isrow(x)
     wasRowVector = true;
     x = x';
-    idxNan = idxNan';
 end
+
+idxNan = isnan(x);
 
 if all(idxNan(:))
     y = x;
@@ -72,57 +73,61 @@ for col = 1:size(x,2)
         seqs = seqs(seqs(:,1) == 1, :);
     end
 
-    % Separate long NaN segments (> maxgap) from short ones (<= maxgap)
-    if ~isempty(seqs)
-        longNanSeqs = seqs(seqs(:,4) > maxgap, :);
-    else
-        longNanSeqs = [];
+    % findsequences detects repeated runs, so add isolated NaN samples as
+    % one-sample sequences before classifying gaps.
+    if any(idxNanCol)
+        coveredNan = false(size(idxNanCol));
+        for s = 1:size(seqs, 1)
+            coveredNan(seqs(s, 2):seqs(s, 3)) = true;
+        end
+
+        isolatedNanIndices = find(idxNanCol & ~coveredNan);
+        if ~isempty(isolatedNanIndices)
+            isolatedNanSeqs = [ ...
+                ones(numel(isolatedNanIndices), 1), ...
+                isolatedNanIndices, ...
+                isolatedNanIndices, ...
+                ones(numel(isolatedNanIndices), 1)];
+            seqs = [seqs; isolatedNanSeqs]; %#ok<AGROW>
+        end
+
+        seqs = sortrows(seqs, 2);
     end
 
-    if isempty(longNanSeqs)
-        % No long NaN segments, process entire column with interpolation
-        colFilled = fillmissing(colData, 'linear');
-        colFiltered = filterFunc(b, a, colFilled);
-        y(:,col) = colFiltered;
-
-        % Keep short NaN segments interpolated (do not restore them)
-        % Only restore NaN segments that are longer than maxgap
-        % Since longNanSeqs is empty, there are no long segments to restore
+    % Boundary NaN gaps and long internal NaN gaps are preserved as NaN.
+    % Short internal gaps are interpolated within their candidate segment.
+    if isempty(seqs)
+        preservedNanSeqs = [];
     else
-        % Process valid segments between long NaN gaps separately
-        validSegments = getValidSegments(colData, longNanSeqs);
+        isBoundaryGap = seqs(:,2) == 1 | seqs(:,3) == length(colData);
+        isLongInternalGap = ~isBoundaryGap & seqs(:,4) > maxgap;
+        preservedNanSeqs = seqs(isBoundaryGap | isLongInternalGap, :);
+    end
 
-        for segIdx = 1:size(validSegments,1)
-            startIdx = validSegments(segIdx,1);
-            endIdx = validSegments(segIdx,2);
+    % Process valid segments between preserved NaN gaps separately
+    validSegments = getValidSegments(colData, preservedNanSeqs);
 
-            if startIdx > endIdx
-                continue; % Skip invalid segments
-            end
+    for segIdx = 1:size(validSegments,1)
+        startIdx = validSegments(segIdx,1);
+        endIdx = validSegments(segIdx,2);
 
-            segmentData = colData(startIdx:endIdx);
-
-            % Fill short NaN gaps within this segment
-            segmentFilled = fillmissing(segmentData, 'linear');
-
-            % Apply filter to this segment
-            if length(segmentFilled) >= max(length(a), length(b))
-                segmentFiltered = filterFunc(b, a, segmentFilled);
-                y(startIdx:endIdx,col) = segmentFiltered;
-
-                % Do not restore short NaN segments within this segment
-                % They should remain interpolated since they are <= maxgap
-                % Only long NaN segments are restored later
-            else
-                % Segment too short for filtering, keep original with interpolation
-                y(startIdx:endIdx,col) = segmentFilled;
-            end
+        if startIdx > endIdx
+            continue; % Skip invalid segments
         end
 
-        % Restore long NaN segments
-        for s = 1:size(longNanSeqs,1)
-            y(longNanSeqs(s,2):longNanSeqs(s,3),col) = NaN;
+        segmentData = colData(startIdx:endIdx);
+
+        % Fill short NaN gaps within this segment. Boundary and long gaps
+        % have already split the segment, so no extrapolation is allowed.
+        segmentFilled = fillmissing(segmentData, 'linear', 'EndValues', 'none');
+
+        % Apply the selected filter only to segments that meet its minimum
+        % length; too-short candidate segments remain NaN in the output.
+        if any(isnan(segmentFilled)) || length(segmentFilled) < minimumSegmentLength
+            continue;
         end
+
+        y(startIdx:endIdx,col) = filterFunc(b, a, segmentFilled);
     end
 end
 

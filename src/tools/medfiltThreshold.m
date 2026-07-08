@@ -28,10 +28,10 @@ nargoutchk(0, 1);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'medfiltThreshold';
-addRequired(parser, 'x', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addRequired(parser, 'window', @(x) isnumeric(x) && isscalar(x) && x > 0 && x == round(x));
-addRequired(parser, 'factor', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addRequired(parser, 'maxthreshold', @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'x', @(x) isnumeric(x) && isvector(x) && numel(x) >= 2 && all(~isinf(x(:))));
+addRequired(parser, 'window', @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x >= 2 && x == round(x));
+addRequired(parser, 'factor', @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x > 0);
+addRequired(parser, 'maxthreshold', @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x > 0);
 
 parse(parser, x, window, factor, maxthreshold);
 

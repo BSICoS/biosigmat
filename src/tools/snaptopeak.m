@@ -8,7 +8,8 @@ function refinedDetections = snaptopeak(ecg, detections, varargin)
 %   positions in samples. This improves the precision of R-wave peak
 %   localization by ensuring detections align with actual signal peaks.
 %   Returns REFINEDDETECTIONS as a column vector of refined positions with
-%   the same length as DETECTIONS.
+%   the same length as DETECTIONS. ECG and DETECTIONS must contain finite
+%   numeric values.
 %
 %   REFINEDDETECTIONS = SNAPTOPEAK(..., 'WindowSize', WINDOWSIZE)
 %   specifies the search window size WINDOWSIZE in samples around each
@@ -42,8 +43,8 @@ nargoutchk(0, 1);
 % Parse input arguments
 parser = inputParser;
 parser.FunctionName = 'snaptopeak';
-addRequired(parser, 'ecg', @(x) isnumeric(x) && ~ischar(x) && isvector(x) && ~isscalar(x) && ~isempty(x));
-addRequired(parser, 'detections', @(x) isnumeric(x) && ~ischar(x));
+addRequired(parser, 'ecg', @(x) isnumeric(x) && ~ischar(x) && isvector(x) && numel(x) >= 2 && all(isfinite(x(:))));
+addRequired(parser, 'detections', @(x) isnumeric(x) && ~ischar(x) && (isempty(x) || isvector(x)) && all(isfinite(x(:))));
 addParameter(parser, 'WindowSize', 20, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
 parse(parser, ecg, detections, varargin{:});

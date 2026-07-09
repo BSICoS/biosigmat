@@ -2,6 +2,8 @@ name: Deploy docs
 on:
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -51,7 +53,7 @@ jobs:
         with:
           command: |
             try
-              addpath('scripts/local');
+              addpath('scripts/docs');
               updateDocs;
             catch ME
               fprintf('Documentation generation failed: %s\n', ME.message);
@@ -62,11 +64,13 @@ jobs:
         run: mkdocs build --strict
 
       - name: Upload artifact
+        if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./site
 
   deploy:
+    if: github.event_name != 'pull_request'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}

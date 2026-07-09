@@ -35,6 +35,7 @@ See [Conformance](docs/conformance.md) for validation commands and local checkou
 > Visit: [https://bsicos.github.io/biosigmat/](https://bsicos.github.io/biosigmat/)
 
 The documentation includes getting-started material, API reference pages, examples, contribution guidance, and code-style notes.
+API and example reference pages are generated from MATLAB headers and example source files during the documentation build.
 
 ## Support
 

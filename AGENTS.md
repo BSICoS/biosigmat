@@ -29,6 +29,8 @@
 - Documentation under `docs/api/` and generated `docs/examples/` is generated from MATLAB headers and example source files.
 - Do not manually edit generated documentation files.
 - Edit the relevant MATLAB function headers and example `.m` files instead.
-- Regenerate documentation with `scripts/local/updateDocs.m`.
-- If generated docs change in a PR, the PR description must state that `updateDocs` was run.
+- Regenerate documentation with `scripts/docs/updateDocs.m`.
+- Generated API/example Markdown is a build artifact and should not be committed.
+- CI regenerates generated API/example Markdown before MkDocs builds.
+- If generated docs behavior changes in a PR, the PR description must state that `updateDocs` was run or that MATLAB-backed validation is deferred to CI.
 - If `updateDocs` cannot be run, do not hand-edit generated docs as a substitute; document the blocker.

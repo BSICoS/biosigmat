@@ -17,7 +17,7 @@ function updateDocs()
 fprintf('🔄 Starting documentation update...\n');
 
 try
-    % Get toolbox root directory (navigate up from scripts/local/ to project root)
+    % Get toolbox root directory (navigate up from scripts/docs/ to project root)
     toolboxRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
     srcDir = fullfile(toolboxRoot, 'src');
     docsDir = fullfile(toolboxRoot, 'docs');
@@ -27,6 +27,10 @@ try
         mkdir(docsDir);
         fprintf('📁 Created docs directory\n');
     end
+
+    % Generated API/example Markdown is a build artifact. Headers and examples are
+    % the source of truth; CI regenerates these files before MkDocs builds.
+    cleanGeneratedDocs(docsDir);
 
     % Get modules dynamically from src directory
     srcContents = dir(srcDir);
@@ -64,6 +68,37 @@ catch ME
     fprintf('❌ Error updating documentation: %s\n', ME.message);
     rethrow(ME);
 end
+
+end
+
+function cleanGeneratedDocs(docsDir)
+% Remove stale generated API and example Markdown files.
+
+fprintf('Cleaning generated API/example Markdown...\n');
+
+generatedRoots = {
+    fullfile(docsDir, 'api')
+    fullfile(docsDir, 'examples')
+};
+
+removedCount = 0;
+for rootIndex = 1:numel(generatedRoots)
+    generatedRoot = generatedRoots{rootIndex};
+    if ~exist(generatedRoot, 'dir')
+        continue;
+    end
+
+    generatedFiles = dir(fullfile(generatedRoot, '**', '*.md'));
+    for fileIndex = 1:numel(generatedFiles)
+        filePath = fullfile(generatedFiles(fileIndex).folder, generatedFiles(fileIndex).name);
+        if exist(filePath, 'file')
+            delete(filePath);
+            removedCount = removedCount + 1;
+        end
+    end
+end
+
+fprintf('Removed %d generated Markdown files.\n', removedCount);
 
 end
 

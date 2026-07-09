@@ -23,6 +23,30 @@ The project is organized as follows:
 !!! info "Style Guidelines"
     For detailed code style guidelines including naming conventions, code structure, test structure, and MATLAB-specific guidelines, please refer to the [Code Style Guide](code-style-guide.md).
 
+## Generated Documentation
+
+API and example reference pages are generated from MATLAB function headers and
+example source files. Contributors should update the relevant `.m` headers or
+examples instead of editing generated Markdown under `docs/api/` or
+`docs/examples/`.
+
+Generated API/example Markdown is ignored by Git and rebuilt by the docs
+workflow before `mkdocs build --strict`. Contributors do not need to commit
+generated API/example Markdown before pushing.
+
+To preview generated documentation locally, run this from MATLAB:
+
+```matlab
+addpath('scripts/docs');
+updateDocs;
+```
+
+Then build the site:
+
+```bash
+mkdocs build --strict
+```
+
 ## Contributing Process
 
 1. **Fork the repository** and create a new branch for your feature or bug fix

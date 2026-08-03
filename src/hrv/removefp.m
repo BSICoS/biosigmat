@@ -43,15 +43,20 @@ nargoutchk(0, 1);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'removefp';
-addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)));
+addRequired(parser, 'tk', @(x) isnumeric(x) && isreal(x) && isvector(x) && ...
+    ~isempty(x) && all(isfinite(x)));
 
 parse(parser, tk);
 
 tk = parser.Results.tk;
 
-% Ensure tk is a column vector and sorted
+% Canonicalize vector orientation without changing event order.
 tk = tk(:);
-tk = sort(tk);
+
+if any(diff(tk) <= 0)
+    error('biosigmat:removefp:EventOrder', ...
+        'tk must contain strictly increasing event timestamps.');
+end
 
 % Need at least 3 elements to compute intervals and remove false positives
 if length(tk) < 3

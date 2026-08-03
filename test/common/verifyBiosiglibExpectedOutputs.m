@@ -1,5 +1,5 @@
 function verifyBiosiglibExpectedOutputs(testCase, actualOutputs, caseDefinition, outputIdMap)
-%VERIFYBIOSIGLIBEXPECTEDOUTPUTS Verify scalar or fixture-column case outputs.
+%VERIFYBIOSIGLIBEXPECTEDOUTPUTS Verify literal or fixture-column case outputs.
 
 if nargin < 4
     outputIdMap = containers.Map('KeyType', 'char', 'ValueType', 'char');
@@ -28,8 +28,14 @@ for outputIndex = 1:numel(expectedOutputs)
     actualValue = actualOutputs.(matlabField);
     tolerance = expectedOutput.absolute_tolerance;
     if isfield(expectedOutput, 'value')
-        verifyScalarOutput(testCase, outputId, actualValue, ...
-            expectedOutput.value, tolerance, caseDefinition.nan_equal);
+        expectedValue = normalizeExpectedValue(expectedOutput.value);
+        if isscalar(actualValue) && isscalar(expectedValue)
+            verifyScalarOutput(testCase, outputId, actualValue, ...
+                expectedValue, tolerance, caseDefinition.nan_equal);
+        else
+            verifyVectorOutput(testCase, outputId, actualValue, ...
+                expectedValue, tolerance, caseDefinition.nan_equal);
+        end
     elseif all(isfield(expectedOutput, {'fixture_id', 'file_role', 'column'}))
         columnName = expectedOutput.column;
         fixtureTable = loadBiosiglibFixtureTable( ...
@@ -46,13 +52,32 @@ for outputIndex = 1:numel(expectedOutputs)
 end
 end
 
+function value = normalizeExpectedValue(rawValue)
+if ischar(rawValue)
+    if ~strcmp(rawValue, 'NaN')
+        error('biosigmat:UnsupportedExpectedValue', ...
+            'Unsupported expected string value "%s".', rawValue);
+    end
+    value = NaN;
+elseif iscell(rawValue)
+    normalized = cellfun(@normalizeExpectedValue, rawValue, ...
+        'UniformOutput', false);
+    if all(cellfun(@(item) isnumeric(item) && isscalar(item), normalized))
+        value = cell2mat(normalized);
+    else
+        error('biosigmat:UnsupportedExpectedValue', ...
+            'Expected literal arrays must contain numeric scalars or NaN markers.');
+    end
+else
+    value = rawValue;
+end
+end
+
 function verifyScalarOutput(testCase, outputId, actualValue, expectedValue, tolerance, nanEqual)
 testCase.assertTrue(isnumeric(actualValue) && isscalar(actualValue), sprintf( ...
     'Output "%s" must be a numeric scalar; actual length %d.', outputId, numel(actualValue)));
 
-if ischar(expectedValue)
-    testCase.assertEqual(expectedValue, 'NaN', sprintf( ...
-        'Output "%s" has unsupported exact string value "%s".', outputId, expectedValue));
+if isnan(expectedValue)
     diagnostic = sprintf( ...
         'Output "%s" mismatch: expected NaN, actual %.17g, absolute tolerance %.17g.', ...
         outputId, actualValue, tolerance);

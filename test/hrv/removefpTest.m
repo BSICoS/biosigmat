@@ -1,60 +1,43 @@
-% Tests covering:
-%   - Basic false positive removal
-%   - Synthetic false positive insertion and removal
-%   - Edge cases with few elements
+% Tests covering shared hrv.removefp conformance and MATLAB API behavior.
 
 classdef removefpTest < matlab.unittest.TestCase
-
-    properties
-        originalTk
-        tolerance
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('hrv.removefp')
     end
 
     methods (TestClassSetup)
-        function addCodeToPath(~)
-            addpath('../../src/hrv');
-            addpath('../../src/tools');
-        end
-    end
-
-    methods (TestMethodSetup)
-        function loadFixtures(tc)
-            % Load ECG timing data from fixture
-            tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
-            tc.originalTk = tkData.r_wave_times;
-            tc.tolerance = 0.01; % 10ms tolerance for timing differences
+        function addCodeToPath(tc)
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'hrv'));
+            addpath(fullfile(repositoryRoot, 'src', 'tools'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
         end
     end
 
     methods (Test)
-        function testBasicFalsePositiveRemoval(tc)
-            tk = tc.originalTk(1:50);
-            originalLength = length(tk);
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+            tk = loadBiosiglibConformanceInput(caseDefinition, 'tk');
 
-            % Insert synthetic false positives (beats very close to existing ones)
-            tkWithFPs = tk;
-            fpIndices = [10, 20, 30]; % Insert FPs after these beats
-            fpOffsets = [0.05, 0.08, 0.06]; % Very short intervals (50-80ms)
+            tn = removefp(tk);
 
-            for i = 1:length(fpIndices)
-                idx = fpIndices(i);
-                fpBeat = tk(idx) + fpOffsets(i);
-                tkWithFPs = [tkWithFPs; fpBeat]; %#ok<AGROW>
-            end
+            verifyBiosiglibExpectedOutputs(tc, struct('tn', tn), caseDefinition);
+        end
 
-            % Sort the series with false positives
-            tkWithFPs = sort(tkWithFPs);
+        function testRejectsUnsortedAndDuplicateEvents(tc)
+            tc.verifyError(@() removefp([0, 2, 1]), ...
+                'biosigmat:removefp:EventOrder');
+            tc.verifyError(@() removefp([0, 1, 1]), ...
+                'biosigmat:removefp:EventOrder');
+        end
 
-            % Apply false positive removal
-            tkCleaned = removefp(tkWithFPs);
+        function testOutputUsesCanonicalColumnOrientation(tc)
+            actual = removefp([0, 1, 2, 2.2, 3, 4, 5]);
 
-            % Verify that false positives were removed
-            tc.verifyEqual(length(tkCleaned), originalLength, ...
-                'Should remove exactly the inserted false positives');
-
-            % Verify that the cleaned series matches the original (within tolerance)
-            tc.verifyEqual(tkCleaned, tk, 'AbsTol', tc.tolerance, ...
-                'Cleaned series should match original after FP removal');
+            tc.verifySize(actual, [6, 1]);
         end
     end
 end

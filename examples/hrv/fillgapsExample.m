@@ -27,15 +27,19 @@ tkRemoved(indicesToRemove) = [];
 
 % Fill gaps in the event series
 debug = false; % Set to true to enable debug output
-tn = fillgaps(tkRemoved, debug);
+% Apply the recommended explicit preprocessing sequence. fillgaps never
+% removes false-positive detections internally.
+tkCleaned = removefp(tkRemoved);
+[tn, dtn] = fillgaps(tkCleaned, debug);
 
 %% Visualize the original and filled RR interval series
 figure;
-plot(tk, 'o-', 'DisplayName', 'Original RR Intervals');
+plot(diff(tk), 'o-', 'DisplayName', 'Reference RR Intervals');
 hold on;
-plot(tn, 'x-', 'DisplayName', 'Filled RR Intervals');
-xlabel('Sample Index');
-ylabel('RR Interval (ms)');
+plot(diff(tkRemoved), '.-', 'DisplayName', 'Observed RR Intervals');
+plot(dtn, 'x-', 'DisplayName', 'Filled RR Intervals');
+xlabel('Interval Index');
+ylabel('RR Interval (s)');
 title('Comparison of Original and Filled RR Intervals');
 legend show;
 grid on;

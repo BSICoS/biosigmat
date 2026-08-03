@@ -59,10 +59,43 @@ classdef sloperangeTest < matlab.unittest.TestCase
                 return;
             end
 
-            edr = sloperange(decg, rWaveTimes, samplingFrequency);
+            [edr, upslopes, downslopes, upmaxpos, downminpos] = ...
+                sloperange(decg, rWaveTimes, samplingFrequency);
 
-            actualOutputs = struct('edr', edr);
+            % The MATLAB API retains one-based indices. Convert only the
+            % conformance values to the canonical zero-based sample grid.
+            canonicalUpmaxpos = canonicalizeSloperangePositions(upmaxpos);
+            canonicalDownminpos = canonicalizeSloperangePositions(downminpos);
+            actualOutputs = struct( ...
+                'edr', edr, ...
+                'upslopes', upslopes, ...
+                'downslopes', downslopes, ...
+                'upslope_max_positions', canonicalUpmaxpos, ...
+                'downslope_min_positions', canonicalDownminpos);
             verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
+        end
+
+        function testCanonicalPositionAdapter(tc)
+            matlabPositions = [1; 10; NaN];
+            canonicalPositions = canonicalizeSloperangePositions(matlabPositions);
+
+            tc.verifyEqual(canonicalPositions, [0; 9; NaN]);
+        end
+
+        function testPublicPositionsRemainOneBasedAndSelectEarliestTies(tc)
+            decg = zeros(40, 1);
+            decg([10, 11]) = 3;
+            decg([14, 15]) = -2;
+            decg([20, 21]) = 6;
+            decg([24, 25]) = -1;
+            decg([30, 31]) = 2;
+            decg([34, 35]) = -4;
+
+            [~, ~, ~, upmaxpos, downminpos] = ...
+                sloperange(decg, [0.1; 0.2; 0.3], 100);
+
+            tc.verifyEqual(upmaxpos, [10; 20; 30]);
+            tc.verifyEqual(downminpos, [14; 24; 34]);
         end
 
         function testBasicFunctionality(tc)
@@ -260,4 +293,12 @@ classdef sloperangeTest < matlab.unittest.TestCase
             end
         end
     end
+end
+
+function canonicalPositions = canonicalizeSloperangePositions(matlabPositions)
+%CANONICALIZESLOPERANGEPOSITIONS Map MATLAB indices to Biosiglib positions.
+
+canonicalPositions = matlabPositions;
+finitePositions = isfinite(canonicalPositions);
+canonicalPositions(finitePositions) = canonicalPositions(finitePositions) - 1;
 end

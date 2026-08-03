@@ -4,8 +4,8 @@ title: Home
 
 <div align="center" markdown>
 
-![MATLAB](https://img.shields.io/badge/MATLAB-R2025-green?style=flat-square&logo=mathworks)
-![License](https://img.shields.io/badge/License-GLP-blue?style=flat-square)
+![MATLAB](https://img.shields.io/badge/MATLAB-R2025a-green?style=flat-square&logo=mathworks)
+![License](https://img.shields.io/badge/License-GPL-blue?style=flat-square)
 ![Tests](https://img.shields.io/badge/Tests-Passing-green?style=flat-square&logo=checkmarx)
 ![Version](https://img.shields.io/badge/Version-0.1.0-orange?style=flat-square)
 
@@ -18,3 +18,8 @@ Professional-grade tools for ECG, PPG, and respiration signal analysis developed
 
 !!! tip "New to Biosigmat?"
     Read the [Installation Guide](getting-started/installation.md) to get up and running quickly.
+
+Biosigmat 0.1.0 is the first reproducible pre-1.0 source release. Query the
+installed implementation with `biosigmat.version()`.
+
+- [Release procedure](releasing.md)

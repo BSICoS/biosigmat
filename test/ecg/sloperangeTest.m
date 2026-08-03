@@ -12,14 +12,7 @@ classdef sloperangeTest < matlab.unittest.TestCase
     end
 
     properties (TestParameter)
-        validConformanceCaseId = {
-            'ecg.sloperange.synthetic_positive'
-            'ecg.sloperange.synthetic_boundary_nan'
-        }
-        expectedErrorCaseId = {
-            'ecg.sloperange.invalid_r_wave_time_out_of_bounds'
-            'ecg.sloperange.invalid_r_wave_times_not_strict'
-        }
+        caseId = getBiosiglibConformanceCaseIds('ecg.sloperange')
     end
 
     methods (TestClassSetup)
@@ -52,28 +45,24 @@ classdef sloperangeTest < matlab.unittest.TestCase
     end
 
     methods (Test)
-        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(validConformanceCaseId);
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
             decg = loadBiosiglibConformanceInput(caseDefinition, 'decg');
             rWaveTimes = loadBiosiglibConformanceInput(caseDefinition, 'r_wave_times');
             samplingFrequency = loadBiosiglibConformanceInput( ...
                 caseDefinition, 'sampling_frequency');
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() sloperange(decg, rWaveTimes, samplingFrequency), ...
+                    caseDefinition);
+                return;
+            end
 
             edr = sloperange(decg, rWaveTimes, samplingFrequency);
 
             actualOutputs = struct('edr', edr);
             verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
-        end
-
-        function testBiosiglibExpectedError(tc, expectedErrorCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
-            decg = loadBiosiglibConformanceInput(caseDefinition, 'decg');
-            rWaveTimes = loadBiosiglibConformanceInput(caseDefinition, 'r_wave_times');
-            samplingFrequency = loadBiosiglibConformanceInput( ...
-                caseDefinition, 'sampling_frequency');
-
-            verifyBiosiglibExpectedError(tc, ...
-                @() sloperange(decg, rWaveTimes, samplingFrequency), caseDefinition);
         end
 
         function testBasicFunctionality(tc)

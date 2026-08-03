@@ -126,6 +126,21 @@ classdef NanFilterTestBase < matlab.unittest.TestCase
 
         function verifyBiosiglibNanFilteringCase(tc, filterFunc, caseId)
             caseDefinition = loadBiosiglibConformanceCase(caseId);
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() tc.callBiosiglibNanFilteringCase( ...
+                    filterFunc, caseDefinition), caseDefinition);
+                return;
+            end
+
+            filteredSignal = tc.callBiosiglibNanFilteringCase( ...
+                filterFunc, caseDefinition);
+            actualOutputs = struct('filtered_signal', filteredSignal);
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
+        end
+
+        function filteredSignal = callBiosiglibNanFilteringCase( ...
+                ~, filterFunc, caseDefinition)
             b = loadBiosiglibConformanceInput( ...
                 caseDefinition, 'numerator_coefficients');
             a = loadBiosiglibConformanceInput( ...
@@ -139,9 +154,6 @@ classdef NanFilterTestBase < matlab.unittest.TestCase
             else
                 filteredSignal = filterFunc(b, a, signal);
             end
-
-            actualOutputs = struct('filtered_signal', filteredSignal);
-            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
         end
     end
 

@@ -10,19 +10,7 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
     end
 
     properties (TestParameter)
-        validConformanceCaseId = {
-            'tools.medfilt_threshold.normal_outlier'
-            'tools.medfilt_threshold.window_larger_than_signal'
-            'tools.medfilt_threshold.even_window_behavior'
-            'tools.medfilt_threshold.odd_window_behavior'
-            'tools.medfilt_threshold.row_vector_orientation'
-            'tools.medfilt_threshold.max_threshold_cap'
-            'tools.medfilt_threshold.include_nan_window'
-        }
-        expectedErrorCaseId = {
-            'tools.medfilt_threshold.invalid_window_one'
-            'tools.medfilt_threshold.invalid_single_sample'
-        }
+        caseId = getBiosiglibConformanceCaseIds('tools.medfilt_threshold')
     end
 
     methods (TestClassSetup)
@@ -48,27 +36,24 @@ classdef medfiltThresholdTest < matlab.unittest.TestCase
     end
 
     methods (Test)
-        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(validConformanceCaseId);
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
             x = loadBiosiglibConformanceInput(caseDefinition, 'x');
             parameters = caseDefinition.parameters;
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() medfiltThreshold( ...
+                    x, parameters.window, parameters.factor, ...
+                    parameters.max_threshold), caseDefinition);
+                return;
+            end
 
             threshold = medfiltThreshold( ...
                 x, parameters.window, parameters.factor, parameters.max_threshold);
 
             actualOutputs = struct('threshold', threshold);
             verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
-        end
-
-        function testBiosiglibExpectedError(tc, expectedErrorCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
-            x = loadBiosiglibConformanceInput(caseDefinition, 'x');
-            parameters = caseDefinition.parameters;
-
-            verifyBiosiglibExpectedError(tc, ...
-                @() medfiltThreshold( ...
-                    x, parameters.window, parameters.factor, parameters.max_threshold), ...
-                caseDefinition);
         end
 
         function testBasicFuntionality(tc)

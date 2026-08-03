@@ -14,14 +14,7 @@ classdef lpdfilterTest < matlab.unittest.TestCase
     end
 
     properties (TestParameter)
-        validConformanceCaseId = {
-            'tools.lpd_filter.fs256_stop12_order4_coefficients'
-            'tools.lpd_filter.explicit_pass_frequency_order4_coefficients'
-        }
-        expectedErrorCaseId = {
-            'tools.lpd_filter.invalid_pass_frequency_not_less_than_stop'
-            'tools.lpd_filter.invalid_stop_frequency_at_nyquist'
-        }
+        caseId = getBiosiglibConformanceCaseIds('tools.lpd_filter')
     end
 
     methods (TestClassSetup)
@@ -68,20 +61,18 @@ classdef lpdfilterTest < matlab.unittest.TestCase
     end
 
     methods (Test)
-        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(validConformanceCaseId);
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() tc.callLpdFilterFromCase(caseDefinition), caseDefinition);
+                return;
+            end
 
             [b, delay] = tc.callLpdFilterFromCase(caseDefinition);
-
             actualOutputs = struct('filter_coefficients', b, 'delay', delay);
             verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
-        end
-
-        function testBiosiglibExpectedError(tc, expectedErrorCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
-
-            verifyBiosiglibExpectedError(tc, ...
-                @() tc.callLpdFilterFromCase(caseDefinition), caseDefinition);
         end
 
         function testBasicFunctionality(tc)

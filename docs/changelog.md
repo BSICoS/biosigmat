@@ -2,7 +2,19 @@
 
 ## Unreleased
 
-- No changes yet.
+- Conformed `hrv.removefp` to the shared contract with strict event ordering,
+  fixed adaptive-baseline settings, and simultaneous one-pass removal.
+- Reimplemented `hrv.fillgaps` against the shared contract while preserving
+  the stable MATLAB two-output API, positional debug/maximum-gap arguments,
+  and optional visualization. The numerical core now uses segment-wide
+  iterative PCHIP reconstruction, exact duration preservation,
+  over-insertion fallback, and NaN-marked unresolved gaps without implicit
+  false-positive removal or warning-state leakage.
+- Extended the shared-output verifier for literal vectors and embedded NaN
+  markers, and added complete automatic shared-case coverage for both HRV
+  preprocessing algorithms.
+- Pinned conformance to Biosiglib v1.2.1 at commit
+  `050a0527741415d4099ed6e2d8ba873fc76cf577`.
 
 ## 0.1.0 - 2026-08-03
 

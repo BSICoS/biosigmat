@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/BSICoS/biosiglib/ea2d5ded43e1348342f0db4fbd97d754b90a28c9/schemas/implementation-manifest.schema.json",
+  "$schema": "https://raw.githubusercontent.com/BSICoS/biosiglib/050a0527741415d4099ed6e2d8ba873fc76cf577/schemas/implementation-manifest.schema.json",
   "implementation": {
     "name": "biosigmat",
     "language": "MATLAB",
@@ -7,13 +7,21 @@
   },
   "biosiglib": {
     "repository": "https://github.com/BSICoS/biosiglib",
-    "commit": "ea2d5ded43e1348342f0db4fbd97d754b90a28c9",
-    "release": "1.0.0"
+    "commit": "050a0527741415d4099ed6e2d8ba873fc76cf577",
+    "release": "1.2.1"
   },
   "specifications": {
     "hrv.tdmetrics": {
       "status": "conformant",
       "entry_point": "tdmetrics"
+    },
+    "hrv.removefp": {
+      "status": "conformant",
+      "entry_point": "removefp"
+    },
+    "hrv.fillgaps": {
+      "status": "conformant",
+      "entry_point": "fillgaps"
     },
     "ecg.pantompkins": {
       "status": "conformant",

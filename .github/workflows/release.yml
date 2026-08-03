@@ -132,6 +132,11 @@ jobs:
 
       - name: Build documentation from released source
         working-directory: ${{ steps.archive.outputs.release_root }}
+        env:
+          # Source archives intentionally contain no .git directory. Disable
+          # only the revision-date decoration while retaining strict mode for
+          # every other documentation warning.
+          MKDOCS_GIT_REVISION_DATE_ENABLED: "false"
         run: mkdocs build --strict
 
       - name: Record artifact checksum

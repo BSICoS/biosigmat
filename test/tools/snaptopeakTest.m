@@ -11,18 +11,7 @@ classdef snaptopeakTest < matlab.unittest.TestCase
     end
 
     properties (TestParameter)
-        validConformanceCaseId = {
-            'tools.snap_to_peak.local_maxima'
-            'tools.snap_to_peak.boundary_clipping'
-            'tools.snap_to_peak.configurable_window_small'
-            'tools.snap_to_peak.configurable_window_large'
-            'tools.snap_to_peak.ecg_nan_segment_boundary'
-            'tools.snap_to_peak.detection_nan_returns_nan'
-            'tools.snap_to_peak.detection_on_nan_ecg_returns_nan'
-        }
-        expectedErrorCaseId = {
-            'tools.snap_to_peak.invalid_detection_out_of_bounds'
-        }
+        caseId = getBiosiglibConformanceCaseIds('tools.snap_to_peak')
     end
 
     methods (TestClassSetup)
@@ -82,20 +71,19 @@ classdef snaptopeakTest < matlab.unittest.TestCase
     end
 
     methods (Test)
-        function testBiosiglibConformanceCase(tc, validConformanceCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(validConformanceCaseId);
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() tc.callSnaptopeakFromCase(caseDefinition), ...
+                    caseDefinition);
+                return;
+            end
 
             refinedDetections = tc.callSnaptopeakFromCase(caseDefinition);
-
             actualOutputs = struct('refined_detections', refinedDetections);
             verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
-        end
-
-        function testBiosiglibExpectedError(tc, expectedErrorCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
-
-            verifyBiosiglibExpectedError(tc, ...
-                @() tc.callSnaptopeakFromCase(caseDefinition), caseDefinition);
         end
 
         function testPeakRefinementAccuracy(tc)

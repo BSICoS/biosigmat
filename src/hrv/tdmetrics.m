@@ -15,6 +15,8 @@ function metrics = tdmetrics(dtk)
 %     sdsd  - Standard deviation of successive interval differences in ms.
 %     rmssd - Root mean square of successive interval differences in ms.
 %     pnn50 - Percentage of successive interval differences greater than 50 ms.
+%   A metric is NaN when too few valid intervals exist to define it. If DTK
+%   contains only NaN markers, every metric is NaN.
 %
 %   Example:
 %     dtk = [0.80 0.82 NaN 0.79 0.81];
@@ -38,17 +40,35 @@ if any(isinf(dtk)) || any(dtk(~isnan(dtk)) <= 0)
 end
 
 validDtk = dtk(~isnan(dtk));
-if numel(validDtk) < 2
-    error('tdmetrics:InsufficientIntervals', ...
-        'DTK must contain at least two valid intervals.');
+if isempty(validDtk)
+    metrics = struct( ...
+        'mhr', NaN, ...
+        'sdnn', NaN, ...
+        'sdsd', NaN, ...
+        'rmssd', NaN, ...
+        'pnn50', NaN);
+    return;
 end
 
 ddtk = diff(validDtk);
 
 metrics.mhr = 60 / mean(validDtk);
-metrics.sdnn = 1000 * std(validDtk);
-metrics.sdsd = 1000 * std(ddtk);
-metrics.rmssd = 1000 * norm(ddtk) / sqrt(length(ddtk));
-metrics.pnn50 = 100 * sum(abs(ddtk) > 0.05) / length(ddtk);
+if numel(validDtk) >= 2
+    metrics.sdnn = 1000 * std(validDtk);
+else
+    metrics.sdnn = NaN;
+end
+if numel(ddtk) >= 2
+    metrics.sdsd = 1000 * std(ddtk);
+else
+    metrics.sdsd = NaN;
+end
+if ~isempty(ddtk)
+    metrics.rmssd = 1000 * norm(ddtk) / sqrt(length(ddtk));
+    metrics.pnn50 = 100 * sum(abs(ddtk) > 0.05) / length(ddtk);
+else
+    metrics.rmssd = NaN;
+    metrics.pnn50 = NaN;
+end
 
 end

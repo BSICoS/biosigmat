@@ -3,17 +3,7 @@
 
 classdef tdmetricsTest < matlab.unittest.TestCase
     properties (TestParameter)
-        validCaseId = {
-            'hrv.tdmetrics.valid_dtk'
-            'hrv.tdmetrics.valid_dtk_with_nan'
-            }
-        expectedErrorCaseId = {
-            'hrv.tdmetrics.invalid_dtk_non_numeric'
-            'hrv.tdmetrics.invalid_dtk_matrix'
-            'hrv.tdmetrics.invalid_dtk_negative'
-            'hrv.tdmetrics.invalid_dtk_zero'
-            'hrv.tdmetrics.invalid_dtk_inf'
-            }
+        caseId = getBiosiglibConformanceCaseIds('hrv.tdmetrics')
     end
 
     methods (TestClassSetup)
@@ -28,21 +18,25 @@ classdef tdmetricsTest < matlab.unittest.TestCase
     end
 
     methods (Test)
-        function testBasicFunctionality(tc, validCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(validCaseId);
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
             dtk = loadBiosiglibConformanceInput(caseDefinition, 'dtk');
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() tdmetrics(dtk), caseDefinition);
+                return;
+            end
 
             metrics = tdmetrics(dtk);
 
             verifyBiosiglibExpectedOutputs(tc, metrics, caseDefinition);
         end
 
-        function testExpectedError(tc, expectedErrorCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
-            dtk = loadBiosiglibConformanceInput(caseDefinition, 'dtk');
+        function testAllNanInputReturnsAllNanMetrics(tc)
+            metrics = tdmetrics([NaN, NaN]);
 
-            verifyBiosiglibExpectedError(tc, ...
-                @() tdmetrics(dtk), caseDefinition);
+            tc.verifyTrue(all(structfun(@isnan, metrics)));
         end
     end
 end

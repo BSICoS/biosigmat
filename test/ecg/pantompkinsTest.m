@@ -14,13 +14,7 @@ classdef pantompkinsTest < matlab.unittest.TestCase
     end
 
     properties (TestParameter)
-        expectedErrorCaseId = {
-            'ecg.pantompkins.invalid_sampling_frequency_non_positive'
-            'ecg.pantompkins.invalid_sampling_frequency_vector'
-            'ecg.pantompkins.invalid_sampling_frequency_non_numeric'
-            'ecg.pantompkins.invalid_ecg_matrix'
-            'ecg.pantompkins.invalid_ecg_non_numeric'
-        }
+        caseId = getBiosiglibConformanceCaseIds('ecg.pantompkins')
     end
 
     methods (TestClassSetup)
@@ -53,12 +47,17 @@ classdef pantompkinsTest < matlab.unittest.TestCase
     end
 
     methods (Test)
-        function testBasicFunctionality(tc)
-            caseDefinition = loadBiosiglibConformanceCase( ...
-                'ecg.pantompkins.medicom_mtd_r_wave_times');
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
             ecg = loadBiosiglibConformanceInput(caseDefinition, 'ecg');
             samplingFrequency = loadBiosiglibConformanceInput( ...
                 caseDefinition, 'sampling_frequency');
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() pantompkins(ecg, samplingFrequency), caseDefinition);
+                return;
+            end
 
             [rWaveTimes, ecgFiltered, decgSquared, decgEnvelope] = ...
                 pantompkins(ecg, samplingFrequency);
@@ -95,16 +94,6 @@ classdef pantompkinsTest < matlab.unittest.TestCase
                 {'rWaveTimes', 'ecgFiltered', 'decgSquared', 'decgEnvelope'});
             verifyBiosiglibExpectedOutputs( ...
                 tc, actualOutputs, caseDefinition, outputIdMap);
-        end
-
-        function testExpectedError(tc, expectedErrorCaseId)
-            caseDefinition = loadBiosiglibConformanceCase(expectedErrorCaseId);
-            ecg = loadBiosiglibConformanceInput(caseDefinition, 'ecg');
-            samplingFrequency = loadBiosiglibConformanceInput( ...
-                caseDefinition, 'sampling_frequency');
-
-            verifyBiosiglibExpectedError(tc, ...
-                @() pantompkins(ecg, samplingFrequency), caseDefinition);
         end
 
         function testMultipleOutputs(tc)

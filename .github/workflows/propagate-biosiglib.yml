@@ -121,26 +121,6 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Open propagation pull request
-        if: steps.manifest-change.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v7
-        with:
-          path: biosigmat
-          add-paths: conformance.json
-          commit-message: Propagate Biosiglib ${{ env.BIOSIGLIB_RELEASE }}
-          branch: chore/biosiglib-${{ env.BIOSIGLIB_RELEASE }}
-          delete-branch: true
-          base: main
-          title: Propagate Biosiglib ${{ env.BIOSIGLIB_RELEASE }}
-          body: |
-            Propagates a Biosiglib release into Biosigmat.
-
-            - Biosiglib release tag: `${{ env.BIOSIGLIB_RELEASE }}`
-            - Biosiglib commit: `${{ steps.propagation-inputs.outputs.biosiglib_commit }}`
-            - Manifest statuses: ${{ steps.manifest-update.outputs.manifest-statuses }}
-            - Validation status is reported by this workflow run and the pull request checks.
-            - Shared fixtures and conformance cases were consumed from Biosiglib and were not copied into Biosigmat.
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -185,3 +165,23 @@ jobs:
       - name: Check whitespace
         working-directory: biosigmat
         run: git diff --check
+
+      - name: Open propagation pull request
+        if: steps.manifest-change.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          path: biosigmat
+          add-paths: conformance.json
+          commit-message: Propagate Biosiglib ${{ env.BIOSIGLIB_RELEASE }}
+          branch: chore/biosiglib-${{ env.BIOSIGLIB_RELEASE }}
+          delete-branch: true
+          base: main
+          title: Propagate Biosiglib ${{ env.BIOSIGLIB_RELEASE }}
+          body: |
+            Propagates a Biosiglib release into Biosigmat.
+
+            - Biosiglib release tag: `${{ env.BIOSIGLIB_RELEASE }}`
+            - Biosiglib commit: `${{ steps.propagation-inputs.outputs.biosiglib_commit }}`
+            - Manifest statuses: ${{ steps.manifest-update.outputs.manifest-statuses }}
+            - Validation status is reported by this workflow run and the pull request checks.
+            - Shared fixtures and conformance cases were consumed from Biosiglib and were not copied into Biosigmat.

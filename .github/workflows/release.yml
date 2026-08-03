@@ -103,7 +103,8 @@ jobs:
         run: |
           test -f "$RELEASE_ROOT/conformance.json"
           test -f "$RELEASE_ROOT/src/+biosigmat/version.m"
-          test -f "$RELEASE_ROOT/test/common/biosigmatVersionTest.m"
+          test -f "$RELEASE_ROOT/test/+biosigmat/versionTest.m"
+          test -f "$RELEASE_ROOT/examples/+biosigmat/versionExample.m"
           test -f "$RELEASE_ROOT/docs/changelog.md"
           test -f "$RELEASE_ROOT/docs/releases/$GITHUB_REF_NAME.md"
           python biosiglib/tools/validate_specs.py --manifest "$RELEASE_ROOT/conformance.json"

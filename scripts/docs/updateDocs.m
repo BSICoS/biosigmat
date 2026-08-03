@@ -863,7 +863,13 @@ for i = 1:length(modulesList)
         examplesList{end+1} = exampleName; %#ok<*AGROW>
     end
 
-    examplesByModule.(module) = examplesList;
+    % MATLAB package folders start with "+", which is not valid in a
+    % dynamic structure field name. Keep the real folder name for links and
+    % use a normalized key only for the internal grouping structure.
+    moduleKey = matlab.lang.makeValidName(erase(module, '+'));
+    examplesByModule.(moduleKey) = struct( ...
+        'module', module, ...
+        'examples', {examplesList});
 end
 
 % Update examples index.md
@@ -1174,8 +1180,9 @@ moduleNames = fieldnames(examplesByModule);
 totalExamples = 0;
 
 for i = 1:length(moduleNames)
-    module = moduleNames{i};
-    examples = examplesByModule.(module);
+    moduleEntry = examplesByModule.(moduleNames{i});
+    module = moduleEntry.module;
+    examples = moduleEntry.examples;
 
     if ~isempty(examples)
         content = [content sprintf('### %s\n\n', upper(module))];

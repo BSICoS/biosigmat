@@ -1,4 +1,4 @@
-classdef biosigmatVersionTest < matlab.unittest.TestCase
+classdef versionTest < matlab.unittest.TestCase
     % Tests for the public Biosigmat implementation-version API.
 
     methods (Test)

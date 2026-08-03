@@ -1,0 +1,144 @@
+name: Publish release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out tagged Biosigmat source
+        uses: actions/checkout@v4
+        with:
+          path: biosigmat
+          fetch-depth: 0
+
+      - name: Read Biosiglib pin
+        id: biosiglib-pin
+        working-directory: biosigmat
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("conformance.json").read_text(encoding="utf-8"))
+          print(f"commit={manifest['biosiglib']['commit']}")
+          print(f"release={manifest['biosiglib']['release']}")
+          PY
+
+      - name: Check out pinned Biosiglib
+        uses: actions/checkout@v4
+        with:
+          repository: BSICoS/biosiglib
+          ref: ${{ steps.biosiglib-pin.outputs.commit }}
+          path: biosiglib
+          persist-credentials: false
+
+      - name: Set up Python tooling
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: |
+            biosigmat/requirements-docs.txt
+            biosiglib/requirements-dev.txt
+
+      - name: Install documentation and manifest dependencies
+        run: |
+          python -m pip install -r biosigmat/requirements-docs.txt
+          python -m pip install -r biosiglib/requirements-dev.txt
+
+      - name: Validate pinned manifest
+        run: python biosiglib/tools/validate_specs.py --manifest biosigmat/conformance.json
+
+      - name: Set up MATLAB
+        uses: matlab-actions/setup-matlab@v2
+        with:
+          release: R2025a
+          cache: true
+          products: |
+            MATLAB
+            Signal_Processing_Toolbox
+            Curve_Fitting_Toolbox
+
+      - name: Verify implementation version and tag
+        uses: matlab-actions/run-command@v2
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        with:
+          command: |
+            cd('biosigmat');
+            addpath(genpath('src'));
+            actualVersion = biosigmat.version();
+            expectedVersion = extractAfter(getenv('RELEASE_TAG'), 'v');
+            assert(strcmp(actualVersion, expectedVersion), ...
+                'Tag %s does not match Biosigmat %s.', getenv('RELEASE_TAG'), actualVersion);
+            assert(~strcmp(which('version'), which('biosigmat.version')), ...
+                'biosigmat.version must not shadow MATLAB version.');
+            notesPath = fullfile('docs', 'releases', [getenv('RELEASE_TAG') '.md']);
+            assert(isfile(notesPath), 'Missing release notes: %s', notesPath);
+
+      - name: Create and extract reviewed source archive
+        id: archive
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          archive="$GITHUB_WORKSPACE/biosigmat/dist/biosigmat-${version}.zip"
+          release_root="$GITHUB_WORKSPACE/release-source/biosigmat-${version}"
+          mkdir -p "$GITHUB_WORKSPACE/biosigmat/dist" "$GITHUB_WORKSPACE/release-source"
+          git -C biosigmat archive --format=zip --prefix="biosigmat-${version}/" --output="$archive" HEAD
+          unzip -q "$archive" -d "$GITHUB_WORKSPACE/release-source"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "archive=$archive" >> "$GITHUB_OUTPUT"
+          echo "release_root=$release_root" >> "$GITHUB_OUTPUT"
+
+      - name: Verify archive contents and manifest
+        env:
+          RELEASE_ROOT: ${{ steps.archive.outputs.release_root }}
+        run: |
+          test -f "$RELEASE_ROOT/conformance.json"
+          test -f "$RELEASE_ROOT/src/+biosigmat/version.m"
+          test -f "$RELEASE_ROOT/test/+biosigmat/versionTest.m"
+          test -f "$RELEASE_ROOT/examples/+biosigmat/versionExample.m"
+          test -f "$RELEASE_ROOT/docs/changelog.md"
+          test -f "$RELEASE_ROOT/docs/releases/$GITHUB_REF_NAME.md"
+          python biosiglib/tools/validate_specs.py --manifest "$RELEASE_ROOT/conformance.json"
+
+      - name: Run full MATLAB suite from released source
+        uses: matlab-actions/run-command@v2
+        env:
+          BIOSIGLIB_ROOT: ${{ github.workspace }}/biosiglib
+          RELEASE_ROOT: ${{ steps.archive.outputs.release_root }}
+        with:
+          command: |
+            cd(getenv('RELEASE_ROOT'));
+            addpath('scripts/ci');
+            runTestsCI;
+
+      - name: Regenerate documentation from released source
+        uses: matlab-actions/run-command@v2
+        env:
+          RELEASE_ROOT: ${{ steps.archive.outputs.release_root }}
+        with:
+          command: |
+            cd(getenv('RELEASE_ROOT'));
+            addpath('scripts/docs');
+            updateDocs;
+
+      - name: Build documentation from released source
+        working-directory: ${{ steps.archive.outputs.release_root }}
+        run: mkdocs build --strict
+
+      - name: Record artifact checksum
+        working-directory: biosigmat/dist
+        run: sha256sum *.zip > SHA256SUMS
+
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" biosigmat/dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --title "Biosigmat $GITHUB_REF_NAME" --notes-file "biosigmat/docs/releases/$GITHUB_REF_NAME.md"

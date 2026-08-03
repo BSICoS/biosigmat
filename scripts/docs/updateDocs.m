@@ -642,7 +642,8 @@ try
                 totalFunctions = totalFunctions + 1;
             end
 
-            functionsByModule.(module) = moduleFunctions;
+            moduleKey = matlab.lang.makeValidName(erase(module, '+'));
+            functionsByModule.(moduleKey) = moduleFunctions;
         end
     end
 
@@ -673,21 +674,24 @@ moduleInfo.ecg = struct('title', 'ECG Processing', 'desc', 'Functions for electr
 moduleInfo.ppg = struct('title', 'PPG Processing', 'desc', 'Functions for photoplethysmography signal analysis and pulse detection.');
 moduleInfo.hrv = struct('title', 'HRV Analysis', 'desc', 'Functions for heart rate variability analysis and metrics calculation.');
 moduleInfo.tools = struct('title', 'General Tools', 'desc', 'Utility functions for signal processing and data manipulation.');
+moduleInfo.biosigmat = struct('title', 'Biosigmat Metadata', 'desc', 'Package-qualified implementation metadata and version queries.');
 
 % Generate sections for each module
 moduleNames = fieldnames(functionsByModule);
 for i = 1:length(moduleNames)
-    module = moduleNames{i};
-    functions = functionsByModule.(module);
+    moduleKey = moduleNames{i};
+    functions = functionsByModule.(moduleKey);
 
     if isempty(functions)
         continue;
     end
 
+    module = functions{1}.module;
+
     % Add module header
-    if isfield(moduleInfo, module)
-        content = [content sprintf('\n### [%s](%s/index.md)\n\n', moduleInfo.(module).title, module)];
-        content = [content sprintf('%s\n\n', moduleInfo.(module).desc)];
+    if isfield(moduleInfo, moduleKey)
+        content = [content sprintf('\n### [%s](%s/index.md)\n\n', moduleInfo.(moduleKey).title, module)];
+        content = [content sprintf('%s\n\n', moduleInfo.(moduleKey).desc)];
     else
         content = [content sprintf('\n### [%s](%s/index.md)\n\n', upper(module), module)];
         content = [content sprintf('Functions for %s processing.\n\n', module)];
@@ -859,7 +863,13 @@ for i = 1:length(modulesList)
         examplesList{end+1} = exampleName; %#ok<*AGROW>
     end
 
-    examplesByModule.(module) = examplesList;
+    % MATLAB package folders start with "+", which is not valid in a
+    % dynamic structure field name. Keep the real folder name for links and
+    % use a normalized key only for the internal grouping structure.
+    moduleKey = matlab.lang.makeValidName(erase(module, '+'));
+    examplesByModule.(moduleKey) = struct( ...
+        'module', module, ...
+        'examples', {examplesList});
 end
 
 % Update examples index.md
@@ -1170,8 +1180,9 @@ moduleNames = fieldnames(examplesByModule);
 totalExamples = 0;
 
 for i = 1:length(moduleNames)
-    module = moduleNames{i};
-    examples = examplesByModule.(module);
+    moduleEntry = examplesByModule.(moduleNames{i});
+    module = moduleEntry.module;
+    examples = moduleEntry.examples;
 
     if ~isempty(examples)
         content = [content sprintf('### %s\n\n', upper(module))];

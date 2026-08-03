@@ -30,13 +30,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      - run: |
-          pip install \
-            mkdocs-material \
-            mkdocs-awesome-pages-plugin \
-            mkdocs-minify-plugin \
-            mkdocs-redirects \
-            mkdocs-git-revision-date-localized-plugin
+      - name: Install pinned documentation dependencies
+        run: python -m pip install -r requirements-docs.txt
 
       - name: Setup MATLAB
         uses: matlab-actions/setup-matlab@v2

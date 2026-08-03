@@ -1,17 +1,28 @@
 function varargout = sloperange(decg, rWaveTimes, fs)
 % SLOPERANGE Compute ECG-derived respiration (EDR) using slope range method.
 %
-%   EDR = SLOPERANGE(DECG, RWAVETIMES, FS) computes ECG-derived respiration (EDR) signal using
-%   the slope range method. This method analyzes the derivative of the ECG signal
-%   (DECG) around ECG R-wave occurrence times (RWAVETIMES) to extract respiratory
-%   information. EDR is a column vector with the same length as RWAVETIMES.
+%   EDR = SLOPERANGE(DECG, RWAVETIMES, FS) computes an ECG-derived respiration
+%   (EDR) signal using the slope range method. This method analyzes the
+%   derivative ECG signal (DECG) around ECG R-wave occurrence times
+%   (RWAVETIMES). EDR is a column vector in the same arbitrary amplitude unit as
+%   DECG, aligned with RWAVETIMES, with NaN for beats whose analysis windows are
+%   incomplete.
 %
 %   [EDR, UPSLOPES, DOWNSLOPES, UPMAXPOS, DOWNMINPOS] = SLOPERANGE(...) returns
-%   additional outputs:
-%     UPSLOPES   - Matrix containing upslope values around R-waves
-%     DOWNSLOPES - Matrix containing downslope values around R-waves
-%     UPMAXPOS   - Positions of maximum upslope values
-%     DOWNMINPOS - Positions of minimum downslope values
+%   four diagnostic outputs for visual inspection:
+%     UPSLOPES   - Column vector aligned with DECG. It copies DECG inside the
+%                  union of complete upslope windows and is NaN elsewhere.
+%     DOWNSLOPES - Column vector aligned with DECG. It copies DECG inside the
+%                  union of complete downslope windows and is NaN elsewhere.
+%     UPMAXPOS   - Column vector aligned with RWAVETIMES containing the one-based
+%                  DECG index of each selected upslope maximum, or NaN for an
+%                  incomplete beat. The earliest sample is selected on ties.
+%     DOWNMINPOS - Column vector aligned with RWAVETIMES containing the one-based
+%                  DECG index of each selected downslope minimum, or NaN for an
+%                  incomplete beat. The earliest sample is selected on ties.
+%   UPSLOPES and DOWNSLOPES have the same arbitrary amplitude unit as DECG;
+%   UPMAXPOS and DOWNMINPOS are positions in samples using MATLAB indexing. A
+%   beat contributes to both slope vectors only when both windows are complete.
 %
 %   Example:
 %     % Derive respiratory signal from ECG using slope range method

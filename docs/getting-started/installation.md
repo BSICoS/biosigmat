@@ -11,20 +11,20 @@ This guide will help you install and set up the biosigmat toolbox in your MATLAB
 </div>
 
 !!! warning "Required MATLAB Toolboxes"
-    Biosigmat 0.1.0 is tested with MATLAB R2025a and the following toolboxes:
+    Biosigmat 0.2.0 is tested with MATLAB R2025a and the following toolboxes:
 
     - :material-sine-wave:{ .middle } **Signal Processing Toolbox** - Required for filtering and spectral analysis
     - :material-chart-bell-curve:{ .middle } **Curve Fitting Toolbox** - Required for spline handling
 
 ## :material-download-multiple: Installation Methods
 
-Download `biosigmat-0.1.0.zip` and `SHA256SUMS` from the
-[v0.1.0 GitHub release](https://github.com/BSICoS/biosigmat/releases/tag/v0.1.0).
+Download `biosigmat-0.2.0.zip` and `SHA256SUMS` from the
+[v0.2.0 GitHub release](https://github.com/BSICoS/biosigmat/releases/tag/v0.2.0).
 Verify the SHA-256 hash, extract the archive, and add only the `src` directory:
 
 ```matlab
-addpath(genpath('path/to/biosigmat-0.1.0/src'));
-assert(strcmp(biosigmat.version(), '0.1.0'));
+addpath(genpath('path/to/biosigmat-0.2.0/src'));
+assert(strcmp(biosigmat.version(), '0.2.0'));
 ```
 
 <div class="grid cards" markdown>

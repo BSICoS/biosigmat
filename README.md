@@ -3,7 +3,7 @@
 [![MATLAB](https://img.shields.io/badge/MATLAB-R2025a-blue)](https://www.mathworks.com/products/matlab.html)
 [![License](https://img.shields.io/badge/License-GPL-green.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen)](test/)
-[![Version](https://img.shields.io/badge/Version-0.1.0-orange)](src/+biosigmat/version.m)
+[![Version](https://img.shields.io/badge/Version-0.2.0-orange)](src/+biosigmat/version.m)
 
 A MATLAB toolbox for processing and analyzing biomedical signals including ECG, PPG, and HRV analysis.
 
@@ -14,13 +14,13 @@ A MATLAB toolbox for processing and analyzing biomedical signals including ECG, 
 
 ## Installation
 
-Download `biosigmat-0.1.0.zip` and `SHA256SUMS` from the
-[v0.1.0 GitHub release](https://github.com/BSICoS/biosigmat/releases/tag/v0.1.0),
+Download `biosigmat-0.2.0.zip` and `SHA256SUMS` from the
+[v0.2.0 GitHub release](https://github.com/BSICoS/biosigmat/releases/tag/v0.2.0),
 verify the archive hash, and extract it. Add only its `src` directory to the
 MATLAB path:
 
 ```matlab
-addpath(genpath('path/to/biosigmat-0.1.0/src'));
+addpath(genpath('path/to/biosigmat-0.2.0/src'));
 biosigmat.version()
 ```
 
@@ -36,7 +36,7 @@ Then add its source directory:
 addpath(genpath('path/to/biosigmat/src'));
 ```
 
-Biosigmat 0.1.0 is tested with MATLAB R2025a, Signal Processing Toolbox, and
+Biosigmat 0.2.0 is tested with MATLAB R2025a, Signal Processing Toolbox, and
 Curve Fitting Toolbox. Its implementation version is independent from
 Biosiglib and can be queried with `biosigmat.version()` without shadowing
 MATLAB's built-in `version` function.

@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.2.0 - 2026-08-04
+
 - Conformed `hrv.removefp` to the shared contract with strict event ordering,
   fixed adaptive-baseline settings, and simultaneous one-pass removal.
 - Conformed `hrv.fillgaps` while retaining its iterative algorithm and

@@ -4,10 +4,15 @@
 
 - Conformed `hrv.removefp` to the shared contract with strict event ordering,
   fixed adaptive-baseline settings, and simultaneous one-pass removal.
+- Conformed `hrv.fillgaps` while retaining its iterative algorithm and
+  interactive, attempt-by-attempt debug view. The function now rejects invalid
+  event ordering, leaves false-positive removal explicit, exposes the empirical
+  thresholds as arguments, uses the four normative PCHIP support intervals, and
+  preserves unresolved original timestamps while marking their intervals NaN.
 - Extended the shared-output verifier for literal vectors and added complete
   automatic shared-case coverage for `hrv.removefp`.
-- Pinned conformance to Biosiglib v1.1.0 at commit
-  `d8833986ebfd54dcf952195b11397f5fb679367e`.
+- Pinned conformance to Biosiglib v1.2.1 at commit
+  `050a0527741415d4099ed6e2d8ba873fc76cf577`.
 
 ## 0.1.0 - 2026-08-03
 

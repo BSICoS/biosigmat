@@ -1,12 +1,9 @@
 % FILLGAPSEXAMPLE Example demonstrating gap filling in RR interval time series.
 %
-% This example demonstrates how to fill gaps in RR interval time series using the
-% fillgaps function. The process involves loading ECG timing data from a CSV file,
-% simulating missing detections by removing some R-peak timing values, and then
-% applying the gap filling algorithm to interpolate the missing intervals. The
-% example shows the comparison between original and filled RR interval series
-% through visualization, highlighting the effectiveness of the gap filling
-% algorithm in maintaining physiological plausibility of the RR intervals.
+% This example loads ECG event times, removes some detections to create gaps,
+% applies the explicit REMOVEFP then FILLGAPS preprocessing sequence, and compares
+% the reference RR intervals with the reconstructed intervals. Set DEBUG to true
+% to inspect every reconstruction attempt interactively before this final plot.
 
 % Add required paths
 addpath('../../src/tools');
@@ -27,15 +24,16 @@ tkRemoved(indicesToRemove) = [];
 
 % Fill gaps in the event series
 debug = false; % Set to true to enable debug output
-tn = fillgaps(tkRemoved, debug);
+tkCleaned = removefp(tkRemoved);
+[~, dtn] = fillgaps(tkCleaned, debug);
 
 %% Visualize the original and filled RR interval series
 figure;
-plot(tk, 'o-', 'DisplayName', 'Original RR Intervals');
+plot(diff(tk), 'o-', 'DisplayName', 'Reference RR Intervals');
 hold on;
-plot(tn, 'x-', 'DisplayName', 'Filled RR Intervals');
-xlabel('Sample Index');
-ylabel('RR Interval (ms)');
-title('Comparison of Original and Filled RR Intervals');
+plot(dtn, 'x-', 'DisplayName', 'Filled RR Intervals');
+xlabel('Interval Index');
+ylabel('RR Interval (s)');
+title('Reference and Filled RR Intervals');
 legend show;
 grid on;

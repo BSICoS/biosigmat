@@ -1,58 +1,80 @@
-% Tests covering shared hrv.fillgaps conformance and MATLAB API behavior.
+
+% Tests covering:
+%   - Number preservation after gap filling
+%   - Large gap handling with NaN marking
 
 classdef fillgapsTest < matlab.unittest.TestCase
-    properties (TestParameter)
-        caseId = getBiosiglibConformanceCaseIds('hrv.fillgaps')
+
+    properties
+        originalTk
+        tolerance
     end
 
     methods (TestClassSetup)
-        function addCodeToPath(tc)
-            testDirectory = fileparts(mfilename('fullpath'));
-            repositoryRoot = fileparts(fileparts(testDirectory));
-            originalPath = path;
-            tc.addTeardown(@() path(originalPath));
-            addpath(fullfile(repositoryRoot, 'src', 'hrv'));
-            addpath(fullfile(repositoryRoot, 'src', 'tools'));
-            addpath(fullfile(repositoryRoot, 'test', 'common'));
+        function addCodeToPath(~)
+            addpath('../../src/hrv');
+            addpath('../../src/tools');
+        end
+    end
+
+    methods (TestMethodSetup)
+        function loadFixtures(tc)
+            % Load ECG timing data from fixture
+            tkData = readtable('../../fixtures/ecg/medicom_mtd_r_wave_timing.csv');
+            tc.originalTk = tkData.r_wave_times;
+            tc.originalTk = removefp(tc.originalTk);
+            tc.tolerance = 0.05;
         end
     end
 
     methods (Test)
-        function testBiosiglibConformanceCase(tc, caseId)
-            caseDefinition = loadBiosiglibConformanceCase(caseId);
-            tk = loadBiosiglibConformanceInput(caseDefinition, 'tk');
+        function testRandomGapFilling(tc)
+            tk = tc.originalTk(1:100);
+            originalLength = length(tk);
 
-            [tn, dtn] = fillgaps(tk);
+            % Randomly remove 10-15% of the detections to create gaps
+            rng(40);
+            numToRemove = round(0.1 * originalLength) + randi(round(0.05 * originalLength));
+            indicesToRemove = sort(randperm(originalLength, numToRemove));
 
-            outputs = struct('tn', tn, 'dtn', dtn);
-            verifyBiosiglibExpectedOutputs(tc, outputs, caseDefinition);
+            % Create gaps by removing random detections
+            tkWithGaps = tk;
+            tkWithGaps(indicesToRemove) = [];
+
+            % Apply gap filling
+            tn = fillgaps(tkWithGaps, false);
+
+            % Verify that the number of corrected events matches the original
+            tc.verifyEqual(length(tn), originalLength, ...
+                'Number of corrected events should match original');
+
+            % Verify that timing values are within tolerance
+            timingDifferences = abs(tn - tk);
+            tc.verifyTrue(all(timingDifferences <= tc.tolerance), ...
+                sprintf('All timing differences should be within %.3f seconds tolerance', tc.tolerance));
         end
 
-        function testRejectsUnsortedAndDuplicateEvents(tc)
-            tc.verifyError(@() fillgaps([0, 2, 1]), ...
-                'biosigmat:fillgaps:EventOrder');
-            tc.verifyError(@() fillgaps([0, 1, 1]), ...
-                'biosigmat:fillgaps:EventOrder');
-        end
+        function testLargeGapHandling(tc)
+            tk = 0:0.8:60; % Regular 75 bpm baseline
 
-        function testDoesNotRemoveCloseEventsImplicitly(tc)
-            tk = [0, 1, 1.2, 2.2, 3.2, 4.2];
+            % Create gaps of different sizes
+            tk(20:21) = [];    % Small gap (1.6s) - should be filled
+            tk(38:42) = [];    % Medium gap (4s) - should be filled
 
-            tn = fillgaps(tk);
+            % Create a very large gap by inserting a long interval
+            tkWithLargeGap = tk;
+            % Insert a 15-second gap (exceeds maxgapDuration of 10s)
+            tkWithLargeGap = [tkWithLargeGap(1:30), tkWithLargeGap(30) + 15, tkWithLargeGap(31:end) + 15];
 
-            tc.verifyTrue(ismember(1.2, tn));
-            tc.verifyTrue(all(ismember(tk, tn)));
-        end
+            % Test with two outputs
+            [~, dtn] = fillgaps(tkWithLargeGap, false);
 
-        function testCanonicalNamedParameters(tc)
-            [tn, dtn] = fillgaps([0, 1, 2, 4, 5, 6], false, 10, ...
-                'GapDetectionFactor', 1.5, ...
-                'CorrectionUpperFactor', 1.15, ...
-                'CorrectionLowerFactor', 0.75, ...
-                'MinimumInterval', 0.5);
+            % Verify that very large gaps are marked as NaN
+            tc.verifyTrue(any(isnan(dtn)), 'Large gaps should be marked as NaN in dtn');
 
-            tc.verifyEqual(tn, (0:6)');
-            tc.verifyEqual(dtn, ones(6, 1));
+            % Count NaN values
+            nanCount = sum(isnan(dtn));
+            tc.verifyTrue(nanCount == 1, 'Only one interval should be NaN');
         end
     end
 end

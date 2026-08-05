@@ -1,8 +1,13 @@
 % Tests covering:
+%   - Shared hrv.ipfm conformance cases
 %   - Spline output evaluation against the sampled instantaneous heart rate
 %   - Modulating signal computation from fixture beat occurrence times
 
 classdef ipfmTest < matlab.unittest.TestCase
+
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('hrv.ipfm')
+    end
 
     properties
         tn
@@ -10,8 +15,13 @@ classdef ipfmTest < matlab.unittest.TestCase
     end
 
     methods (TestClassSetup)
-        function addCodeToPath(~)
-            addpath('../../src/hrv');
+        function addCodeToPath(tc)
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'hrv'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
         end
     end
 
@@ -24,6 +34,20 @@ classdef ipfmTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() executeBiosiglibIpFmCase(caseDefinition), ...
+                    caseDefinition);
+                return;
+            end
+
+            outputs = executeBiosiglibIpFmCase(caseDefinition);
+            verifyBiosiglibExpectedOutputs(tc, outputs, caseDefinition);
+        end
+
         function testSplineOrderNameValueWorksWithoutFs(tc)
             sp = ipfm(tc.tn, 'SplineOrder', 10);
             tm = (tc.tn(1):1/tc.fs:tc.tn(end))';
@@ -57,5 +81,35 @@ classdef ipfmTest < matlab.unittest.TestCase
             tc.verifyEqual(m, expectedM, 'AbsTol', 1e-10, ...
                 'Modulating signal should follow the low-frequency normalization formula');
         end
+
+        function testSamplingFrequencyDependsOnRequestedOutputs(tc)
+            ihr = ipfm(tc.tn, 0.05);
+
+            tc.verifyTrue(all(isfinite(ihr) & ihr > 0));
+            tc.verifyError(@() requestModulatingSignal(tc.tn, 0.05), ...
+                'biosigmat:ipfm:SamplingFrequency');
+        end
     end
+end
+
+function outputs = executeBiosiglibIpFmCase(caseDefinition)
+tn = loadBiosiglibConformanceInput(caseDefinition, 'tn');
+fs = loadBiosiglibConformanceInput(caseDefinition, 'fs');
+arguments = {};
+if isfield(caseDefinition.parameters, 'spline_order')
+    arguments = {'SplineOrder', caseDefinition.parameters.spline_order};
+end
+
+requestedOutputs = string(caseDefinition.requested_outputs);
+if any(requestedOutputs == "m")
+    [ihr, m] = ipfm(tn, fs, arguments{:});
+    outputs = struct('ihr', ihr, 'm', m);
+else
+    ihr = ipfm(tn, fs, arguments{:});
+    outputs = struct('ihr', ihr);
+end
+end
+
+function requestModulatingSignal(tn, fs)
+[~, ~] = ipfm(tn, fs);
 end

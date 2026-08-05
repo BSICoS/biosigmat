@@ -12,6 +12,7 @@ supportedCategories = {
     'invalid_shape'
     'invalid_value'
     'insufficient_data'
+    'invalid_numerical_result'
 };
 testCase.assertTrue(any(strcmp(expectedError.category, supportedCategories)), sprintf( ...
     'Case "%s" uses unsupported expected-error category "%s".', ...

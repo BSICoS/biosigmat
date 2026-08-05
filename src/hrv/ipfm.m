@@ -9,7 +9,8 @@ function [outputSignal, m] = ipfm(tn, varargin)
 %
 %   IHR = IPFM(TN, FS) evaluates the IPFM spline at the uniformly sampled time
 %   vector TM = TN(1):1/FS:TN(end), where FS is the desired sampling frequency
-%   in hertz. IHR is the instantaneous heart rate in hertz.
+%   in hertz. FS must be positive. IHR is the instantaneous heart rate in
+%   hertz.
 %
 %   SP = IPFM(TN, 'SplineOrder', SPLINEORDER) uses the specified spline order
 %   for the spline interpolation stage. The default spline order is 14.
@@ -19,7 +20,8 @@ function [outputSignal, m] = ipfm(tn, varargin)
 %
 %   [IHR, M] = IPFM(TN, FS, ...) also returns M, the modulating signal
 %   obtained by removing the low-frequency trend of IHR and normalizing the
-%   residual by that trend.
+%   residual by that trend. This output requires FS greater than 0.06 Hz and
+%   at least 13 samples on the output grid.
 %
 %   Example:
 %     % Estimate instantaneous heart rate from beat occurrence times
@@ -55,7 +57,7 @@ nargoutchk(0, 2);
 parser = inputParser;
 parser.FunctionName = 'ipfm';
 addRequired(parser, 'tn', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)));
-addOptional(parser, 'fs', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x) && x > 0.06));
+addOptional(parser, 'fs', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && isfinite(x) && x > 0));
 addParameter(parser, 'SplineOrder', 14, @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x == floor(x) && x > 1);
 
 parse(parser, tn, varargin{:});
@@ -70,6 +72,16 @@ end
 
 if any(diff(tn) <= 0)
     error('ipfm:NonIncreasingTimes', 'tn must be strictly increasing.');
+end
+
+if splineOrder > numel(tn) + 20
+    error('biosigmat:ipfm:SplineOrder', ...
+        'SplineOrder must not exceed the number of extended event sites.');
+end
+
+if ~isempty(fs) && nargout > 1 && fs <= 0.06
+    error('biosigmat:ipfm:SamplingFrequency', ...
+        'fs must be greater than 0.06 Hz when requesting the modulating signal.');
 end
 
 % Extend the beat occurrence series at both edges to stabilize the spline.
@@ -95,10 +107,28 @@ tm = (tn(1):1/fs:tn(end))';
 outputSignal = spval(outputSignal, tm);
 outputSignal = outputSignal(:);
 
+if any(~isfinite(outputSignal)) || any(outputSignal <= 0)
+    error('biosigmat:ipfm:InvalidNumericalResult', ...
+        'The sampled instantaneous heart rate must be finite and positive.');
+end
+
 if nargout > 1
+    if numel(outputSignal) <= 12
+        error('biosigmat:ipfm:InsufficientData', ...
+            'At least 13 sampled values are required for the modulating signal.');
+    end
     [bLow, aLow] = butter(4, 0.03 * 2 / fs, 'low');
     lowFrequencyComponent = filtfilt(bLow, aLow, outputSignal);
+    if any(~isfinite(lowFrequencyComponent)) || ...
+            any(lowFrequencyComponent <= 0)
+        error('biosigmat:ipfm:InvalidNumericalResult', ...
+            'The mean instantaneous heart rate must be finite and positive.');
+    end
     m = (outputSignal - lowFrequencyComponent) ./ lowFrequencyComponent;
+    if any(~isfinite(m))
+        error('biosigmat:ipfm:InvalidNumericalResult', ...
+            'The modulating signal must be finite.');
+    end
 end
 
 end

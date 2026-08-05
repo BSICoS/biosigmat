@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Conformed sampled `hrv.ipfm` to the Biosiglib contract while retaining the
+  MATLAB-only unevaluated spline convenience. The implementation now uses the
+  canonical uniform sampling grid, enforces the input-dependent spline
+  order bound, distinguishes the sampling-frequency requirements for `ihr` and
+  `m`, and rejects insufficient or non-physiological numerical results.
+- Consumed all six shared `hrv.ipfm` cases directly from Biosiglib, including
+  the Biosigmat-backed nonuniform-event and TVIPFM fixture.
+- Pinned conformance to Biosiglib v1.3.0 at commit
+  `a1e7c3eae157c588705117ea9480b2cf3190d107`.
+
 ## 0.2.0 - 2026-08-04
 
 - Conformed `hrv.removefp` to the shared contract with strict event ordering,

@@ -23,6 +23,10 @@
       "status": "conformant",
       "entry_point": "fillgaps"
     },
+    "hrv.ipfm": {
+      "status": "conformant",
+      "entry_point": "ipfm"
+    },
     "ecg.pantompkins": {
       "status": "conformant",
       "entry_point": "pantompkins"

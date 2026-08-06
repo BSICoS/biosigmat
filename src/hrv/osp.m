@@ -43,12 +43,18 @@ nargoutchk(0, 3);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'osp';
-addRequired(parser, 'm', @(x) isnumeric(x) && (isempty(x) || isvector(x)));
-addRequired(parser, 'resp', @(x) isnumeric(x) && (isempty(x) || isvector(x)));
-addRequired(parser, 'respPxx', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)) && all(x >= 0));
-addRequired(parser, 'f', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x)));
-addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x > 0);
-addParameter(parser, 'MinRespFrequency', 0.1, @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x > 0);
+addRequired(parser, 'm', @(x) isnumeric(x) && isreal(x) && ...
+    (isempty(x) || isvector(x)));
+addRequired(parser, 'resp', @(x) isnumeric(x) && isreal(x) && ...
+    (isempty(x) || isvector(x)));
+addRequired(parser, 'respPxx', @(x) isnumeric(x) && isreal(x) && ...
+    isvector(x) && numel(x) >= 2 && all(isfinite(x)) && all(x >= 0));
+addRequired(parser, 'f', @(x) isnumeric(x) && isreal(x) && ...
+    isvector(x) && numel(x) >= 2 && all(isfinite(x)));
+addRequired(parser, 'fs', @(x) isnumeric(x) && isreal(x) && ...
+    isscalar(x) && isfinite(x) && x > 0);
+addParameter(parser, 'MinRespFrequency', 0.1, @(x) isnumeric(x) && ...
+    isreal(x) && isscalar(x) && isfinite(x) && x > 0);
 
 parse(parser, m, resp, respPxx, f, fs, varargin{:});
 
@@ -73,6 +79,11 @@ if any(isnan(mInput)) || any(isnan(respInput))
     mUnrelated = [];
     delay = [];
     return;
+end
+
+if any(isinf(mInput)) || any(isinf(respInput))
+    error('osp:NonfiniteSignal', ...
+        'm and resp must not contain infinite values.');
 end
 
 if numel(resp) ~= numel(m)

@@ -1,19 +1,41 @@
 % Tests covering:
+%   - Shared hrv.fdmetrics conformance cases and normative warnings
 %   - Conventional LF/HF metrics with limited and unlimited HF bands
 %   - OSP-based unrelated and respiration-related metrics
-%   - Threshold-based NaN handling inherited from freqind
+%   - Retained OSP threshold behavior
 
 classdef fdmetricsTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('hrv.fdmetrics')
+    end
+
     methods (TestClassSetup)
-        function addCodeToPath(~)
-            addpath('../../src/hrv');
+        function addCodeToPath(tc)
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'hrv'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
         end
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+
+            verifyFdmetricsWarnings(tc, caseDefinition);
+            warningState = warning;
+            restoreWarnings = onCleanup(@() warning(warningState)); %#ok<NASGU>
+            warning('off', 'biosigmat:fdmetrics:excessive_vlf_power');
+            warning('off', 'biosigmat:fdmetrics:zero_required_power');
+            outputs = executeBiosiglibFdmetricsCase(caseDefinition);
+            verifyBiosiglibExpectedOutputs(tc, outputs, caseDefinition);
+        end
+
         function testClassicBandsUseLimitedHighFrequencyWindowByDefault(tc)
-            f = (0:0.01:0.5)';
+            f = (0.04:0.01:0.5)';
             pxx = ones(size(f));
 
             metrics = fdmetrics(pxx, f);
@@ -37,7 +59,7 @@ classdef fdmetricsTest < matlab.unittest.TestCase
         end
 
         function testLogicalThirdInputUnlimitsHighFrequencyWindow(tc)
-            f = (0:0.01:0.5)';
+            f = (0.04:0.01:0.5)';
             pxx = ones(size(f));
 
             metrics = fdmetrics(pxx, f, false);
@@ -49,17 +71,17 @@ classdef fdmetricsTest < matlab.unittest.TestCase
         end
 
         function testOspModeReturnsOnlySeparatedMetrics(tc)
-            f = (0:0.01:0.4)';
+            f = (0.04:0.01:0.4)';
             respPxx = 0.01 * ones(size(f));
             unrelatedPxx = 0.001 * ones(size(f));
 
             metrics = fdmetrics(respPxx, unrelatedPxx, f);
 
-            tc.verifyEqual(metrics.re, 0.004, 'AbsTol', 1e-12, ...
+            tc.verifyEqual(metrics.re, 0.0036, 'AbsTol', 1e-12, ...
                 'Re should integrate the respiration-related spectrum over the full band.');
             tc.verifyEqual(metrics.urlf, 0.00011, 'AbsTol', 1e-12, ...
                 'UrLF should integrate the unrelated spectrum over the LF band.');
-            tc.verifyEqual(metrics.r, 0.00011 / 0.00411, 'AbsTol', 1e-12, ...
+            tc.verifyEqual(metrics.r, 0.00011 / 0.00371, 'AbsTol', 1e-12, ...
                 'R should compare unrelated LF power with the total separated power.');
             tc.verifyFalse(isfield(metrics, 'hf'), ...
                 'Two-spectrum mode should not expose single-spectrum LF/HF metrics.');
@@ -71,24 +93,8 @@ classdef fdmetricsTest < matlab.unittest.TestCase
                 'Two-spectrum mode should not expose single-spectrum LF/HF metrics.');
         end
 
-        function testSingleSpectrumThresholdsReturnNan(tc)
-            f = (0:0.01:0.4)';
-            pxx = 1e6 * ones(size(f));
-
-            metrics = fdmetrics(pxx, f);
-
-            tc.verifyTrue(isnan(metrics.lf), ...
-                'LF should be NaN when it exceeds the freqind maximum allowed value.');
-            tc.verifyTrue(isnan(metrics.hf), ...
-                'HF should be NaN when it exceeds the freqind maximum allowed value.');
-            tc.verifyTrue(isnan(metrics.lfn), ...
-                'LFn should become NaN when LF or HF are rejected.');
-            tc.verifyTrue(isnan(metrics.lfhf), ...
-                'LFHF should become NaN when LF or HF are rejected.');
-        end
-
         function testOspThresholdsReturnNan(tc)
-            f = (0:0.01:0.4)';
+            f = (0.04:0.01:0.4)';
             respPxx = 0.2 * ones(size(f));
             unrelatedPxx = 0.1 * ones(size(f));
 
@@ -102,4 +108,145 @@ classdef fdmetricsTest < matlab.unittest.TestCase
                 'R should become NaN when Re or UrLF are rejected.');
         end
     end
+end
+
+function metrics = executeBiosiglibFdmetricsCase(caseDefinition)
+f = loadBiosiglibConformanceInput(caseDefinition, 'f');
+if hasBiosiglibConformanceInput(caseDefinition, 'pxx')
+    pxx = loadBiosiglibConformanceInput(caseDefinition, 'pxx');
+    if isfield(caseDefinition.parameters, 'limit_hf')
+        metrics = fdmetrics(pxx, f, caseDefinition.parameters.limit_hf);
+    else
+        metrics = fdmetrics(pxx, f);
+    end
+else
+    relatedPxx = loadBiosiglibConformanceInput( ...
+        caseDefinition, 'related_pxx');
+    unrelatedPxx = loadBiosiglibConformanceInput( ...
+        caseDefinition, 'unrelated_pxx');
+    metrics = fdmetrics(relatedPxx, unrelatedPxx, f);
+end
+end
+
+function tf = hasBiosiglibConformanceInput(caseDefinition, inputId)
+try
+    getBiosiglibConformanceInput(caseDefinition, inputId);
+    tf = true;
+catch exception
+    if strcmp(exception.identifier, 'biosigmat:ConformanceInputNotFound')
+        tf = false;
+    else
+        rethrow(exception);
+    end
+end
+end
+
+function verifyFdmetricsWarnings(testCase, caseDefinition)
+canonicalIds = {'excessive_vlf_power', 'zero_required_power'};
+matlabIds = strcat('biosigmat:fdmetrics:', canonicalIds);
+expectedWarnings = getExpectedWarnings(caseDefinition);
+expectedIds = cellfun(@(item) char(item.id), expectedWarnings, ...
+    'UniformOutput', false);
+
+warningState = warning;
+restoreWarnings = onCleanup(@() warning(warningState)); %#ok<NASGU>
+for iExpected = 1:numel(expectedWarnings)
+    setFdmetricsWarningStates(matlabIds, 'off');
+    expectedId = expectedIds{iExpected};
+    matlabId = ['biosigmat:fdmetrics:' expectedId];
+    warning('error', matlabId);
+    [didWarn, message] = executeForWarning( ...
+        caseDefinition, matlabId);
+    testCase.assertTrue(didWarn, sprintf( ...
+        'Expected canonical warning "%s" for case "%s".', ...
+        expectedId, caseDefinition.id));
+    actualAffectedIds = parseAffectedIds(message);
+    expectedAffectedIds = normalizeStringList( ...
+        expectedWarnings{iExpected}.affected_ids);
+    testCase.verifyEqual(sort(actualAffectedIds(:)), ...
+        sort(expectedAffectedIds(:)), sprintf( ...
+        'Warning "%s" must aggregate the complete affected_ids set.', ...
+        expectedId));
+
+    setFdmetricsWarningStates(matlabIds, 'off');
+    warning('on', matlabId);
+    commandOutput = evalc( ...
+        'executeBiosiglibFdmetricsCase(caseDefinition);');
+    occurrences = regexp(commandOutput, ...
+        [expectedId ' affected_ids:'], 'match');
+    testCase.verifyNumElements(occurrences, 1, sprintf( ...
+        'Warning "%s" must be emitted once per call.', expectedId));
+end
+
+unexpectedIds = setdiff(canonicalIds, expectedIds, 'stable');
+for iUnexpected = 1:numel(unexpectedIds)
+    setFdmetricsWarningStates(matlabIds, 'off');
+    unexpectedMatlabId = [ ...
+        'biosigmat:fdmetrics:' unexpectedIds{iUnexpected}];
+    warning('error', unexpectedMatlabId);
+    didWarn = executeForWarning(caseDefinition, unexpectedMatlabId);
+    testCase.verifyFalse(didWarn, sprintf( ...
+        'Case "%s" emitted unexpected warning "%s".', ...
+        caseDefinition.id, unexpectedIds{iUnexpected}));
+end
+end
+
+function [didWarn, message] = executeForWarning(caseDefinition, matlabId)
+didWarn = false;
+message = '';
+try
+    executeBiosiglibFdmetricsCase(caseDefinition);
+catch exception
+    if strcmp(exception.identifier, matlabId)
+        didWarn = true;
+        message = exception.message;
+    else
+        rethrow(exception);
+    end
+end
+end
+
+function warnings = getExpectedWarnings(caseDefinition)
+if ~isfield(caseDefinition, 'expected_warnings')
+    warnings = {};
+    return;
+end
+
+rawWarnings = caseDefinition.expected_warnings;
+if iscell(rawWarnings)
+    warnings = rawWarnings;
+else
+    warnings = arrayfun(@(item) item, rawWarnings, ...
+        'UniformOutput', false);
+end
+end
+
+function setFdmetricsWarningStates(matlabIds, state)
+for iWarning = 1:numel(matlabIds)
+    warning(state, matlabIds{iWarning});
+end
+end
+
+function affectedIds = parseAffectedIds(message)
+match = regexp(message, 'affected_ids:\s*([a-z0-9_, ]+)$', ...
+    'tokens', 'once');
+if isempty(match)
+    affectedIds = {};
+else
+    affectedIds = cellfun(@strtrim, strsplit(match{1}, ','), ...
+        'UniformOutput', false);
+end
+end
+
+function values = normalizeStringList(rawValues)
+if ischar(rawValues)
+    values = {rawValues};
+elseif isstring(rawValues)
+    values = cellstr(rawValues);
+elseif iscell(rawValues)
+    values = cellfun(@char, rawValues, 'UniformOutput', false);
+else
+    error('biosigmat:UnsupportedExpectedWarning', ...
+        'expected_warnings affected_ids must contain strings.');
+end
 end

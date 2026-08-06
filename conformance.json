@@ -27,6 +27,14 @@
       "status": "conformant",
       "entry_point": "ipfm"
     },
+    "hrv.osp": {
+      "status": "conformant",
+      "entry_point": "osp"
+    },
+    "hrv.fdmetrics": {
+      "status": "conformant",
+      "entry_point": "fdmetrics"
+    },
     "ecg.pantompkins": {
       "status": "conformant",
       "entry_point": "pantompkins"

@@ -1,8 +1,13 @@
 % Tests covering:
+%   - Shared hrv.osp conformance cases
 %   - Fixture-based decomposition of the HRV modulating signal
 %   - Short-signal handling when the estimated model order exceeds the data length
 
 classdef ospTest < matlab.unittest.TestCase
+
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('hrv.osp')
+    end
 
     properties
         tk
@@ -12,8 +17,13 @@ classdef ospTest < matlab.unittest.TestCase
     end
 
     methods (TestClassSetup)
-        function addCodeToPath(~)
-            addpath('../../src/hrv');
+        function addCodeToPath(tc)
+            testDirectory = fileparts(mfilename('fullpath'));
+            repositoryRoot = fileparts(fileparts(testDirectory));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'hrv'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
         end
     end
 
@@ -30,6 +40,20 @@ classdef ospTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() executeBiosiglibOspCase(caseDefinition), ...
+                    caseDefinition);
+                return;
+            end
+
+            outputs = executeBiosiglibOspCase(caseDefinition);
+            verifyBiosiglibExpectedOutputs(tc, outputs, caseDefinition);
+        end
+
         function testEmptySignalsReturnEmptyOutputs(tc)
             f = (0:0.1:tc.fs / 2)';
             respPxx = zeros(size(f));
@@ -118,4 +142,24 @@ classdef ospTest < matlab.unittest.TestCase
                 'The estimated delay should exceed the available data length in this scenario.');
         end
     end
+end
+
+function outputs = executeBiosiglibOspCase(caseDefinition)
+m = loadBiosiglibConformanceInput(caseDefinition, 'm');
+resp = loadBiosiglibConformanceInput(caseDefinition, 'resp');
+respPxx = loadBiosiglibConformanceInput(caseDefinition, 'resp_pxx');
+f = loadBiosiglibConformanceInput(caseDefinition, 'f');
+fs = loadBiosiglibConformanceInput(caseDefinition, 'fs');
+arguments = {};
+if isfield(caseDefinition.parameters, 'min_resp_frequency')
+    arguments = {'MinRespFrequency', ...
+        caseDefinition.parameters.min_resp_frequency};
+end
+
+[mResp, mUnrelated, delay] = osp( ...
+    m, resp, respPxx, f, fs, arguments{:});
+outputs = struct( ...
+    'm_resp', mResp, ...
+    'm_unrelated', mUnrelated, ...
+    'delay', delay);
 end

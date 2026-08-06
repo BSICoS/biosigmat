@@ -24,6 +24,12 @@ function metrics = fdmetrics(pxx, varargin)
 %     re   - Total respiration-related power
 %     r    - Unrelated-to-total power ratio
 %
+%   FDMETRICS emits the warning identifiers
+%   biosigmat:fdmetrics:excessive_vlf_power and
+%   biosigmat:fdmetrics:zero_required_power for the corresponding Biosiglib
+%   diagnostic conditions. Each warning aggregates all affected spectra or
+%   required powers in one message.
+%
 %   Example:
 %     % Compute frequency-domain HRV metrics from a synthetic spectrum
 %     f = linspace(0, 0.5, 512)';
@@ -47,12 +53,13 @@ nargoutchk(0, 1);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'fdmetrics';
-addRequired(parser, 'pxx', @(x) isnumeric(x) && isvector(x) && ~isempty(x) && ...
+addRequired(parser, 'pxx', @(x) isnumeric(x) && isreal(x) && isvector(x) && ~isempty(x) && ...
     all(~isinf(x)) && all(x(~isnan(x)) >= 0));
-addRequired(parser, 'secondInput', @(x) (isnumeric(x) || islogical(x)) && isvector(x) && ~isempty(x) && ...
+addRequired(parser, 'secondInput', @(x) isnumeric(x) && isreal(x) && isvector(x) && ~isempty(x) && ...
     all(~isinf(double(x))) && all(double(x(~isnan(double(x)))) >= 0));
 addOptional(parser, 'thirdInput', [], @(x) isempty(x) || ...
-    (islogical(x) && isscalar(x)) || (isnumeric(x) && isvector(x) && ~isempty(x) && all(isfinite(x))));
+    (islogical(x) && isscalar(x)) || (isnumeric(x) && isreal(x) && ...
+    isvector(x) && ~isempty(x) && all(isfinite(x)) && all(x >= 0)));
 
 parse(parser, pxx, varargin{:});
 
@@ -103,17 +110,14 @@ else
     end
 end
 
+if any(~isfinite(f)) || any(f < 0)
+    error('fdmetrics:InvalidFrequencyVector', ...
+        'f must contain finite, nonnegative frequencies.');
+end
+
 if any(diff(f) <= 0)
     error('fdmetrics:NonIncreasingFrequencyVector', ...
         'f must be strictly increasing.');
-end
-
-% The LF band is shared by both operating modes.
-lfStartIndex = find(f >= 0.04, 1);
-lfEndIndex = find(f >= 0.15, 1);
-
-if isempty(lfStartIndex) || isempty(lfEndIndex) || lfStartIndex > lfEndIndex
-    return;
 end
 
 if isTwoSpectrumMode
@@ -121,13 +125,38 @@ if isTwoSpectrumMode
         return;
     end
 
+    vlfAffectedIds = {};
+    if hasExcessiveVlfPower(relatedPxx, f)
+        vlfAffectedIds{end + 1} = 'related_pxx'; %#ok<AGROW>
+    end
+    if hasExcessiveVlfPower(unrelatedPxx, f)
+        vlfAffectedIds{end + 1} = 'unrelated_pxx'; %#ok<AGROW>
+    end
+    if ~isempty(vlfAffectedIds)
+        emitFdmetricsWarning('excessive_vlf_power', vlfAffectedIds);
+    end
+
+    lfStartIndex = find(f >= 0.04, 1);
+    lfEndIndex = find(f >= 0.15, 1);
+    if isempty(lfStartIndex) || isempty(lfEndIndex)
+        return;
+    end
+
     % OSP mode reports only respiration-related and unrelated LF metrics.
-    metrics.re = trapz(f, relatedPxx);
+    rawRe = trapz(f, relatedPxx);
+    rawUrlf = trapz(f(lfStartIndex:lfEndIndex), ...
+        unrelatedPxx(lfStartIndex:lfEndIndex));
+    if rawUrlf == 0
+        emitFdmetricsWarning('zero_required_power', {'urlf'});
+        return;
+    end
+
+    metrics.re = rawRe;
     if metrics.re > 0.05
         metrics.re = nan;
     end
 
-    metrics.urlf = trapz(f(lfStartIndex:lfEndIndex), unrelatedPxx(lfStartIndex:lfEndIndex));
+    metrics.urlf = rawUrlf;
     if metrics.urlf > 0.003
         metrics.urlf = nan;
     end
@@ -140,7 +169,17 @@ if any(isnan(pxx))
     return;
 end
 
-hfStartIndex = find(f >= 0.15, 1);
+if hasExcessiveVlfPower(pxx, f)
+    emitFdmetricsWarning('excessive_vlf_power', {'pxx'});
+end
+
+lfStartIndex = find(f >= 0.04, 1);
+lfEndIndex = find(f >= 0.15, 1);
+if isempty(lfStartIndex) || isempty(lfEndIndex)
+    return;
+end
+
+hfStartIndex = lfEndIndex;
 
 % The HF upper bound is either capped at 0.4 Hz or left unconstrained.
 if limitHf
@@ -157,18 +196,49 @@ if isempty(hfStartIndex) || isempty(hfEndIndex) || hfStartIndex > hfEndIndex
     return;
 end
 
-% Integrate the conventional LF and HF bands.
-metrics.hf = trapz(f(hfStartIndex:hfEndIndex), pxx(hfStartIndex:hfEndIndex));
-if metrics.hf > 15000
-    metrics.hf = nan;
+% Integrate the conventional LF and HF bands atomically.
+rawHf = trapz(f(hfStartIndex:hfEndIndex), pxx(hfStartIndex:hfEndIndex));
+rawLf = trapz(f(lfStartIndex:lfEndIndex), pxx(lfStartIndex:lfEndIndex));
+zeroAffectedIds = {};
+if rawHf == 0
+    zeroAffectedIds{end + 1} = 'hf'; %#ok<AGROW>
+end
+if rawLf == 0
+    zeroAffectedIds{end + 1} = 'lf'; %#ok<AGROW>
+end
+if ~isempty(zeroAffectedIds)
+    emitFdmetricsWarning('zero_required_power', zeroAffectedIds);
+    return;
 end
 
-metrics.lf = trapz(f(lfStartIndex:lfEndIndex), pxx(lfStartIndex:lfEndIndex));
-if metrics.lf > 15000
-    metrics.lf = nan;
-end
-
+metrics.hf = rawHf;
+metrics.lf = rawLf;
 metrics.lfn = metrics.lf / (metrics.lf + metrics.hf);
 metrics.lfhf = metrics.lf / metrics.hf;
 
+end
+
+function isExcessive = hasExcessiveVlfPower(spectrum, f)
+isExcessive = false;
+if ~any(f < 0.04)
+    return;
+end
+
+vlfEndIndex = find(f >= 0.04, 1);
+if isempty(vlfEndIndex)
+    return;
+end
+
+vlfPower = trapz(f(1:vlfEndIndex), spectrum(1:vlfEndIndex));
+restPower = trapz(f(vlfEndIndex:end), spectrum(vlfEndIndex:end));
+if restPower == 0
+    isExcessive = vlfPower > 0;
+else
+    isExcessive = vlfPower / restPower > 0.05;
+end
+end
+
+function emitFdmetricsWarning(warningId, affectedIds)
+warning(['biosigmat:fdmetrics:' warningId], ...
+    '%s affected_ids: %s', warningId, strjoin(affectedIds, ', '));
 end

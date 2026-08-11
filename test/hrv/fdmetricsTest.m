@@ -25,7 +25,13 @@ classdef fdmetricsTest < matlab.unittest.TestCase
         function testBiosiglibConformanceCase(tc, caseId)
             caseDefinition = loadBiosiglibConformanceCase(caseId);
 
-            verifyFdmetricsWarnings(tc, caseDefinition);
+            warningIdMap = containers.Map( ...
+                {'excessive_vlf_power', 'zero_required_power'}, ...
+                {'biosigmat:fdmetrics:excessive_vlf_power', ...
+                'biosigmat:fdmetrics:zero_required_power'});
+            verifyBiosiglibExpectedWarnings(tc, ...
+                @() executeBiosiglibFdmetricsCase(caseDefinition), ...
+                caseDefinition, warningIdMap);
             warningState = warning;
             restoreWarnings = onCleanup(@() warning(warningState)); %#ok<NASGU>
             warning('off', 'biosigmat:fdmetrics:excessive_vlf_power');
@@ -138,115 +144,5 @@ catch exception
     else
         rethrow(exception);
     end
-end
-end
-
-function verifyFdmetricsWarnings(testCase, caseDefinition)
-canonicalIds = {'excessive_vlf_power', 'zero_required_power'};
-matlabIds = strcat('biosigmat:fdmetrics:', canonicalIds);
-expectedWarnings = getExpectedWarnings(caseDefinition);
-expectedIds = cellfun(@(item) char(item.id), expectedWarnings, ...
-    'UniformOutput', false);
-
-warningState = warning;
-restoreWarnings = onCleanup(@() warning(warningState)); %#ok<NASGU>
-for iExpected = 1:numel(expectedWarnings)
-    setFdmetricsWarningStates(matlabIds, 'off');
-    expectedId = expectedIds{iExpected};
-    matlabId = ['biosigmat:fdmetrics:' expectedId];
-    warning('error', matlabId);
-    [didWarn, message] = executeForWarning( ...
-        caseDefinition, matlabId);
-    testCase.assertTrue(didWarn, sprintf( ...
-        'Expected canonical warning "%s" for case "%s".', ...
-        expectedId, caseDefinition.id));
-    actualAffectedIds = parseAffectedIds(message);
-    expectedAffectedIds = normalizeStringList( ...
-        expectedWarnings{iExpected}.affected_ids);
-    testCase.verifyEqual(sort(actualAffectedIds(:)), ...
-        sort(expectedAffectedIds(:)), sprintf( ...
-        'Warning "%s" must aggregate the complete affected_ids set.', ...
-        expectedId));
-
-    setFdmetricsWarningStates(matlabIds, 'off');
-    warning('on', matlabId);
-    commandOutput = evalc( ...
-        'executeBiosiglibFdmetricsCase(caseDefinition);');
-    occurrences = regexp(commandOutput, ...
-        [expectedId ' affected_ids:'], 'match');
-    testCase.verifyNumElements(occurrences, 1, sprintf( ...
-        'Warning "%s" must be emitted once per call.', expectedId));
-end
-
-unexpectedIds = setdiff(canonicalIds, expectedIds, 'stable');
-for iUnexpected = 1:numel(unexpectedIds)
-    setFdmetricsWarningStates(matlabIds, 'off');
-    unexpectedMatlabId = [ ...
-        'biosigmat:fdmetrics:' unexpectedIds{iUnexpected}];
-    warning('error', unexpectedMatlabId);
-    didWarn = executeForWarning(caseDefinition, unexpectedMatlabId);
-    testCase.verifyFalse(didWarn, sprintf( ...
-        'Case "%s" emitted unexpected warning "%s".', ...
-        caseDefinition.id, unexpectedIds{iUnexpected}));
-end
-end
-
-function [didWarn, message] = executeForWarning(caseDefinition, matlabId)
-didWarn = false;
-message = '';
-try
-    executeBiosiglibFdmetricsCase(caseDefinition);
-catch exception
-    if strcmp(exception.identifier, matlabId)
-        didWarn = true;
-        message = exception.message;
-    else
-        rethrow(exception);
-    end
-end
-end
-
-function warnings = getExpectedWarnings(caseDefinition)
-if ~isfield(caseDefinition, 'expected_warnings')
-    warnings = {};
-    return;
-end
-
-rawWarnings = caseDefinition.expected_warnings;
-if iscell(rawWarnings)
-    warnings = rawWarnings;
-else
-    warnings = arrayfun(@(item) item, rawWarnings, ...
-        'UniformOutput', false);
-end
-end
-
-function setFdmetricsWarningStates(matlabIds, state)
-for iWarning = 1:numel(matlabIds)
-    warning(state, matlabIds{iWarning});
-end
-end
-
-function affectedIds = parseAffectedIds(message)
-match = regexp(message, 'affected_ids:\s*([a-z0-9_, ]+)$', ...
-    'tokens', 'once');
-if isempty(match)
-    affectedIds = {};
-else
-    affectedIds = cellfun(@strtrim, strsplit(match{1}, ','), ...
-        'UniformOutput', false);
-end
-end
-
-function values = normalizeStringList(rawValues)
-if ischar(rawValues)
-    values = {rawValues};
-elseif isstring(rawValues)
-    values = cellstr(rawValues);
-elseif iscell(rawValues)
-    values = cellfun(@char, rawValues, 'UniformOutput', false);
-else
-    error('biosigmat:UnsupportedExpectedWarning', ...
-        'expected_warnings affected_ids must contain strings.');
 end
 end

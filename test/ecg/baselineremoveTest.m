@@ -1,4 +1,5 @@
 % Tests covering:
+%   - Shared ecg.baselineremove conformance cases
 %   - Basic functionality with real ECG data from fixtures using R-peaks and offset
 %   - Error handling (invalid inputs, negative offset, invalid window size)
 %   - Different window size effect
@@ -11,12 +12,17 @@ classdef baselineremoveTest < matlab.unittest.TestCase
         offset
     end
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('ecg.baselineremove')
+    end
+
 
     methods (TestClassSetup)
         function addCodeToPath(~)
             addpath(fullfile('..', '..', 'src', 'ecg'));
             addpath(fullfile('..', '..', 'src', 'tools'));
             addpath(fullfile('..', '..', 'fixtures', 'ecg'));
+            addpath(fullfile('..', '..', 'test', 'common'));
         end
     end
 
@@ -34,6 +40,30 @@ classdef baselineremoveTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+
+            if isfield(caseDefinition, 'expected_error')
+                verifyBiosiglibExpectedError(tc, ...
+                    @() executeBiosiglibBaselineremoveCase(caseDefinition), ...
+                    caseDefinition);
+                return;
+            end
+
+            warningIdMap = containers.Map( ...
+                {'no_valid_fiducial_positions'}, ...
+                {'baselineremove:noValidFiducialPoints'});
+            verifyBiosiglibExpectedWarnings(tc, ...
+                @() executeBiosiglibBaselineremoveCase(caseDefinition), ...
+                caseDefinition, warningIdMap);
+
+            warningState = warning;
+            restoreWarnings = onCleanup(@() warning(warningState)); %#ok<NASGU>
+            warning('off', 'baselineremove:noValidFiducialPoints');
+            outputs = executeBiosiglibBaselineremoveCase(caseDefinition);
+            verifyBiosiglibExpectedOutputs(tc, outputs, caseDefinition);
+        end
+
         function testBasicFunctionality(tc)
             [ecgDetrended, baseline] = baselineremove(tc.ecg, tc.tk, tc.offset);
 
@@ -68,4 +98,22 @@ classdef baselineremoveTest < matlab.unittest.TestCase
             tc.verifyNotEqual(clean1, clean2, 'Window size had no effect');
         end
     end
+end
+
+function outputs = executeBiosiglibBaselineremoveCase(caseDefinition)
+ecg = loadBiosiglibConformanceInput(caseDefinition, 'ecg');
+fiducialPositions = loadBiosiglibConformanceInput( ...
+    caseDefinition, 'fiducial_positions');
+offset = loadBiosiglibConformanceInput(caseDefinition, 'offset');
+
+if isfield(caseDefinition.parameters, 'window_size')
+    [ecgDetrended, baseline] = baselineremove( ...
+        ecg, fiducialPositions, offset, ...
+        caseDefinition.parameters.window_size);
+else
+    [ecgDetrended, baseline] = baselineremove( ...
+        ecg, fiducialPositions, offset);
+end
+
+outputs = struct('ecg_detrended', ecgDetrended, 'baseline', baseline);
 end

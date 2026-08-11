@@ -30,10 +30,14 @@ nargoutchk(0, 2);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'baselineremove';
-addRequired(parser, 'ecg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addRequired(parser, 'tk', @(x) isnumeric(x) && isvector(x) && all(x > 0));
-addRequired(parser, 'offset', @(x) isnumeric(x) && isscalar(x) && x >= 0 && mod(x,1) == 0);
-addOptional(parser, 'window', 5, @(x) isnumeric(x) && isscalar(x) && x > 0 && mod(x,1) == 0);
+addRequired(parser, 'ecg', @(x) isnumeric(x) && isreal(x) && isvector(x) && ...
+    ~isempty(x) && all(isfinite(x)));
+addRequired(parser, 'tk', @(x) isnumeric(x) && isreal(x) && isvector(x) && ...
+    ~isempty(x) && all(isfinite(x)) && all(x > 0));
+addRequired(parser, 'offset', @(x) isnumeric(x) && isreal(x) && isscalar(x) && ...
+    isfinite(x) && x >= 0 && mod(x,1) == 0);
+addOptional(parser, 'window', 5, @(x) isnumeric(x) && isreal(x) && isscalar(x) && ...
+    isfinite(x) && x > 0 && mod(x,1) == 0);
 
 parse(parser, ecg, tk, offset, varargin{:});
 
@@ -49,10 +53,16 @@ fiducialPoints = fiducialPoints(fiducialPoints >= 1 & fiducialPoints <= length(e
 fiducialPoints = unique(fiducialPoints);
 
 if isempty(fiducialPoints)
-    warning('baselineremove:noValidFiducialPoints', 'No valid fiducial points computed. Returning original ecg.');
+    warning('baselineremove:noValidFiducialPoints', ...
+        'no_valid_fiducial_positions affected_ids: fiducial_positions');
     ecgDetrended = ecg;
     baseline = zeros(size(ecg));
     return;
+end
+
+if isscalar(fiducialPoints)
+    error('baselineremove:InsufficientData', ...
+        'At least two valid fiducial positions are required.');
 end
 
 % Calculate mean values around each fiducial point

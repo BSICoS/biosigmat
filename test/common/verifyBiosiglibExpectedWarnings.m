@@ -42,17 +42,26 @@ for iExpected = 1:numel(expectedWarnings)
         'Warning "%s" must be emitted once per call.', expectedId));
 end
 
-setWarningStates(matlabIds, 'off');
-warning('error', 'all');
 expectedMatlabIds = cellfun(@(id) warningIdMap(id), expectedIds, ...
     'UniformOutput', false);
-setWarningStates(expectedMatlabIds, 'off');
+setWarningStates(matlabIds, 'on');
+if isempty(expectedMatlabIds)
+    warningConstraint = matlab.unittest.constraints.IssuesNoWarnings;
+else
+    warningConstraint = matlab.unittest.constraints.IssuesWarnings( ...
+        expectedMatlabIds, 'RespectingSet', true);
+end
 try
-    functionHandle();
+    warningProfileMatches = warningConstraint.satisfiedBy(functionHandle);
 catch exception
     error('biosigmat:UnexpectedWarning', ...
-        ['Case "%s" emitted an unexpected warning or error "%s": %s'], ...
+        ['Case "%s" emitted an unexpected error "%s": %s'], ...
         caseDefinition.id, exception.identifier, exception.message);
+end
+if ~warningProfileMatches
+    error('biosigmat:UnexpectedWarning', ...
+        'Case "%s" emitted a warning outside its expected warning set.', ...
+        caseDefinition.id);
 end
 end
 

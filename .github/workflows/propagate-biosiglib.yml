@@ -104,11 +104,14 @@ jobs:
               specification = json.loads(spec_path.read_text(encoding="utf-8"))
               specification_ids.append(specification["metadata"]["id"])
 
-          for specification_id in specification_ids:
-              manifest["specifications"].setdefault(
+          existing_specifications = manifest["specifications"]
+          manifest["specifications"] = {
+              specification_id: existing_specifications.get(
                   specification_id,
                   {"status": "implemented"},
               )
+              for specification_id in sorted(set(specification_ids))
+          }
 
           statuses = ", ".join(
               f"{specification_id}: {entry['status']}"

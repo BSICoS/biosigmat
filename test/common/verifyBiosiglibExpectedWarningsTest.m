@@ -23,10 +23,26 @@ classdef verifyBiosiglibExpectedWarningsTest < matlab.unittest.TestCase
             verifyBiosiglibExpectedWarnings( ...
                 tc, @() 1, caseDefinition, warningIdMap);
         end
+
+        function testUnmappedUnexpectedWarningFails(tc)
+            caseDefinition = struct('id', 'tools.example.unmapped_warning');
+            warningIdMap = containers.Map( ...
+                {'example_warning'}, ...
+                {'biosigmat:test:example_warning'});
+
+            tc.verifyError(@() verifyBiosiglibExpectedWarnings( ...
+                tc, @emitUnmappedWarning, caseDefinition, warningIdMap), ...
+                'biosigmat:UnexpectedWarning');
+        end
     end
 end
 
 function emitExampleWarning()
 warning('biosigmat:test:example_warning', ...
     'example_warning affected_ids: second, first');
+end
+
+function emitUnmappedWarning()
+warning('biosigmat:test:unmapped_warning', ...
+    'This warning is intentionally absent from the canonical map.');
 end

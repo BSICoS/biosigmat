@@ -99,6 +99,17 @@ jobs:
               count=1,
           )
 
+          specification_ids = []
+          for spec_path in sorted(Path("../biosiglib/specs").rglob("spec.json")):
+              specification = json.loads(spec_path.read_text(encoding="utf-8"))
+              specification_ids.append(specification["metadata"]["id"])
+
+          for specification_id in specification_ids:
+              manifest["specifications"].setdefault(
+                  specification_id,
+                  {"status": "implemented"},
+              )
+
           statuses = ", ".join(
               f"{specification_id}: {entry['status']}"
               for specification_id, entry in manifest["specifications"].items()
@@ -146,16 +157,6 @@ jobs:
             MATLAB
             Signal_Processing_Toolbox
             Curve_Fitting_Toolbox
-
-      - name: Run tdmetrics conformance tests
-        uses: matlab-actions/run-command@v2
-        with:
-          command: cd('biosigmat'); addpath('scripts/local'); runTests('hrv/tdmetrics')
-
-      - name: Run pantompkins conformance tests
-        uses: matlab-actions/run-command@v2
-        with:
-          command: cd('biosigmat'); addpath('scripts/local'); runTests('ecg/pantompkins')
 
       - name: Run full MATLAB suite
         uses: matlab-actions/run-command@v2

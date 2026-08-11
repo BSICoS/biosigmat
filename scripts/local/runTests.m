@@ -13,6 +13,13 @@ initialPath = pwd;
 projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
 cd(projectRoot);
 
+% Exercise plotting code without opening GUI windows during the test run.
+originalFigureVisibility = get(groot, 'DefaultFigureVisible');
+visibilityCleanup = onCleanup(@() set(groot, ...
+    'DefaultFigureVisible', originalFigureVisibility)); %#ok<NASGU>
+figureCleanup = onCleanup(@() close('all')); %#ok<NASGU>
+set(groot, 'DefaultFigureVisible', 'off');
+
 % Parse input arguments
 if nargin == 0
     % Run all tests
@@ -147,7 +154,10 @@ fprintf('Incomplete: %d\n', sum([results.Incomplete]));
 totalTime = sum([results.Duration]);
 fprintf('\nTotal execution time: %.4f seconds\n', totalTime);
 
+clear suite;
 cd(initialPath); % Change back to the initial directory
+close('all');
+set(groot, 'DefaultFigureVisible', originalFigureVisibility);
 
 % Exit with an error code if any test fails (important for the pre-push hook)
 if any([results.Failed])

@@ -5,6 +5,13 @@ function runTestsCI()
 % Run all tests in a CI-friendly manner
 % This version generates JUnit XML reports and coverage data for GitHub Actions
 
+% Exercise plotting code without opening GUI windows during the test run.
+originalFigureVisibility = get(groot, 'DefaultFigureVisible');
+visibilityCleanup = onCleanup(@() set(groot, ...
+    'DefaultFigureVisible', originalFigureVisibility)); %#ok<NASGU>
+figureCleanup = onCleanup(@() close('all')); %#ok<NASGU>
+set(groot, 'DefaultFigureVisible', 'off');
+
 try
     % Get project root directory and change to it (navigate up from scripts/ci/ to project root)
     projectRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
@@ -33,6 +40,9 @@ try
 
     % Run the test suite
     results = runner.run(suite);
+    clear suite;
+    close('all');
+    set(groot, 'DefaultFigureVisible', originalFigureVisibility);
 
     % Display comprehensive summary
     fprintf('\n=== MATLAB Test Summary ===\n');

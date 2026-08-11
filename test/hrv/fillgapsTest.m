@@ -57,12 +57,12 @@ classdef fillgapsTest < matlab.unittest.TestCase
 
         function testInteractiveDebugRunsEveryAttemptWithoutChangingResults(tc)
             originalPauseState = pause('query');
-            tc.addTeardown(@() pause(originalPauseState));
+            pauseCleanup = onCleanup(@() pause(originalPauseState)); %#ok<NASGU>
             pause('off');
 
             originalVisibility = get(groot, 'DefaultFigureVisible');
-            tc.addTeardown(@() set(groot, ...
-                'DefaultFigureVisible', originalVisibility));
+            visibilityCleanup = onCleanup(@() set(groot, ...
+                'DefaultFigureVisible', originalVisibility)); %#ok<NASGU>
             set(groot, 'DefaultFigureVisible', 'off');
 
             [tn, dtn] = fillgaps([0, 1, 2, 4, 5, 6], true);

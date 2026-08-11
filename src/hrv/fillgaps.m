@@ -282,7 +282,7 @@ end
 
 
 function plotDebugOverview(debugFigure, dtn, gaps, threshold, nfill)
-figure(debugFigure);
+set(groot, 'CurrentFigure', debugFigure);
 subplot(2, 1, 1);
 hold off;
 stem(dtn, 'Color', [0.15, 0.15, 0.15]);
@@ -303,7 +303,7 @@ function debugplots(debugFigure, dtn, gap, upperThreshold, ...
         lowerThreshold, nfill, correct)
 % DEBUGPLOTS Show one reconstruction attempt and wait for user input.
 
-figure(debugFigure);
+set(groot, 'CurrentFigure', debugFigure);
 subplot(2, 1, 2);
 hold off;
 stem(dtn, 'Color', [0.15, 0.15, 0.15]);

@@ -28,13 +28,8 @@ theme:
 plugins:
   - search
   - awesome-pages
-  - git-revision-date-localized:
-      enabled: !ENV [MKDOCS_GIT_REVISION_DATE_ENABLED, true]
-      type: date
-      fallback_to_build_date: true
   - minify:
       minify_html: true
-  - redirects
 
 markdown_extensions:
   - admonition

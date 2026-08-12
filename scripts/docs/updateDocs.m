@@ -48,9 +48,6 @@ try
     % Update main API index
     updateApiIndex(docsDir, modules);
 
-    % Update timestamps
-    updateTimestamps(docsDir);
-
     fprintf('✅ Documentation update completed successfully!\n');
 
 catch ME
@@ -61,22 +58,14 @@ end
 end
 
 function cleanGeneratedDocs(docsDir)
-% Remove stale API Markdown and obsolete example pages.
+% Remove stale generated API Markdown.
 
-fprintf('Cleaning generated API Markdown and obsolete example pages...\n');
+fprintf('Cleaning generated API Markdown...\n');
 
-generatedRoots = {
-    fullfile(docsDir, 'api')
-    fullfile(docsDir, 'examples')
-};
+generatedRoot = fullfile(docsDir, 'api');
 
 removedCount = 0;
-for rootIndex = 1:numel(generatedRoots)
-    generatedRoot = generatedRoots{rootIndex};
-    if ~exist(generatedRoot, 'dir')
-        continue;
-    end
-
+if exist(generatedRoot, 'dir')
     generatedFiles = dir(fullfile(generatedRoot, '**', '*.md'));
     for fileIndex = 1:numel(generatedFiles)
         filePath = fullfile(generatedFiles(fileIndex).folder, generatedFiles(fileIndex).name);
@@ -109,8 +98,6 @@ if ~exist(moduleDocsDir, 'dir')
     mkdir(moduleDocsDir);
 end
 
-functionList = {};
-
 % Process each function
 for i = 1:length(mFiles)
     [~, funcName, ~] = fileparts(mFiles(i).name);
@@ -129,11 +116,8 @@ for i = 1:length(mFiles)
     % Generate markdown documentation
     generateFunctionDoc(moduleDocsDir, funcName, docInfo, module);
 
-    functionList{end+1} = funcName; %#ok<*AGROW>
+    %#ok<*AGROW>
 end
-
-% Update module index.md
-updateModuleIndex(moduleDocsDir, module, functionList);
 
 end
 
@@ -148,7 +132,6 @@ docInfo.longDescription = '';
 docInfo.syntax = {};
 docInfo.examples = '';
 docInfo.seeAlso = {};
-docInfo.status = 'Stable'; % Default status
 
 try
     % Read file content with UTF-8 encoding
@@ -322,28 +305,15 @@ try
 
         docInfo.examples = strjoin(currentExample, newline);
 
-        % Clean up see also list - only include items from header, exclude status
+        % Clean up the See also list.
         cleanSeeAlso = {};
         for j = 1:length(seeAlsoList)
             item = strtrim(seeAlsoList{j});
-            if ~isempty(item) && ~startsWith(item, 'Status:')
+            if ~isempty(item)
                 cleanSeeAlso{end+1} = item;
             end
         end
         docInfo.seeAlso = cleanSeeAlso;
-
-        % Extract status information (look for "Status:" at the beginning of lines)
-        for j = length(headerLines):-1:max(1, length(headerLines)-5)
-            line = headerLines{j};
-            cleanLine = strtrim(strrep(line, '%', ''));
-            if startsWith(cleanLine, 'Status:')
-                statusText = strtrim(cleanLine(8:end)); % Remove "Status:" prefix
-                if ~isempty(statusText)
-                    docInfo.status = statusText;
-                end
-                break;
-            end
-        end
     end
 
 catch ME
@@ -449,35 +419,34 @@ else
 end
 
 % Add source code link
-content = [content sprintf('## Source Code\n\n')];
-content = [content sprintf('[View source code](https://github.com/BSICoS/biosigmat/tree/main/src/%s/%s.m)\n\n', module, functionName)];
+content = [content sprintf('## Source\n\n')];
+content = [content sprintf('[View source code](https://github.com/BSICoS/biosigmat/blob/main/src/%s/%s.m)\n\n', module, functionName)];
 
-% Add examples section
-content = [content sprintf('## Examples\n\n')];
+% Link a matching executable example outside tools.
+exampleExists = false;
+if ~strcmp(module, 'tools')
+    toolboxRoot = fileparts(fileparts(fileparts(moduleDocsDir)));
+    examplePath = fullfile(toolboxRoot, 'examples', module, [functionName 'Example.m']);
+    exampleExists = exist(examplePath, 'file') == 2;
+end
+
+% Include examples only when the source provides useful content.
+if ~isempty(docInfo.examples) || exampleExists
+    content = [content sprintf('## Example\n\n')];
+end
 if ~isempty(docInfo.examples)
     content = [content sprintf('```matlab\n')];
     content = [content sprintf('%s\n', docInfo.examples)];
     content = [content sprintf('```\n\n')];
-else
-    content = [content sprintf('```matlab\n')];
-    content = [content sprintf('%% Basic usage example\n')];
-    content = [content sprintf('result = %s(input);\n', functionName)];
-    content = [content sprintf('```\n\n')];
 end
 
-% Add link to detailed example if it exists (exclude tools module)
-if ~strcmp(module, 'tools')
-    % Check if example file exists
-    toolboxRoot = fileparts(fileparts(fileparts(moduleDocsDir))); % Go up 3 levels: api/module -> api -> docs -> root
-    examplePath = fullfile(toolboxRoot, 'examples', module, [functionName 'Example.m']);
-    if exist(examplePath, 'file')
-        content = [content sprintf('[View executable example](https://github.com/BSICoS/biosigmat/blob/main/examples/%s/%sExample.m)\n\n', module, functionName)];
-    end
+if exampleExists
+    content = [content sprintf('[View executable example](https://github.com/BSICoS/biosigmat/blob/main/examples/%s/%sExample.m)\n\n', module, functionName)];
 end
 
 % Add see also section
-content = [content sprintf('## See Also\n\n')];
 if ~isempty(docInfo.seeAlso)
+    content = [content sprintf('## See also\n\n')];
     for i = 1:length(docInfo.seeAlso)
         seeAlsoItem = strtrim(docInfo.seeAlso{i});
         if ~isempty(seeAlsoItem)
@@ -486,11 +455,6 @@ if ~isempty(docInfo.seeAlso)
     end
     content = [content newline];
 end
-content = [content sprintf('- [API Reference](../index.md)\n\n')];
-
-content = [content sprintf('---\n\n')];
-content = [content sprintf('**Module**: [%s](index.md) | **Last Updated**: %s\n', ...
-    upper(module), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 
 % Write file
 try
@@ -509,48 +473,14 @@ end
 
 end
 
-function updateModuleIndex(moduleDocsDir, module, functionList)
-% Update the index.md file for a module
-
-readmePath = fullfile(moduleDocsDir, 'index.md');
-
-% Create basic module index.md content
-content = sprintf('---\ntitle: %s Module Overview\n---\n', upper(module));
-content = [content sprintf('# %s Module\n\n', upper(module))];
-content = [content sprintf('## Functions\n\n')];
-
-for i = 1:length(functionList)
-    funcName = functionList{i};
-    content = [content sprintf('- [`%s`](%s.md)\n', funcName, funcName)];
-end
-
-content = [content sprintf('\n## See Also\n\n')];
-content = [content sprintf('- [API Reference](../index.md)\n\n')];
-
-content = [content sprintf('---\n\n')];
-content = [content sprintf('**Functions**: %d | **Last Updated**: %s\n', ...
-    length(functionList), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
-
-% Write file
-fid = fopen(readmePath, 'w', 'n', 'UTF-8');
-if fid == -1
-    error('Could not open file for writing: %s', readmePath);
-end
-fprintf(fid, '%s', content);
-fclose(fid);
-
-end
-
 function updateApiIndex(docsDir, modules)
 % Update the main API index file
 
 fprintf('📋 Updating API index...\n');
 
 try
-    % Collect all functions with their information
-    allFunctions = {};
+    % Collect functions by source module.
     functionsByModule = struct();
-    totalFunctions = 0;
 
     for i = 1:length(modules)
         module = modules{i};
@@ -577,26 +507,9 @@ try
                 funcInfo.name = funcName;
                 funcInfo.description = docInfo.briefDescription;
 
-                % Format status with appropriate emoji
-                statusText = docInfo.status;
-                switch lower(statusText)
-                    case 'alpha'
-                        funcInfo.status = ':material-alpha: Alpha';
-                    case 'beta'
-                        funcInfo.status = ':material-beta: Beta';
-                    case 'deprecated'
-                        funcInfo.status = ':material-cancel: Deprecated';
-                    case 'stable'
-                        funcInfo.status = ':white_check_mark: Stable';
-                    otherwise
-                        funcInfo.status = ':white_check_mark: Stable'; % Default
-                end
-
                 funcInfo.module = module;
 
                 moduleFunctions{end+1} = funcInfo;
-                allFunctions{end+1} = funcInfo;
-                totalFunctions = totalFunctions + 1;
             end
 
             moduleKey = matlab.lang.makeValidName(erase(module, '+'));
@@ -605,9 +518,9 @@ try
     end
 
     % Generate the complete API index.md
-    generateApiIndex(docsDir, functionsByModule, allFunctions, totalFunctions);
+    generateApiIndex(docsDir, functionsByModule);
 
-    fprintf('  ✅ Generated API index with %d total functions\n', totalFunctions);
+    fprintf('  ✅ Generated API index\n');
 
 catch ME
     fprintf('⚠️  Warning: Could not update API index: %s\n', ME.message);
@@ -615,23 +528,25 @@ end
 
 end
 
-function generateApiIndex(docsDir, functionsByModule, allFunctions, totalFunctions)
+function generateApiIndex(docsDir, functionsByModule)
 % Generate the complete API index.md file
 
 apiReadmePath = fullfile(docsDir, 'api', 'index.md');
 
 % Create the content
-content = sprintf('# API Reference\n\n');
-content = [content sprintf('Complete reference documentation for all functions in the biosigmat toolbox.\n\n')];
-content = [content sprintf('## Modules\n')];
+content = sprintf('# API\n\n');
+content = [content sprintf(['The API pages document MATLAB signatures and link to executable examples. ' ...
+    'For expected inputs and outputs, scientific interpretation, limitations, and references, use the ' ...
+    '[Biosiglib method catalog](https://bsicos.github.io/biosiglib/methods/).\n'])];
 
 % Define module information
 moduleInfo = struct();
-moduleInfo.ecg = struct('title', 'ECG Processing', 'desc', 'Functions for electrocardiography signal analysis and QRS detection.');
-moduleInfo.ppg = struct('title', 'PPG Processing', 'desc', 'Functions for photoplethysmography signal analysis and pulse detection.');
-moduleInfo.hrv = struct('title', 'HRV Analysis', 'desc', 'Functions for heart rate variability analysis and metrics calculation.');
-moduleInfo.tools = struct('title', 'General Tools', 'desc', 'Utility functions for signal processing and data manipulation.');
-moduleInfo.biosigmat = struct('title', 'Biosigmat Metadata', 'desc', 'Package-qualified implementation metadata and version queries.');
+moduleInfo.ecg = 'ECG';
+moduleInfo.ppg = 'PPG';
+moduleInfo.resp = 'Respiration';
+moduleInfo.hrv = 'HRV';
+moduleInfo.tools = 'Tools';
+moduleInfo.biosigmat = 'Package';
 
 % Generate sections for each module
 moduleNames = fieldnames(functionsByModule);
@@ -645,51 +560,22 @@ for i = 1:length(moduleNames)
 
     module = functions{1}.module;
 
-    % Add module header
+    % Add a direct function table for the module.
     if isfield(moduleInfo, moduleKey)
-        content = [content sprintf('\n### [%s](%s/index.md)\n\n', moduleInfo.(moduleKey).title, module)];
-        content = [content sprintf('%s\n\n', moduleInfo.(moduleKey).desc)];
+        content = [content sprintf('\n## %s\n\n', moduleInfo.(moduleKey))];
     else
-        content = [content sprintf('\n### [%s](%s/index.md)\n\n', upper(module), module)];
-        content = [content sprintf('Functions for %s processing.\n\n', module)];
+        content = [content sprintf('\n## %s\n\n', upper(module))];
     end
 
-    % Add function table
-    content = [content sprintf('| Function | Description | Status |\n')];
-    content = [content sprintf('| -------- | ----------- | ------ |\n')];
+    content = [content sprintf('| Function | Description |\n')];
+    content = [content sprintf('| --- | --- |\n')];
 
     for j = 1:length(functions)
         func = functions{j};
-        content = [content sprintf('| [`%s`](%s/%s.md) | %s | %s |\n', ...
-            func.name, module, func.name, func.description, func.status)];
+        content = [content sprintf('| [`%s`](%s/%s.md) | %s |\n', ...
+            func.name, module, func.name, func.description)];
     end
 end
-
-% Add alphabetical index
-content = [content sprintf('\n## Function Index\n\n')];
-content = [content sprintf('### Alphabetical Index\n\n')];
-content = [content sprintf('All functions sorted alphabetically:\n\n')];
-
-% Sort all functions alphabetically
-sortedFunctions = allFunctions;
-[~, sortIdx] = sort(cellfun(@(x) x.name, sortedFunctions, 'UniformOutput', false));
-sortedFunctions = sortedFunctions(sortIdx);
-
-for i = 1:length(sortedFunctions)
-    func = sortedFunctions{i};
-    content = [content sprintf('- [`%s`](%s/%s.md)\n', func.name, func.module, func.name)];
-end
-
-% Add legend and footer
-content = [content sprintf('\n\n## Development Status Legend\n\n')];
-content = [content sprintf('- :white_check_mark: **Stable**: Well-tested, production ready\n')];
-content = [content sprintf('- :material-alpha: **Beta**: Feature complete, undergoing testing\n')];
-content = [content sprintf('- :material-beta: **Alpha**: Under development, API may change\n')];
-content = [content sprintf('- :material-cancel: **Deprecated**: No longer recommended for use\n')];
-
-content = [content sprintf('\n---\n\n')];
-content = [content sprintf('*Last updated: %s | Total functions: %d*\n', ...
-    string(datetime('now', 'Format', 'yyyy-MM-dd')), totalFunctions)];
 
 % Write the file
 try
@@ -708,40 +594,4 @@ end
 
 end
 
-function updateTimestamps(docsDir)
-% Update timestamps in documentation files
-
-fprintf('🕐 Updating timestamps...\n');
-
-% Find all .md files and update {{DATE}} placeholders
-mdFiles = dir(fullfile(docsDir, '**', '*.md'));
-
-currentDate = string(datetime('now', 'Format', 'yyyy-MM-dd'));
-
-for i = 1:length(mdFiles)
-    filePath = fullfile(mdFiles(i).folder, mdFiles(i).name);
-
-    try
-        % Read file with UTF-8 encoding
-        content = fileread(filePath, 'Encoding', 'UTF-8');
-
-        % Replace timestamp placeholder
-        if contains(content, '{{DATE}}')
-            content = strrep(content, '{{DATE}}', currentDate);
-
-            % Write back with UTF-8 encoding
-            fid = fopen(filePath, 'w', 'n', 'UTF-8');
-            if fid == -1
-                error('Could not open file for writing: %s', filePath);
-            end
-            fprintf(fid, '%s', content);
-            fclose(fid);
-        end
-    catch ME
-        fprintf('⚠️  Warning: Could not update timestamps in %s: %s\n', ...
-            mdFiles(i).name, ME.message);
-    end
-end
-
-end
 % End of documentation generator.

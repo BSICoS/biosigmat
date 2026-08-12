@@ -10,9 +10,8 @@ function updateDocs()
 % The script performs the following tasks:
 % 1. Scans all .m files in src/ directory
 % 2. Extracts function headers and documentation
-% 3. Generates/updates corresponding .md files
+% 3. Generates/updates corresponding API .md files
 % 4. Updates API index files
-% 5. Validates internal links
 
 fprintf('🔄 Starting documentation update...\n');
 
@@ -28,8 +27,8 @@ try
         fprintf('📁 Created docs directory\n');
     end
 
-    % Generated API/example Markdown is a build artifact. Headers and examples are
-    % the source of truth; CI regenerates these files before MkDocs builds.
+    % Generated API Markdown is a build artifact. Function headers are the
+    % source of truth; CI regenerates these files before MkDocs builds.
     cleanGeneratedDocs(docsDir);
 
     % Get modules dynamically from src directory
@@ -45,16 +44,6 @@ try
         fprintf('📚 Processing %s module...\n', module);
         updateModuleDocs(srcDir, docsDir, module);
     end
-
-    % Update examples documentation
-    examplesDir = fullfile(toolboxRoot, 'examples');
-    fprintf('📋 Processing examples...\n');
-    updateExamplesDocs(examplesDir, docsDir);
-
-    % Update workflows documentation
-    workflowsDir = fullfile(examplesDir, 'workflows');
-    fprintf('⚙️ Processing workflows...\n');
-    updateWorkflowsDocs(workflowsDir, docsDir);
 
     % Update main API index
     updateApiIndex(docsDir, modules);
@@ -72,9 +61,9 @@ end
 end
 
 function cleanGeneratedDocs(docsDir)
-% Remove stale generated API and example Markdown files.
+% Remove stale API Markdown and obsolete example pages.
 
-fprintf('Cleaning generated API/example Markdown...\n');
+fprintf('Cleaning generated API Markdown and obsolete example pages...\n');
 
 generatedRoots = {
     fullfile(docsDir, 'api')
@@ -482,7 +471,7 @@ if ~strcmp(module, 'tools')
     toolboxRoot = fileparts(fileparts(fileparts(moduleDocsDir))); % Go up 3 levels: api/module -> api -> docs -> root
     examplePath = fullfile(toolboxRoot, 'examples', module, [functionName 'Example.m']);
     if exist(examplePath, 'file')
-        content = [content sprintf('[View detailed example](https://github.com/BSICoS/biosigmat/tree/main/examples/%s/%sExample.m)\n\n', module, functionName)];
+        content = [content sprintf('[View executable example](https://github.com/BSICoS/biosigmat/blob/main/examples/%s/%sExample.m)\n\n', module, functionName)];
     end
 end
 
@@ -535,44 +524,12 @@ for i = 1:length(functionList)
     content = [content sprintf('- [`%s`](%s.md)\n', funcName, funcName)];
 end
 
-% Add Examples section (exclude tools module)
-if ~strcmp(module, 'tools')
-    content = [content sprintf('\n## Examples\n\n')];
-
-    % Get toolbox root to check for example files
-    toolboxRoot = fileparts(fileparts(fileparts(moduleDocsDir))); % Go up 3 levels: api/module -> api -> docs -> root
-
-    examplesList = {};
-    for i = 1:length(functionList)
-        funcName = functionList{i};
-        examplePath = fullfile(toolboxRoot, 'examples', module, [funcName 'Example.m']);
-        if exist(examplePath, 'file')
-            examplesList{end+1} = funcName;
-        end
-    end
-
-    if ~isempty(examplesList)
-        for i = 1:length(examplesList)
-            funcName = examplesList{i};
-            content = [content sprintf('- [`%sExample`](https://github.com/BSICoS/biosigmat/tree/main/examples/%s/%sExample.m)\n', funcName, module, funcName)];
-        end
-    else
-        content = [content sprintf('*No examples available for this module*\n')];
-    end
-end
-
 content = [content sprintf('\n## See Also\n\n')];
 content = [content sprintf('- [API Reference](../index.md)\n\n')];
 
 content = [content sprintf('---\n\n')];
-if strcmp(module, 'tools')
-    content = [content sprintf('**Functions**: %d | **Last Updated**: %s\n', ...
-        length(functionList), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
-else
-    examplesCount = length(examplesList);
-    content = [content sprintf('**Functions**: %d | **Examples**: %d | **Last Updated**: %s\n', ...
-        length(functionList), examplesCount, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
-end
+content = [content sprintf('**Functions**: %d | **Last Updated**: %s\n', ...
+    length(functionList), string(datetime('now', 'Format', 'yyyy-MM-dd')))];
 
 % Write file
 fid = fopen(readmePath, 'w', 'n', 'UTF-8');
@@ -698,38 +655,13 @@ for i = 1:length(moduleNames)
     end
 
     % Add function table
-    if strcmp(module, 'tools')
-        % Tools module - no examples column
-        content = [content sprintf('| Function | Description | Status |\n')];
-        content = [content sprintf('| -------- | ----------- | ------ |\n')];
+    content = [content sprintf('| Function | Description | Status |\n')];
+    content = [content sprintf('| -------- | ----------- | ------ |\n')];
 
-        for j = 1:length(functions)
-            func = functions{j};
-            content = [content sprintf('| [`%s`](%s/%s.md) | %s | %s |\n', ...
-                func.name, module, func.name, func.description, func.status)];
-        end
-    else
-        % Other modules - include examples column
-        content = [content sprintf('| Function | Description | Examples | Status |\n')];
-        content = [content sprintf('| -------- | ----------- | -------- | ------ |\n')];
-
-        % Get toolbox root to check for example files
-        toolboxRoot = fileparts(docsDir);
-
-        for j = 1:length(functions)
-            func = functions{j};
-
-            % Check if example file exists
-            examplePath = fullfile(toolboxRoot, 'examples', module, [func.name 'Example.m']);
-            if exist(examplePath, 'file')
-                exampleLink = sprintf('[View code](https://github.com/BSICoS/biosigmat/tree/main/examples/%s/%sExample.m)', module, func.name);
-            else
-                exampleLink = '-';
-            end
-
-            content = [content sprintf('| [`%s`](%s/%s.md) | %s | %s | %s |\n', ...
-                func.name, module, func.name, func.description, exampleLink, func.status)];
-        end
+    for j = 1:length(functions)
+        func = functions{j};
+        content = [content sprintf('| [`%s`](%s/%s.md) | %s | %s |\n', ...
+            func.name, module, func.name, func.description, func.status)];
     end
 end
 
@@ -812,453 +744,4 @@ for i = 1:length(mdFiles)
 end
 
 end
-
-function updateExamplesDocs(examplesDir, docsDir)
-% Update documentation for examples
-
-if ~exist(examplesDir, 'dir')
-    fprintf('⚠️  Examples directory not found: %s\n', examplesDir);
-    return;
-end
-
-% Create examples docs directory
-examplesDocsDir = fullfile(docsDir, 'examples');
-if ~exist(examplesDocsDir, 'dir')
-    mkdir(examplesDocsDir);
-end
-
-% Get module directories in examples
-modulesList = dir(examplesDir);
-modulesList = modulesList([modulesList.isdir] & ~startsWith({modulesList.name}, '.'));
-
-examplesByModule = struct();
-
-for i = 1:length(modulesList)
-    module = modulesList(i).name;
-
-    % Skip workflows directory (handled separately)
-    if strcmp(module, 'workflows')
-        continue;
-    end
-
-    moduleExamplesDir = fullfile(examplesDir, module);
-
-    % Get all .m files in module examples
-    mFiles = dir(fullfile(moduleExamplesDir, '*.m'));
-
-    examplesList = {};
-
-    for j = 1:length(mFiles)
-        [~, exampleName, ~] = fileparts(mFiles(j).name);
-
-        fprintf('  📄 Processing example %s...\n', exampleName);
-
-        % Extract example documentation
-        examplePath = fullfile(mFiles(j).folder, mFiles(j).name);
-        docInfo = extractExampleDoc(examplePath, exampleName);
-
-        % Generate markdown documentation
-        generateExampleDoc(examplesDocsDir, exampleName, docInfo, module);
-
-        examplesList{end+1} = exampleName; %#ok<*AGROW>
-    end
-
-    % MATLAB package folders start with "+", which is not valid in a
-    % dynamic structure field name. Keep the real folder name for links and
-    % use a normalized key only for the internal grouping structure.
-    moduleKey = matlab.lang.makeValidName(erase(module, '+'));
-    examplesByModule.(moduleKey) = struct( ...
-        'module', module, ...
-        'examples', {examplesList});
-end
-
-% Update examples index.md
-updateExamplesIndex(examplesDocsDir, examplesByModule);
-
-end
-
-function updateWorkflowsDocs(workflowsDir, docsDir)
-% Update documentation for workflows
-
-if ~exist(workflowsDir, 'dir')
-    fprintf('⚠️  Workflows directory not found: %s\n', workflowsDir);
-    return;
-end
-
-% Create workflows docs directory
-workflowsDocsDir = fullfile(docsDir, 'examples');
-if ~exist(workflowsDocsDir, 'dir')
-    mkdir(workflowsDocsDir);
-end
-
-% Get all .m files in workflows
-mFiles = dir(fullfile(workflowsDir, '*.m'));
-
-workflowsList = {};
-
-for i = 1:length(mFiles)
-    [~, workflowName, ~] = fileparts(mFiles(i).name);
-
-    fprintf('  📄 Processing workflow %s...\n', workflowName);
-
-    % Extract workflow documentation
-    workflowPath = fullfile(mFiles(i).folder, mFiles(i).name);
-    docInfo = extractWorkflowDoc(workflowPath, workflowName);
-
-    % Generate markdown documentation
-    generateWorkflowDoc(workflowsDocsDir, workflowName, docInfo);
-
-    workflowsList{end+1} = workflowName;
-end
-
-% Update workflows section in examples index.md
-updateWorkflowsIndex(workflowsDocsDir, workflowsList);
-
-end
-
-function docInfo = extractExampleDoc(filePath, exampleName)
-% Extract documentation from example file header comments
-
-% Initialize structure
-docInfo = struct();
-docInfo.name = exampleName;
-docInfo.title = '';
-docInfo.briefDescription = '';
-docInfo.longDescription = '';
-docInfo.steps = {};
-docInfo.requirements = {};
-
-try
-    % Read file content with UTF-8 encoding
-    fileContent = fileread(filePath, 'Encoding', 'UTF-8');
-    lines = splitlines(fileContent);
-
-    % Extract header comments - all consecutive lines starting with '%'
-    headerLines = {};
-
-    for i = 1:length(lines)
-        line = lines{i};
-
-        % If line starts with '%', it's part of the header
-        if startsWith(strtrim(line), '%')
-            headerLines{end+1} = line;
-        elseif ~isempty(headerLines)
-            % If we already have header lines and find a non-comment line,
-            % this marks the end of header
-            break;
-        end
-    end
-
-    % Parse the header format (similar to function headers)
-    if ~isempty(headerLines)
-        % First line should be example name and brief description
-        firstLine = strtrim(strrep(headerLines{1}, '%', ''));
-        if startsWith(upper(firstLine), upper(exampleName))
-            % Find where the example name ends and description begins
-            nameEnd = length(exampleName);
-            if length(firstLine) > nameEnd
-                docInfo.title = firstLine(1:nameEnd);
-                remainder = strtrim(firstLine(nameEnd+1:end));
-                if ~isempty(remainder)
-                    docInfo.briefDescription = remainder;
-                end
-            else
-                docInfo.title = firstLine;
-            end
-        else
-            % Fallback - use the whole first line as title
-            docInfo.title = firstLine;
-        end
-
-        % Parse remaining lines for long description
-        longDescLines = {};
-
-        i = 2; % Start from second line
-        while i <= length(headerLines)
-            line = strtrim(strrep(headerLines{i}, '%', ''));
-
-            % Skip empty lines at the beginning
-            if ~isempty(line)
-                longDescLines{end+1} = line;
-            end
-
-            i = i + 1;
-        end
-
-        % Join long description lines with spaces
-        if ~isempty(longDescLines)
-            docInfo.longDescription = strjoin(longDescLines, ' ');
-        end
-    end
-
-catch ME
-    fprintf('⚠️  Warning: Could not extract docs from example %s: %s\n', exampleName, ME.message);
-end
-
-end
-
-function docInfo = extractWorkflowDoc(filePath, workflowName)
-% Extract documentation from workflow file header comments
-
-% Initialize structure with same fields as extractExampleDoc for consistency
-docInfo = struct();
-docInfo.name = workflowName;
-docInfo.title = '';
-docInfo.briefDescription = '';
-docInfo.longDescription = '';
-docInfo.steps = {};
-docInfo.requirements = {};
-
-try
-    % Read file content with UTF-8 encoding
-    fileContent = fileread(filePath, 'Encoding', 'UTF-8');
-    lines = splitlines(fileContent);
-
-    % Extract header comments - all consecutive lines starting with '%'
-    headerLines = {};
-
-    for i = 1:length(lines)
-        line = lines{i};
-
-        % If line starts with '%', it's part of the header
-        if startsWith(strtrim(line), '%')
-            headerLines{end+1} = line;
-        elseif ~isempty(headerLines)
-            % If we already have header lines and find a non-comment line,
-            % this marks the end of header
-            break;
-        end
-    end
-
-    % Parse the header format (same as example headers)
-    if ~isempty(headerLines)
-        % First line should be workflow name and brief description
-        firstLine = strtrim(strrep(headerLines{1}, '%', ''));
-        if startsWith(upper(firstLine), upper(workflowName))
-            % Find where the workflow name ends and description begins
-            nameEnd = length(workflowName);
-            if length(firstLine) > nameEnd
-                docInfo.title = firstLine(1:nameEnd);
-                remainder = strtrim(firstLine(nameEnd+1:end));
-                if ~isempty(remainder)
-                    docInfo.briefDescription = remainder;
-                end
-            else
-                docInfo.title = firstLine;
-            end
-        else
-            % Fallback - use the whole first line as title
-            docInfo.title = firstLine;
-        end
-
-        % Parse remaining lines for long description
-        longDescLines = {};
-
-        i = 2; % Start from second line
-        while i <= length(headerLines)
-            line = strtrim(strrep(headerLines{i}, '%', ''));
-
-            % Skip empty lines at the beginning
-            if ~isempty(line)
-                longDescLines{end+1} = line;
-            end
-
-            i = i + 1;
-        end
-
-        % Join long description lines with spaces
-        if ~isempty(longDescLines)
-            docInfo.longDescription = strjoin(longDescLines, ' ');
-        end
-    end
-
-catch ME
-    fprintf('⚠️  Warning: Could not extract docs from workflow %s: %s\n', workflowName, ME.message);
-end
-
-end
-
-function generateExampleDoc(examplesDocsDir, exampleName, docInfo, module)
-% Generate markdown documentation for an example
-
-generateCommonDoc(examplesDocsDir, exampleName, docInfo, 'example', module);
-
-end
-
-function generateWorkflowDoc(workflowsDocsDir, workflowName, docInfo)
-% Generate markdown documentation for a workflow
-
-generateCommonDoc(workflowsDocsDir, workflowName, docInfo, 'workflow', []);
-
-end
-
-function generateCommonDoc(outputDir, itemName, docInfo, itemType, module)
-% Generate markdown documentation for examples or workflows with unified format
-
-outputPath = fullfile(outputDir, [itemName '.md']);
-
-% Create markdown content with brief description (unified format)
-if ~isempty(docInfo.briefDescription)
-    content = sprintf('# `%s`\n\n', itemName);
-    content = [content sprintf('%s\n\n', docInfo.briefDescription)];
-elseif strcmp(itemType, 'workflow')
-    content = sprintf('# %s Workflow\n\n', itemName);
-else
-    content = sprintf('# %s Example\n\n', itemName);
-end
-
-% Add description section (long description)
-content = [content sprintf('## Description\n\n')];
-if ~isempty(docInfo.longDescription)
-    content = [content sprintf('%s\n\n', docInfo.longDescription)];
-elseif ~isempty(docInfo.briefDescription)
-    content = [content sprintf('%s\n\n', docInfo.briefDescription)];
-elseif strcmp(itemType, 'workflow')
-    content = [content sprintf('This workflow demonstrates advanced signal processing techniques.\n\n')];
-else
-    content = [content sprintf('This example demonstrates the usage of %s.\n\n', itemName)];
-end
-
-% Add source code link
-content = [content sprintf('## Source Code\n\n')];
-if strcmp(itemType, 'workflow')
-    content = [content sprintf('[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/workflows/%s.m)\n\n', itemName)];
-else
-    content = [content sprintf('[View source code](https://github.com/BSICoS/biosigmat/tree/main/examples/%s/%s.m)\n\n', module, itemName)];
-end
-
-% Add see also section
-content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [API Reference](../index.md)\n')];
-if strcmp(itemType, 'workflow')
-    content = [content sprintf('- [Examples Overview](index.md)\n\n')];
-else
-    content = [content sprintf('- [%s Module](../api/%s/index.md)\n', upper(module), module)];
-    content = [content sprintf('- [Examples Overview](index.md)\n\n')];
-end
-
-content = [content sprintf('---\n\n')];
-if strcmp(itemType, 'workflow')
-    content = [content sprintf('**Last Updated**: %s\n', ...
-        string(datetime('now', 'Format', 'yyyy-MM-dd')))];
-else
-    content = [content sprintf('**Module**: [%s](../api/%s/index.md) | **Last Updated**: %s\n', ...
-        upper(module), module, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
-end
-
-% Write file
-try
-    fid = fopen(outputPath, 'w', 'n', 'UTF-8');
-    if fid == -1
-        error('Could not open file for writing: %s', outputPath);
-    end
-    fprintf(fid, '%s', content);
-    fclose(fid);
-catch ME
-    if fid ~= -1
-        fclose(fid);
-    end
-    rethrow(ME);
-end
-
-end
-
-function updateExamplesIndex(examplesDocsDir, examplesByModule)
-% Update the index.md file for examples
-
-readmePath = fullfile(examplesDocsDir, 'index.md');
-
-% Create examples index.md content
-content = sprintf('---\ntitle: Overview\n---\n\n');
-content = [content sprintf('# Examples and Workflows\n\n')];
-content = [content sprintf('This section contains practical examples and workflows demonstrating the usage of biosigmat functions.\n\n')];
-
-% Add examples by module
-content = [content sprintf('## Examples by Module\n\n')];
-
-moduleNames = fieldnames(examplesByModule);
-totalExamples = 0;
-
-for i = 1:length(moduleNames)
-    moduleEntry = examplesByModule.(moduleNames{i});
-    module = moduleEntry.module;
-    examples = moduleEntry.examples;
-
-    if ~isempty(examples)
-        content = [content sprintf('### %s\n\n', upper(module))];
-
-        for j = 1:length(examples)
-            exampleName = examples{j};
-            content = [content sprintf('- [`%s`](%s.md)\n', exampleName, exampleName)];
-            totalExamples = totalExamples + 1;
-        end
-        content = [content newline];
-    end
-end
-
-% Add workflows section placeholder
-content = [content sprintf('## Workflows\n\n')];
-content = [content sprintf('*Workflows will be listed here after processing*\n\n')];
-
-content = [content sprintf('## See Also\n\n')];
-content = [content sprintf('- [API Reference](../index.md)\n\n')];
-
-content = [content sprintf('---\n\n')];
-content = [content sprintf('**Examples**: %d | **Last Updated**: %s\n', ...
-    totalExamples, string(datetime('now', 'Format', 'yyyy-MM-dd')))];
-
-% Write file
-fid = fopen(readmePath, 'w', 'n', 'UTF-8');
-if fid == -1
-    error('Could not open file for writing: %s', readmePath);
-end
-fprintf(fid, '%s', content);
-fclose(fid);
-
-end
-
-function updateWorkflowsIndex(examplesDocsDir, workflowsList)
-% Update the workflows section in examples index.md
-
-readmePath = fullfile(examplesDocsDir, 'index.md');
-
-if exist(readmePath, 'file')
-    % Read existing content
-    content = fileread(readmePath, 'Encoding', 'UTF-8');
-
-    % Replace workflows placeholder
-    workflowsSection = sprintf('## Workflows\n\n');
-
-    if ~isempty(workflowsList)
-        for i = 1:length(workflowsList)
-            workflowName = workflowsList{i};
-            workflowsSection = [workflowsSection sprintf('- [`%s`](%s.md)\n', workflowName, workflowName)];
-        end
-    else
-        workflowsSection = [workflowsSection sprintf('*No workflows found*\n')];
-    end
-    workflowsSection = [workflowsSection newline];
-
-    % Replace the placeholder
-    content = regexprep(content, '## Workflows\n\n\*Workflows will be listed here after processing\*\n\n', workflowsSection);
-
-    % Update workflow count in footer
-    pattern = '\*\*Examples\*\*: (\d+)';
-    if ~isempty(regexp(content, pattern, 'once'))
-        matches = regexp(content, pattern, 'tokens');
-        if ~isempty(matches)
-            exampleCount = str2double(matches{1}{1});
-            replacement = sprintf('**Examples**: %d | **Workflows**: %d', exampleCount, length(workflowsList));
-            content = regexprep(content, '\*\*Examples\*\*: \d+', replacement);
-        end
-    end
-
-    % Write back
-    fid = fopen(readmePath, 'w', 'n', 'UTF-8');
-    if fid ~= -1
-        fprintf(fid, '%s', content);
-        fclose(fid);
-    end
-end
-
-end
+% End of documentation generator.

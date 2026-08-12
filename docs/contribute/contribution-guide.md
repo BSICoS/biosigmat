@@ -25,14 +25,13 @@ The project is organized as follows:
 
 ## Generated Documentation
 
-API and example reference pages are generated from MATLAB function headers and
-example source files. Contributors should update the relevant `.m` headers or
-examples instead of editing generated Markdown under `docs/api/` or
-`docs/examples/`.
+API reference pages are generated from MATLAB function headers. When a matching
+example exists, its API page links directly to the executable `.m` file.
+Contributors should update function headers and example source instead of
+editing generated Markdown under `docs/api/`.
 
-Generated API/example Markdown is ignored by Git and rebuilt by the docs
-workflow before `mkdocs build --strict`. Contributors do not need to commit
-generated API/example Markdown before pushing.
+Generated API Markdown is ignored by Git and rebuilt by the docs workflow before
+`mkdocs build --strict`. Contributors do not need to commit it before pushing.
 
 To preview generated documentation locally, run this from MATLAB:
 

@@ -1,41 +1,12 @@
-# Key Features
+# Available methods
 
-<div class="grid cards" markdown>
+Biosigmat includes methods for:
 
--   :material-lightning-bolt:{ .lg .middle } **High Performance**
+- ECG, PPG, and respiration processing;
+- beat and pulse detection;
+- event-timing cleanup and reconstruction;
+- time- and frequency-domain variability analysis;
+- respiration-related HRV decomposition;
+- filtering, spectral estimation, envelopes, and other signal utilities.
 
-    ---
-
-    Optimized algorithms for real-time biomedical signal processing with minimal computational overhead
-
--   :material-chart-line-variant:{ .lg .middle } **Comprehensive Analysis**
-
-    ---
-
-    Complete toolset for ECG, PPG, and HRV analysis with validated clinical algorithms
-
--   :material-puzzle:{ .lg .middle } **Easy Integration**
-
-    ---
-
-    Simple MATLAB functions with consistent APIs that integrate seamlessly into existing workflows
-
--   :material-test-tube:{ .lg .middle } **Research-Grade**
-
-    ---
-
-    Peer-reviewed algorithms developed by biomedical signal processing experts at BSICoS
-
--   :material-book-open-variant:{ .lg .middle } **Well Documented**
-
-    ---
-
-    Extensive documentation with examples, tutorials, and API references
-
--   :material-scale-balance:{ .lg .middle } **Open Source**
-
-    ---
-
-    GPL licensed with active support and continuous development
-
-</div>
+See the [API reference](../api/index.md) for MATLAB signatures or the [Biosiglib method catalog](https://bsicos.github.io/biosiglib/methods/) for shared inputs, outputs, scientific context, and references.

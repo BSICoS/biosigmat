@@ -1,65 +1,26 @@
-# biosigmat - Biomedical Signal Processing Toolbox for MATLAB
+# Biosigmat
 
 [![MATLAB](https://img.shields.io/badge/MATLAB-R2025a-blue)](https://www.mathworks.com/products/matlab.html)
-[![License](https://img.shields.io/badge/License-GPL-green.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/Tests-Passing-brightgreen)](test/)
+[![License](https://img.shields.io/badge/License-GPL--3.0-green.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/Version-0.2.0-orange)](src/+biosigmat/version.m)
 
-A MATLAB toolbox for processing and analyzing biomedical signals including ECG, PPG, and HRV analysis.
-
----
-
-**Developed by**: [BSICoS Research Group](https://bsicos.i3a.es/)  
-**Status**: Active Development
+MATLAB functions for biomedical signal processing, maintained by the [BSICoS Research Group](https://bsicos.i3a.es/).
 
 ## Installation
 
-Download `biosigmat-0.2.0.zip` and `SHA256SUMS` from the
-[v0.2.0 GitHub release](https://github.com/BSICoS/biosigmat/releases/tag/v0.2.0),
-verify the archive hash, and extract it. Add only its `src` directory to the
-MATLAB path:
-
-```matlab
-addpath(genpath('path/to/biosigmat-0.2.0/src'));
-biosigmat.version()
-```
-
-For development, clone the repository:
-
-```bash
-git clone https://github.com/BSICoS/biosigmat.git
-```
-
-Then add its source directory:
+Download the archive and checksum from the [latest GitHub release](https://github.com/BSICoS/biosigmat/releases/latest), verify the archive, extract it, and add its `src` directory to the MATLAB path:
 
 ```matlab
 addpath(genpath('path/to/biosigmat/src'));
+biosigmat.version()
 ```
 
-Biosigmat 0.2.0 is tested with MATLAB R2025a, Signal Processing Toolbox, and
-Curve Fitting Toolbox. Its implementation version is independent from
-Biosiglib and can be queried with `biosigmat.version()` without shadowing
-MATLAB's built-in `version` function.
-
-## Biosiglib conformance
-
-Biosigmat is the MATLAB implementation of the language-independent [Biosiglib](https://github.com/BSICoS/biosiglib) specifications. The root `biosiglib.lock` pins the exact Biosiglib revision used by shared conformance tests.
-
-See [Conformance](docs/conformance.md) for validation commands and local checkout details.
+Biosigmat is tested with MATLAB R2025a, Signal Processing Toolbox, and Curve Fitting Toolbox. See the [installation guide](docs/getting-started/installation.md) for development setup.
 
 ## Documentation
 
-> **Documentation site**  
-> Visit: [https://bsicos.github.io/biosigmat/](https://bsicos.github.io/biosigmat/)
+The [Biosigmat documentation](https://bsicos.github.io/biosigmat/) contains the MATLAB API, with direct links to executable example code. For practical method descriptions, expected inputs and outputs, scientific references, and links to the Python implementation, use the [Biosiglib method catalog](https://bsicos.github.io/biosiglib/methods/).
 
-The documentation includes getting-started material, API reference pages, examples, contribution guidance, and code-style notes.
-API and example reference pages are generated from MATLAB headers and example source files during the documentation build.
+## Support and license
 
-## Support
-
-- Report issues on [GitHub Issues](https://github.com/BSICoS/biosigmat/issues)
-- Contact the development team for additional support
-
-## License
-
-This project is licensed - see the [LICENSE](LICENSE) file for details.
+Report problems through [GitHub Issues](https://github.com/BSICoS/biosigmat/issues). Biosigmat is distributed under the [GNU General Public License version 3](LICENSE).

@@ -9,10 +9,10 @@ Exchange and `.mltbx` distribution remain outside this procedure.
 1. Update the single version returned by `src/+biosigmat/version.m`.
 2. Move user-visible changes from `Unreleased` into a dated changelog entry and
    add `docs/releases/vX.Y.Z.md`.
-3. Confirm that `conformance.json` pins the intended exact Biosiglib commit and
+3. Confirm that `biosiglib.lock` pins the intended exact Biosiglib commit and
    that Biosiglib has not yet released a different commit for this coordinated change.
-4. Run the complete MATLAB suite, header validation, example checks, and the
-   pinned Biosiglib manifest validator.
+4. Run the complete MATLAB suite, header validation, and example checks. The
+   suite validates the lock and every shared case.
 5. Regenerate API/example documentation and run `mkdocs build --strict` with
    `requirements-docs.txt`.
 6. Merge the reviewed release PR into `main` and wait for all `main` checks.

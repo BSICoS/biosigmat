@@ -43,7 +43,7 @@ MATLAB's built-in `version` function.
 
 ## Biosiglib conformance
 
-Biosigmat is the MATLAB implementation of the language-independent [Biosiglib](https://github.com/BSICoS/biosiglib) specifications. The root `conformance.json` pins the exact Biosiglib revision used by shared conformance tests.
+Biosigmat is the MATLAB implementation of the language-independent [Biosiglib](https://github.com/BSICoS/biosiglib) specifications. The root `biosiglib.lock` pins the exact Biosiglib revision used by shared conformance tests.
 
 See [Conformance](docs/conformance.md) for validation commands and local checkout details.
 

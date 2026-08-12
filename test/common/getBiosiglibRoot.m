@@ -26,7 +26,6 @@ requiredPaths = {
     fullfile('fixtures', 'catalog.json')
     'conformance'
     'specs'
-    fullfile('schemas', 'implementation-manifest.schema.json')
 };
 for pathIndex = 1:numel(requiredPaths)
     requiredPath = fullfile(biosiglibRoot, requiredPaths{pathIndex});
@@ -37,14 +36,7 @@ for pathIndex = 1:numel(requiredPaths)
     end
 end
 
-manifestPath = fullfile(repositoryRoot, 'conformance.json');
-manifest = loadBiosigmatConformanceManifest();
-expectedCommit = manifest.biosiglib.commit;
-
-if ~ischar(expectedCommit) || isempty(regexp(expectedCommit, '^[0-9a-fA-F]{40}$', 'once'))
-    error('biosigmat:ConformanceManifestInvalid', ...
-        'The Biosiglib commit in %s must be a valid 40-character SHA.', manifestPath);
-end
+expectedCommit = getBiosiglibCommit();
 
 if ~isempty(cachedRoot) && strcmp(cachedRoot, biosiglibRoot) && ...
         strcmp(cachedExpectedCommit, expectedCommit)
@@ -64,7 +56,7 @@ end
 actualCommit = strtrim(gitOutput);
 if ~strcmp(actualCommit, expectedCommit)
     error('biosigmat:BiosiglibCommitMismatch', ...
-        'Biosiglib commit mismatch at %s: expected %s from conformance.json, actual %s.', ...
+        'Biosiglib commit mismatch at %s: expected %s from biosiglib.lock, actual %s.', ...
         biosiglibRoot, expectedCommit, actualCommit);
 end
 

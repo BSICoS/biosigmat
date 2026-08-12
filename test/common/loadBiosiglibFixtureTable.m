@@ -11,8 +11,7 @@ else
     columnName = char(columnName);
 end
 biosiglibRoot = getBiosiglibRoot();
-manifest = loadBiosigmatConformanceManifest();
-cacheScope = [biosiglibRoot '|' manifest.biosiglib.commit];
+cacheScope = [biosiglibRoot '|' getBiosiglibCommit()];
 if isempty(tableCache) || ~strcmp(cachedScope, cacheScope)
     tableCache = containers.Map('KeyType', 'char', 'ValueType', 'any');
     cachedScope = cacheScope;

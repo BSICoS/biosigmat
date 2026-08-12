@@ -26,14 +26,13 @@ jobs:
       shell: bash
       run: |
         commit="$(python - <<'PY'
-        import json
+        import re
         from pathlib import Path
 
-        manifest = json.loads(Path('conformance.json').read_text(encoding='utf-8'))
-        commit = manifest['biosiglib']['commit']
-        if len(commit) != 40 or any(c not in '0123456789abcdefABCDEF' for c in commit):
-            raise SystemExit(f'Invalid Biosiglib commit in conformance.json: {commit}')
-        print(commit)
+        raw_lock = Path('biosiglib.lock').read_text(encoding='utf-8')
+        if re.fullmatch(r'[0-9a-f]{40}\n?', raw_lock) is None:
+            raise SystemExit('biosiglib.lock must contain one lowercase 40-character SHA')
+        print(raw_lock.strip())
         PY
         )"
         echo "commit=${commit}" >> "$GITHUB_OUTPUT"

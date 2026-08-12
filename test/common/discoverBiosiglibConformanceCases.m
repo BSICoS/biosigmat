@@ -1,8 +1,8 @@
 function cases = discoverBiosiglibConformanceCases()
-%DISCOVERBIOSIGLIBCONFORMANCECASES Discover cases for conformant specs.
+%DISCOVERBIOSIGLIBCONFORMANCECASES Discover cases for every pinned spec.
 
 biosiglibRoot = getBiosiglibRoot();
-manifest = loadBiosigmatConformanceManifest();
+specificationIds = discoverBiosiglibSpecificationIds();
 caseFiles = dir(fullfile(biosiglibRoot, 'conformance', '*', '*', '*.json'));
 
 cases = struct('id', {}, 'specificationId', {});
@@ -17,13 +17,10 @@ for iFile = 1:numel(caseFiles)
     end
 
     specificationId = char(caseDefinition.specification_id);
-    manifestField = matlab.lang.makeValidName(specificationId);
-    if ~isfield(manifest.specifications, manifestField)
-        continue;
-    end
-    manifestEntry = manifest.specifications.(manifestField);
-    if ~strcmp(manifestEntry.status, 'conformant')
-        continue;
+    if ~ismember(specificationId, specificationIds)
+        error('biosigmat:UnknownBiosiglibSpecification', ...
+            'Conformance case at %s references unknown specification "%s".', ...
+            casePath, specificationId);
     end
 
     [~, caseName] = fileparts(caseFiles(iFile).name);
@@ -56,19 +53,13 @@ if ~isempty(cases)
     cases = cases(order);
 end
 
-manifestFields = fieldnames(manifest.specifications);
-for iSpecification = 1:numel(manifestFields)
-    manifestEntry = manifest.specifications.(manifestFields{iSpecification});
-    if ~strcmp(manifestEntry.status, 'conformant')
-        continue;
-    end
+for iSpecification = 1:numel(specificationIds)
     matchingCases = arrayfun(@(item) strcmp( ...
-        matlab.lang.makeValidName(item.specificationId), ...
-        manifestFields{iSpecification}), cases);
+        item.specificationId, specificationIds{iSpecification}), cases);
     if ~any(matchingCases)
         error('biosigmat:MissingConformanceCases', ...
-            ['No Biosiglib conformance cases were discovered for conformant ' ...
-            'manifest entry "%s".'], manifestFields{iSpecification});
+            'No Biosiglib conformance cases were discovered for "%s".', ...
+            specificationIds{iSpecification});
     end
 end
 end

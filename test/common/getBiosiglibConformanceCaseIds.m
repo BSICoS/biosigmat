@@ -1,13 +1,10 @@
 function caseIds = getBiosiglibConformanceCaseIds(specificationId)
-%GETBIOSIGLIBCONFORMANCECASEIDS Get all cases for one conformant spec.
+%GETBIOSIGLIBCONFORMANCECASEIDS Get all cases for one pinned spec.
 
 specificationId = char(specificationId);
-manifest = loadBiosigmatConformanceManifest();
-manifestField = matlab.lang.makeValidName(specificationId);
-if ~isfield(manifest.specifications, manifestField) || ...
-        ~strcmp(manifest.specifications.(manifestField).status, 'conformant')
-    error('biosigmat:SpecificationNotConformant', ...
-        'Specification "%s" is not declared conformant.', specificationId);
+if ~ismember(specificationId, discoverBiosiglibSpecificationIds())
+    error('biosigmat:UnknownBiosiglibSpecification', ...
+        'Unknown Biosiglib specification "%s".', specificationId);
 end
 
 cases = discoverBiosiglibConformanceCases();

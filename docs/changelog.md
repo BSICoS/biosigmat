@@ -2,12 +2,12 @@
 
 ## Unreleased
 
-- Simplified `conformance.json` to a total declaration against one exact
+- Replaced `conformance.json` with a one-line `biosiglib.lock` against one exact
   Biosiglib commit; removed per-specification statuses, entry points, and
   duplicated release and repository metadata.
 - Discover every specification and shared case in the pinned Biosiglib commit,
   rejecting specifications without cases and uncollected cases without a
-  manifest filter.
+  support filter.
 - Changed the Biosiglib pin workflow to validate a commit before release rather
   than propagating partial support after release.
 - Conformed sampled `hrv.ipfm` to the Biosiglib contract while retaining the

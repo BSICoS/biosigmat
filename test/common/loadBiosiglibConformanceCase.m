@@ -11,8 +11,7 @@ if numel(idParts) < 3
 end
 
 biosiglibRoot = getBiosiglibRoot();
-manifest = loadBiosigmatConformanceManifest();
-cacheScope = [biosiglibRoot '|' manifest.biosiglib.commit];
+cacheScope = [biosiglibRoot '|' getBiosiglibCommit()];
 if isempty(caseCache) || ~strcmp(cachedScope, cacheScope)
     caseCache = containers.Map('KeyType', 'char', 'ValueType', 'any');
     cachedScope = cacheScope;

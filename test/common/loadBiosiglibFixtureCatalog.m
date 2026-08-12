@@ -4,8 +4,7 @@ function fixtureCatalog = loadBiosiglibFixtureCatalog()
 persistent cachedScope cachedCatalog
 
 biosiglibRoot = getBiosiglibRoot();
-manifest = loadBiosigmatConformanceManifest();
-cacheScope = [biosiglibRoot '|' manifest.biosiglib.commit];
+cacheScope = [biosiglibRoot '|' getBiosiglibCommit()];
 if ~isempty(cachedCatalog) && strcmp(cachedScope, cacheScope)
     fixtureCatalog = cachedCatalog;
     return;

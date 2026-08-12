@@ -7,9 +7,9 @@
 - Existing public numerical tests should progressively become Biosiglib conformance cases when their behavior is language-independent.
 - MATLAB-specific API, type, toolbox, error, private-function, and implementation-detail tests remain local to Biosigmat.
 - Examples remain under `examples/`; corresponding examples across implementations should preserve the same scientific workflow where practical.
-- `conformance.json` pins an exact Biosiglib commit and declares conformance with every specification in that commit.
-- Every shared case from the pinned commit must be executed. Partial support and roadmap states belong in issues and pull requests, not in the manifest.
-- External manifest validation must use Biosiglib's validator rather than duplicating JSON Schema validation code.
+- `biosiglib.lock` contains the exact lowercase Biosiglib commit SHA used by the shared suite.
+- Merged code must conform to every specification in the pinned commit and execute every shared case. Partial support and roadmap states belong in issues and pull requests.
+- The normal full MATLAB suite must validate the lock, verify the resolved Biosiglib checkout commit, and execute every shared case.
 - Shared fixtures and cases must be consumed from a Biosiglib checkout and not copied back into Biosigmat.
 - Resolve the Biosiglib checkout from `BIOSIGLIB_ROOT`, falling back to a sibling `../biosiglib` checkout.
 - Code, comments, filenames, and technical documentation must be in English.

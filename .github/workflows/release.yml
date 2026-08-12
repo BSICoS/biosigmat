@@ -74,8 +74,32 @@ jobs:
                 'Tag %s does not match Biosigmat %s.', getenv('RELEASE_TAG'), actualVersion);
             assert(~strcmp(which('version'), which('biosigmat.version')), ...
                 'biosigmat.version must not shadow MATLAB version.');
-            notesPath = fullfile('docs', 'releases', [getenv('RELEASE_TAG') '.md']);
-            assert(isfile(notesPath), 'Missing release notes: %s', notesPath);
+            assert(isfile('CHANGELOG.md'), 'Missing CHANGELOG.md');
+
+      - name: Extract release notes from changelog
+        working-directory: biosigmat
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          version = os.environ["RELEASE_TAG"].removeprefix("v")
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          heading = re.compile(
+              rf"^## {re.escape(version)}(?:\s+-[^\n]*)?\s*$", re.MULTILINE
+          )
+          match = heading.search(changelog)
+          if match is None:
+              raise SystemExit(f"CHANGELOG.md has no section for {version}")
+          next_heading = re.search(r"^## ", changelog[match.end():], re.MULTILINE)
+          end = match.end() + next_heading.start() if next_heading else len(changelog)
+          Path(".release-notes.md").write_text(
+              changelog[match.start():end].strip() + "\n", encoding="utf-8"
+          )
+          PY
 
       - name: Create and extract reviewed source archive
         id: archive
@@ -99,8 +123,7 @@ jobs:
           test -f "$RELEASE_ROOT/src/+biosigmat/version.m"
           test -f "$RELEASE_ROOT/test/+biosigmat/versionTest.m"
           test -f "$RELEASE_ROOT/examples/+biosigmat/versionExample.m"
-          test -f "$RELEASE_ROOT/docs/changelog.md"
-          test -f "$RELEASE_ROOT/docs/releases/$GITHUB_REF_NAME.md"
+          test -f "$RELEASE_ROOT/CHANGELOG.md"
 
       - name: Run full MATLAB suite from released source
         uses: matlab-actions/run-command@v2
@@ -125,11 +148,6 @@ jobs:
 
       - name: Build documentation from released source
         working-directory: ${{ steps.archive.outputs.release_root }}
-        env:
-          # Source archives intentionally contain no .git directory. Disable
-          # only the revision-date decoration while retaining strict mode for
-          # every other documentation warning.
-          MKDOCS_GIT_REVISION_DATE_ENABLED: "false"
         run: mkdocs build --strict
 
       - name: Record artifact checksum
@@ -139,4 +157,4 @@ jobs:
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" biosigmat/dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --title "Biosigmat $GITHUB_REF_NAME" --notes-file "biosigmat/docs/releases/$GITHUB_REF_NAME.md"
+        run: gh release create "$GITHUB_REF_NAME" biosigmat/dist/* --repo "$GITHUB_REPOSITORY" --verify-tag --title "Biosigmat $GITHUB_REF_NAME" --notes-file "biosigmat/.release-notes.md"

@@ -1,6 +1,4 @@
 arrange:
   - index.md
-  - getting-started
+  - installation.md
   - api
-  - contribute
-  - changelog.md

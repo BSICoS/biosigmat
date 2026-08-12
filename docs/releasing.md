@@ -13,7 +13,7 @@ Exchange and `.mltbx` distribution remain outside this procedure.
    that Biosiglib has not yet released a different commit for this coordinated change.
 4. Run the complete MATLAB suite, header validation, and example checks. The
    suite validates the lock and every shared case.
-5. Regenerate API/example documentation and run `mkdocs build --strict` with
+5. Regenerate API documentation and run `mkdocs build --strict` with
    `requirements-docs.txt`.
 6. Merge the reviewed release PR into `main` and wait for all `main` checks.
 7. Create an annotated `vX.Y.Z` tag on that exact merge commit and push it.

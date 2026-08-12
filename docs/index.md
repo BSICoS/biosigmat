@@ -2,24 +2,15 @@
 title: Home
 ---
 
-<div align="center" markdown>
+# Biosigmat
 
-![MATLAB](https://img.shields.io/badge/MATLAB-R2025a-green?style=flat-square&logo=mathworks)
-![License](https://img.shields.io/badge/License-GPL-blue?style=flat-square)
-![Tests](https://img.shields.io/badge/Tests-Passing-green?style=flat-square&logo=checkmarx)
-![Version](https://img.shields.io/badge/Version-0.2.0-orange?style=flat-square)
+Biosigmat provides MATLAB functions for biomedical signal processing.
 
-</div>
+## Start here
 
-## :material-heart-pulse: A MATLAB library for biomedical signal processing
+- [Install Biosigmat](getting-started/installation.md)
+- [Browse the MATLAB API](api/index.md)
+- [Understand the methods and their scientific basis](https://bsicos.github.io/biosiglib/methods/)
+- [View the source or report a problem](https://github.com/BSICoS/biosigmat)
 
-Professional-grade tools for ECG, PPG, and respiration signal analysis developed by [BSICoS](https://bsicos.i3a.es/es/).
-
-
-!!! tip "New to Biosigmat?"
-    Read the [Installation Guide](getting-started/installation.md) to get up and running quickly.
-
-Biosigmat 0.2.0 is a reproducible pre-1.0 source release. Query the
-installed implementation with `biosigmat.version()`.
-
-- [Release procedure](releasing.md)
+The API pages document MATLAB signatures and link directly to executable example code. Biosiglib's method pages explain the expected data, outputs, interpretation, limitations, references, and equivalent Python source.

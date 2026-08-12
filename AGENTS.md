@@ -1,36 +1,14 @@
-# AGENTS.md
+# AGENTS
 
-- Biosigmat is the MATLAB implementation of the language-independent Biosiglib specifications.
-- Biosiglib is the source of truth for normative public algorithm behavior, units, defaults, missing-value handling, edge cases, scientific provenance, shared fixtures, and conformance cases.
-- Public functions under `src/` require Biosiglib specifications; functions inside `private/` do not.
-- Biosigmat may retain an idiomatic MATLAB API and internal architecture while preserving normative behavior.
-- Existing public numerical tests should progressively become Biosiglib conformance cases when their behavior is language-independent.
-- MATLAB-specific API, type, toolbox, error, private-function, and implementation-detail tests remain local to Biosigmat.
-- Examples remain under `examples/`; corresponding examples across implementations should preserve the same scientific workflow where practical.
-- `biosiglib.lock` contains the exact lowercase Biosiglib commit SHA used by the shared suite.
-- Merged code must conform to every specification in the pinned commit and execute every shared case. Partial support and roadmap states belong in issues and pull requests.
-- The normal full MATLAB suite must validate the lock, verify the resolved Biosiglib checkout commit, and execute every shared case.
-- Shared fixtures and cases must be consumed from a Biosiglib checkout and not copied back into Biosigmat.
-- Resolve the Biosiglib checkout from `BIOSIGLIB_ROOT`, falling back to a sibling `../biosiglib` checkout.
-- Code, comments, filenames, and technical documentation must be in English.
-- Avoid generic resource APIs and unnecessary cross-language infrastructure.
-- Do not change scientific or computational behavior without explicit maintainer review. This includes filtering direction and phase behavior, NaN handling, default filters, default parameters, units, physiological interpretation, and reference-result provenance.
-- Treat Biosigmat as the mature starting implementation, not as automatically correct. If Biosigmat and Biosigpy disagree in a scientifically meaningful way, document the disagreement and ask the maintainer before changing either implementation or the Biosiglib specification.
-- Do not ask about purely idiomatic differences unless they affect scientific behavior. Examples: zero-based versus one-based internal indexing, exception class names, plotting library choices, or local variable names normally do not require maintainer escalation.
+Persistent project rules for coding agents working in Biosigmat:
 
-## Local change workflow
-
-- Work in a local checkout for multi-file changes.
-- Do not edit files one-by-one through the GitHub web/API connector except for tiny metadata-only changes.
-- Make related changes locally, run validation locally where possible, and push one coherent commit or a small coherent commit series.
-
-## Generated documentation
-
-- Documentation under `docs/api/` and generated `docs/examples/` is generated from MATLAB headers and example source files.
-- Do not manually edit generated documentation files.
-- Edit the relevant MATLAB function headers and example `.m` files instead.
-- Regenerate documentation with `scripts/docs/updateDocs.m`.
-- Generated API/example Markdown is a build artifact and should not be committed.
-- CI regenerates generated API/example Markdown before MkDocs builds.
-- If generated docs behavior changes in a PR, the PR description must state that `updateDocs` was run or that MATLAB-backed validation is deferred to CI.
-- If `updateDocs` cannot be run, do not hand-edit generated docs as a substitute; document the blocker.
+1. Biosigmat is the MATLAB implementation of the Biosiglib contracts. The pinned Biosiglib JSON specifications and shared cases define normative behavior.
+2. Public functions under `src/` require specifications; functions inside `private/` do not.
+3. Preserve formulas, units, defaults, filtering direction and phase, NaN behavior, edge cases, physiological meaning, and reference results. Ask the maintainer before changing scientific behavior.
+4. Use idiomatic MATLAB APIs and internals when they do not alter the contract. MATLAB-specific API, toolbox, error, and private-function tests remain local.
+5. `biosiglib.lock` contains one exact lowercase Biosiglib commit. Merged code must pass every specification and shared case in that commit; partial work belongs in issues or pull requests.
+6. Resolve Biosiglib from `BIOSIGLIB_ROOT`, falling back to a sibling `../biosiglib` checkout. Consume its fixtures and cases directly rather than copying them here.
+7. The normal full MATLAB suite must validate the lock, verify the checkout commit, and execute all discovered shared cases.
+8. Put examples under `examples/` and describe what they teach a user, not their implementation ancestry.
+9. Documentation under `docs/api/` comes from MATLAB headers and links directly to example source files. Edit the source and run `scripts/docs/updateDocs.m`; do not commit generated Markdown.
+10. Use English for code, comments, filenames, and technical documentation. Avoid generic resource APIs and unnecessary cross-language infrastructure.

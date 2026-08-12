@@ -2,9 +2,9 @@
 
 Biosigmat is the MATLAB implementation of the language-independent [Biosiglib](https://github.com/BSICoS/biosiglib) specifications.
 
-The root `conformance.json` pins the exact Biosiglib revision used by shared conformance tests. Tests resolve Biosiglib from `BIOSIGLIB_ROOT` when it is set and otherwise use a sibling `../biosiglib` checkout.
+The root `conformance.json` pins the exact Biosiglib revision used by shared conformance tests and declares conformance with every specification in that revision. It is not a support inventory or roadmap. Tests resolve Biosiglib from `BIOSIGLIB_ROOT` when it is set and otherwise use a sibling `../biosiglib` checkout.
 
-The MATLAB suite discovers case files from the pinned Biosiglib checkout for every specification marked `conformant`. Each case definition determines whether the implementation is expected to return outputs or raise a MATLAB error. A coverage test compares all discovered case IDs with the parameterized suite, so a future Biosiglib release cannot silently add an unexecuted case to a conformant specification.
+The MATLAB suite discovers every specification and case file from the pinned Biosiglib checkout. Each case definition determines whether the implementation is expected to return outputs or raise a MATLAB error. The suite fails when a specification has no shared cases, and a coverage test compares all discovered case IDs with the parameterized suite so a future Biosiglib commit cannot silently add an unexecuted case.
 
 ## Run the MATLAB test suite
 

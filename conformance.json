@@ -1,70 +1,10 @@
 {
-  "$schema": "https://raw.githubusercontent.com/BSICoS/biosiglib/61079eb8b0444eb81ba0c9e977378da15481bad6/schemas/implementation-manifest.schema.json",
+  "$schema": "https://raw.githubusercontent.com/BSICoS/biosiglib/f22e2569661ca06bda9865640174bfbe7980003f/schemas/implementation-manifest.schema.json",
   "implementation": {
     "name": "biosigmat",
-    "language": "MATLAB",
-    "repository": "https://github.com/BSICoS/biosigmat"
+    "language": "MATLAB"
   },
   "biosiglib": {
-    "repository": "https://github.com/BSICoS/biosiglib",
-    "commit": "61079eb8b0444eb81ba0c9e977378da15481bad6"
-  },
-  "specifications": {
-    "hrv.tdmetrics": {
-      "status": "conformant",
-      "entry_point": "tdmetrics"
-    },
-    "hrv.removefp": {
-      "status": "conformant",
-      "entry_point": "removefp"
-    },
-    "hrv.fillgaps": {
-      "status": "conformant",
-      "entry_point": "fillgaps"
-    },
-    "hrv.ipfm": {
-      "status": "conformant",
-      "entry_point": "ipfm"
-    },
-    "hrv.osp": {
-      "status": "conformant",
-      "entry_point": "osp"
-    },
-    "hrv.fdmetrics": {
-      "status": "conformant",
-      "entry_point": "fdmetrics"
-    },
-    "ecg.pantompkins": {
-      "status": "conformant",
-      "entry_point": "pantompkins"
-    },
-    "ecg.sloperange": {
-      "status": "conformant",
-      "entry_point": "sloperange"
-    },
-    "ecg.baselineremove": {
-      "status": "conformant",
-      "entry_point": "baselineremove"
-    },
-    "tools.medfilt_threshold": {
-      "status": "conformant",
-      "entry_point": "medfiltThreshold"
-    },
-    "tools.nan_filter": {
-      "status": "conformant",
-      "entry_point": "nanfilter"
-    },
-    "tools.nan_filtfilt": {
-      "status": "conformant",
-      "entry_point": "nanfiltfilt"
-    },
-    "tools.lpd_filter": {
-      "status": "conformant",
-      "entry_point": "lpdfilter"
-    },
-    "tools.snap_to_peak": {
-      "status": "conformant",
-      "entry_point": "snaptopeak"
-    }
+    "commit": "f22e2569661ca06bda9865640174bfbe7980003f"
   }
 }

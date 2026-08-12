@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Simplified `conformance.json` to a total declaration against one exact
+  Biosiglib commit; removed per-specification statuses, entry points, and
+  duplicated release and repository metadata.
+- Discover every specification and shared case in the pinned Biosiglib commit,
+  rejecting specifications without cases and uncollected cases without a
+  manifest filter.
+- Changed the Biosiglib pin workflow to validate a commit before release rather
+  than propagating partial support after release.
 - Conformed sampled `hrv.ipfm` to the Biosiglib contract while retaining the
   MATLAB-only unevaluated spline convenience. The implementation now uses the
   canonical uniform sampling grid, enforces the input-dependent spline

@@ -12,7 +12,7 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 - Changed the Biosiglib pin workflow to validate a commit before release rather than propagating partial support after release.
 - Conformed sampled `hrv.ipfm` to the Biosiglib contract while retaining the MATLAB-only unevaluated spline convenience. The implementation now uses the canonical uniform sampling grid, enforces the input-dependent spline order bound, distinguishes the sampling-frequency requirements for `ihr` and `m`, and rejects insufficient or non-physiological numerical results.
 - Consumed all six shared `hrv.ipfm` cases directly from Biosiglib, including the Biosigmat-backed nonuniform-event and TVIPFM fixture.
-- Pinned conformance to the Biosiglib v2.0.0 release target at commit `5cb22022fbe5474181f3334b97d71f8e2e2731e9`.
+- Pinned conformance to the Biosiglib v2.0.0 release target at commit `9f2370451c6b77296c2714f719132edb7fa034c0`.
 
 ## 0.2.0 - 2026-08-04
 

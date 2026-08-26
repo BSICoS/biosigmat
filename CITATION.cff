@@ -1,0 +1,33 @@
+cff-version: 1.2.0
+message: >-
+  Cite the exact Biosigmat version used and the original publications for
+  every scientific method used.
+title: Biosigmat
+type: software
+authors:
+  - given-names: Diego
+    family-names: Cajal
+    orcid: "https://orcid.org/0000-0001-6606-2034"
+    affiliation: >-
+      Centro de Investigación Biomédica en Red en Bioingeniería, Biomateriales
+      y Nanomedicina (CIBER-BBN), Instituto de Salud Carlos III, Madrid, Spain;
+      Biomedical Signal Interpretation and Computational Simulation (BSICoS)
+      Group, Aragón Institute of Engineering Research (I3A), University of
+      Zaragoza, Spain
+  - given-names: Pablo
+    family-names: Armañac-Julián
+    orcid: "https://orcid.org/0000-0001-5918-1043"
+    affiliation: >-
+      Centro de Investigación Biomédica en Red en Bioingeniería, Biomateriales
+      y Nanomedicina (CIBER-BBN), Instituto de Salud Carlos III, Madrid, Spain;
+      Biomedical Signal Interpretation and Computational Simulation (BSICoS)
+      Group, Aragón Institute of Engineering Research (I3A), University of
+      Zaragoza, Spain
+version: 0.3.0
+date-released: 2026-08-12
+license: GPL-3.0-only
+repository-code: "https://github.com/BSICoS/biosigmat"
+url: "https://bsicos.github.io/biosigmat/"
+abstract: >-
+  Biosigmat is the MATLAB biomedical signal-processing implementation
+  maintained by the BSICoS Research Group.

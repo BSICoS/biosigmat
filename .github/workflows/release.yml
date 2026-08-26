@@ -48,7 +48,50 @@ jobs:
           cache-dependency-path: biosigmat/requirements-docs.txt
 
       - name: Install documentation dependencies
-        run: python -m pip install -r biosigmat/requirements-docs.txt
+        run: |
+          python -m pip install -r biosigmat/requirements-docs.txt
+          python -m pip install "cffconvert>=2.0,<3"
+
+      - name: Validate citation metadata
+        working-directory: biosigmat
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          cffconvert --validate
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          from ruamel.yaml import YAML
+
+          citation = YAML(typ="safe").load(
+              Path("CITATION.cff").read_text(encoding="utf-8")
+          )
+          version = str(citation["version"])
+          expected_tag = f"v{version}"
+          actual_tag = os.environ["RELEASE_TAG"]
+          if actual_tag != expected_tag:
+              raise SystemExit(
+                  f"Tag {actual_tag!r} does not match CITATION.cff {expected_tag!r}"
+              )
+
+          changelog = Path("CHANGELOG.md").read_text(encoding="utf-8")
+          heading = re.search(
+              rf"^## {re.escape(version)} - (\d{{4}}-\d{{2}}-\d{{2}})\s*$",
+              changelog,
+              re.MULTILINE,
+          )
+          if heading is None:
+              raise SystemExit(f"CHANGELOG.md has no dated section for {version}")
+          release_date = citation["date-released"]
+          release_date = getattr(release_date, "isoformat", lambda: str(release_date))()
+          if release_date != heading.group(1):
+              raise SystemExit(
+                  "CITATION.cff date-released does not match CHANGELOG.md: "
+                  f"{release_date!r} != {heading.group(1)!r}"
+              )
+          PY
 
       - name: Set up MATLAB
         uses: matlab-actions/setup-matlab@v2
@@ -124,6 +167,7 @@ jobs:
           test -f "$RELEASE_ROOT/test/+biosigmat/versionTest.m"
           test -f "$RELEASE_ROOT/examples/+biosigmat/versionExample.m"
           test -f "$RELEASE_ROOT/CHANGELOG.md"
+          test -f "$RELEASE_ROOT/CITATION.cff"
 
       - name: Run full MATLAB suite from released source
         uses: matlab-actions/run-command@v2

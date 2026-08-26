@@ -20,6 +20,6 @@ parser = inputParser;
 parser.FunctionName = 'biosigmat.version';
 parse(parser);
 
-versionNumber = '0.3.0';
+versionNumber = '0.3.1';
 
 end

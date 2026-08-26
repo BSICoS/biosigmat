@@ -23,8 +23,8 @@ authors:
       Biomedical Signal Interpretation and Computational Simulation (BSICoS)
       Group, Aragón Institute of Engineering Research (I3A), University of
       Zaragoza, Spain
-version: 0.3.0
-date-released: 2026-08-12
+version: 0.3.1
+date-released: 2026-08-26
 license: GPL-3.0-only
 repository-code: "https://github.com/BSICoS/biosigmat"
 url: "https://bsicos.github.io/biosigmat/"

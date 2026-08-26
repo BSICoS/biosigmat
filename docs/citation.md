@@ -16,11 +16,8 @@ Obtain the installed version in MATLAB:
 biosigmat.version()
 ```
 
-Open the [Biosigmat collection in Zenodo](https://doi.org/10.5281/zenodo.21774532),
-select that version, and cite the version-specific DOI displayed by Zenodo.
-The concept DOI above is a stable link to the collection of versions; it does
-not identify a particular release and should not replace the version-specific
-DOI in a research article.
+Use the [Biosigmat Zenodo collection](https://doi.org/10.5281/zenodo.21774532)
+to select the version that was executed and cite its version-specific DOI.
 
 Zenodo and GitHub provide citation formats generated from the project's
 structured metadata.

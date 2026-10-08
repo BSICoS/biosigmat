@@ -7,13 +7,52 @@
 
 classdef expandnansTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('tools.expandnans')
+    end
+
     methods (TestClassSetup)
-        function addCodeToPath(~)
-            addpath('../../src/tools');
+        function addCodeToPath(tc)
+            repositoryRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'tools'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
         end
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+            signal = loadBiosiglibConformanceInput(caseDefinition, 'signal');
+            fs = loadBiosiglibConformanceInput(caseDefinition, 'sampling_frequency');
+            seconds = loadBiosiglibConformanceInput(caseDefinition, 'expansion_duration');
+            actualOutputs = struct('expanded_signal', expandnans(signal, fs, seconds));
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
+        end
+
+        function testEmptyInput(tc)
+            tc.verifyEmpty(expandnans([], 10, 0.2));
+        end
+
+        function testInvalidSignalValues(tc)
+            invalidInputs = {Inf, -Inf, [NaN, Inf, 2], [1+2i, 3]};
+            for k = 1:numel(invalidInputs)
+                tc.verifyError(@() expandnans(invalidInputs{k}, 10, 0.2), ...
+                    'MATLAB:InputParser:ArgumentFailedValidation');
+            end
+            tc.verifyError(@() expandnans([], Inf, 0.2), ...
+                'MATLAB:InputParser:ArgumentFailedValidation');
+            tc.verifyError(@() expandnans([], 10, NaN), ...
+                'MATLAB:InputParser:ArgumentFailedValidation');
+        end
+
+        function testIdentityPathsPreserveRowOrientation(tc)
+            tc.verifyEqual(expandnans([1, 2, 3], 10, 0.2), [1, 2, 3]);
+            tc.verifyEqual(expandnans([1, NaN, 3], 10, 0), [1, NaN, 3]);
+            tc.verifyEqual(expandnans([1, NaN, 3], 10, 0.04), [1, NaN, 3]);
+        end
+
         function testNoNansReturnsSame(tc)
             signal = (1:20)';
             fs = 10;

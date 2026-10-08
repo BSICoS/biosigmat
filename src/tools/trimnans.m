@@ -5,7 +5,10 @@ function trimmedSignal = trimnans(signal)
 %   and end of the input signal SIGNAL, returning the trimmed signal
 %   TRIMMEDSIGNAL. The function preserves any NaN values that occur in the
 %   middle of the signal between valid data points. If all values in the
-%   signal are NaN, an empty array is returned.
+%   signal are NaN or the input is empty, an empty array is returned.
+%   SIGNAL must contain real finite values or NaN; Inf and complex data are
+%   invalid. The output is a column vector and does not retain the original
+%   starting time offset.
 %
 %   This function is useful for cleaning up signals that may have NaN
 %   padding at the edges due to filtering operations, data acquisition
@@ -29,7 +32,9 @@ nargoutchk(0, 1);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'trimnans';
-addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x));
+addRequired(parser, 'signal', @(x) isnumeric(x) && isreal(x) && ...
+    (isvector(x) || (isempty(x) && ismatrix(x) && all(size(x) <= 1))) && ...
+    ~any(isinf(x(:))));
 parse(parser, signal);
 signal = parser.Results.signal;
 

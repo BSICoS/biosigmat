@@ -5,13 +5,41 @@
 
 classdef trimnansTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('tools.trimnans')
+    end
+
     methods (TestClassSetup)
-        function addCodeToPath(~)
-            addpath('../../src/tools');
+        function addCodeToPath(tc)
+            repositoryRoot = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+            originalPath = path;
+            tc.addTeardown(@() path(originalPath));
+            addpath(fullfile(repositoryRoot, 'src', 'tools'));
+            addpath(fullfile(repositoryRoot, 'test', 'common'));
         end
     end
 
     methods (Test)
+        function testBiosiglibConformanceCase(tc, caseId)
+            caseDefinition = loadBiosiglibConformanceCase(caseId);
+            signal = loadBiosiglibConformanceInput(caseDefinition, 'signal');
+            actualOutputs = struct('trimmed_signal', trimnans(signal));
+            verifyBiosiglibExpectedOutputs(tc, actualOutputs, caseDefinition);
+        end
+
+        function testEmptyInput(tc)
+            tc.verifyEmpty(trimnans([]));
+        end
+
+        function testInvalidInputs(tc)
+            invalidInputs = {Inf, -Inf, [NaN, Inf, 2], [1+2i, 3], ...
+                'invalid', [1, 2; 3, 4]};
+            for k = 1:numel(invalidInputs)
+                tc.verifyError(@() trimnans(invalidInputs{k}), ...
+                    'MATLAB:InputParser:ArgumentFailedValidation');
+            end
+        end
+
         function testBasicFunctionality(tc)
             signal = [NaN; NaN; 1; 2; NaN; 3; NaN; NaN];
             expected = [1; 2; NaN; 3];

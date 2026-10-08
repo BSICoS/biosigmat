@@ -6,7 +6,11 @@ function signalClean = expandnans(signal, fs, seconds)
 %   matrix; when it is a matrix, each column is treated as an independent
 %   signal. FS is the sampling frequency in Hz (positive scalar). SECONDS is
 %   the time window (in seconds, nonnegative scalar) to expand on each side
-%   of every NaN segment.
+%   of every original NaN segment. The sample radius is rounded to the
+%   nearest integer, with half-way values rounded upward. Newly generated
+%   NaNs do not trigger further expansion. Empty inputs return empty outputs;
+%   real finite values and NaN are accepted, while Inf and complex data are
+%   invalid. Output length and input shape are preserved.
 %
 %   Example:
 %     % Expand NaNs by 0.5 seconds on each side
@@ -31,9 +35,10 @@ nargoutchk(0, 1);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'expandnans';
-addRequired(parser, 'signal', @(x) isnumeric(x) && ~isempty(x) && ismatrix(x));
-addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x > 0);
-addRequired(parser, 'seconds', @(x) isnumeric(x) && isscalar(x) && isfinite(x) && x >= 0);
+addRequired(parser, 'signal', @(x) isnumeric(x) && isreal(x) && ...
+    ismatrix(x) && ~any(isinf(x(:))));
+addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && isreal(x) && isfinite(x) && x > 0);
+addRequired(parser, 'seconds', @(x) isnumeric(x) && isscalar(x) && isreal(x) && isfinite(x) && x >= 0);
 parse(parser, signal, fs, seconds);
 
 signal = parser.Results.signal;
@@ -51,6 +56,9 @@ signalClean = signal;
 
 % Fast path: nothing to expand
 if ~any(isnan(signalClean(:))) || cleanWindow == 0
+    if isVectorInput && isRowVectorInput
+        signalClean = signalClean.';
+    end
     return;
 end
 

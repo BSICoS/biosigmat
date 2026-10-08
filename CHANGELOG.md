@@ -2,6 +2,13 @@
 
 This file is the authoritative release history. GitHub Releases reuse the corresponding version section.
 
+## Unreleased
+
+- Aligned expandnans with the agreed gap-expansion behavior, validated real finite-or-NaN inputs and empty signals, and preserved row orientation on identity paths.
+
+- Aligned trimnans with tools.trimnans: accept empty vectors and reject complex or infinite input; consume shared analytical cases.
+- Removed the graphical slider utility, its tests, and calls from ECG examples.
+
 ## 0.3.0 - 2026-08-12
 
 - Simplified the public documentation to Home, Installation, and API; moved contributor guidance to `CONTRIBUTING.md` and linked examples and source code directly from function pages.

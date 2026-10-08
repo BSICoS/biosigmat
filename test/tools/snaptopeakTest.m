@@ -11,7 +11,7 @@ classdef snaptopeakTest < matlab.unittest.TestCase
     end
 
     properties (TestParameter)
-        caseId = getBiosiglibConformanceCaseIds('tools.snap_to_peak')
+        caseId = getBiosiglibConformanceCaseIds('tools.snaptopeak')
     end
 
     methods (TestClassSetup)

@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Corrected interpgap neighboring interpolation support, preserved vector orientation, and aligned input validation with its shared specification and cases.
+
 - Updated shared specification and case IDs to nanfilter, nanfiltfilt, lpdfilter, and snaptopeak; MATLAB public function names are unchanged.
 
 - Aligned expandnans with the agreed gap-expansion behavior, validated real finite-or-NaN inputs and empty signals, and preserved row orientation on identity paths.

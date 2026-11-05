@@ -101,7 +101,7 @@ testCase.assertEqual(numel(actualVector), numel(expectedVector), lengthDiagnosti
 nanMatches = nanEqual & isnan(actualVector) & isnan(expectedVector);
 numericMatches = ~isnan(actualVector) & ~isnan(expectedVector) & ...
     abs(actualVector - expectedVector) <= tolerance;
-matches = nanMatches | numericMatches;
+matches = nanMatches | numericMatches | (actualVector == expectedVector);
 if any(~matches)
     mismatchIndex = find(~matches, 1);
     diagnostic = sprintf( ...

@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Corrected findsequences empty multiple outputs and integer run detection; added shared conformance coverage while preserving category order and one-based indices.
+
 - Corrected interpgap neighboring interpolation support, preserved vector orientation, and aligned input validation with its shared specification and cases.
 
 - Updated shared specification and case IDs to nanfilter, nanfiltfilt, lpdfilter, and snaptopeak; MATLAB public function names are unchanged.

@@ -11,6 +11,10 @@ function varargout = findsequences(A)
 %     3rd col. - The position of the last value of the sequence (endIndices)
 %     4th col. - The length of the sequence (seqLengths)
 %
+%   Rows are grouped in this order: nonzero finite values, zeros, NaNs,
+%   +Inf, and -Inf. Within each group, rows are ordered by start position.
+%   For matrix inputs, this is by starting row, then by column.
+%
 %   [VALUES, INPOS, FIPOS, LEN] = FINDSEQUENCES(...) returns SEQUENCES as separate outputs.
 %   If no sequences are found no value is returned. To convert positions into
 %   subs/coordinates use IND2SUB.
@@ -49,7 +53,7 @@ A = parser.Results.A;
 
 % Input validation
 if isempty(A) || isscalar(A)
-    varargout{1} = [];
+    varargout = repmat({[]}, 1, max(1, nargout));
     return
 end
 
@@ -64,48 +68,27 @@ end
 
 % Less than two elements along first dimension
 if szA(1) < 2
-    varargout{1} = [];
+    varargout = repmat({[]}, 1, max(1, nargout));
     return
 end
 
-% Detect special values (0, NaN, Inf, -Inf)
-specialValues = [0, NaN, Inf, -Inf];
-specialMasks = cell(1, 4);
-specialMasks{1} = A == 0;       % Zeros
-specialMasks{2} = isnan(A);     % NaNs
-specialMasks{3} = A == Inf;     % Positive Infinity
-specialMasks{4} = A == -Inf;    % Negative Infinity
-
-% Create NaN padding for boundary detection algorithm
-nanPadding = NaN([1, szA(2:end)]);
-
-% Make a copy of A with zeros replaced by NaN (to process normal values)
-AWithoutZeros = A;
-AWithoutZeros(specialMasks{1}) = NaN;
-
-% Process normal values
-sequences = findSequencesByDiff(AWithoutZeros, nanPadding);
-
-% Process special values (0, NaN, Inf, -Inf)
-for i = 1:4
-    % Only process if there are at least 2 occurrences of this special value
-    if nnz(specialMasks{i}) > 1
-        % Convert logical mask to double with NaNs for false values
-        valueMask = double(specialMasks{i});
-        valueMask(~specialMasks{i}) = NaN;
-
-        % Process sequences of this special value
-        tmp = findSequencesByDiff(valueMask, nanPadding);
-
-        if ~isempty(tmp)
-            % Combine with normal value results, replacing detected values with actual special values
-            sequences = [sequences; repmat(specialValues(i), size(tmp, 1), 1), tmp(:, 2:end)]; %#ok<AGROW>
-        end
-    end
-end
+% Detect all runs once, then preserve the established category order.
+sequences = findSequencesByDiff(A);
+values = sequences(:, 1);
+zerosMask = values == 0;
+nanMask = isnan(values);
+sequences(zerosMask, 1) = 0;
+sequences(nanMask, 1) = NaN;
+sequences = [sequences(isfinite(values) & ~zerosMask, :); ...
+             sequences(zerosMask, :); ...
+             sequences(nanMask, :); ...
+             sequences(values == Inf, :); ...
+             sequences(values == -Inf, :)];
 
 % Format output based on requested number of output arguments
-if nargout < 2
+if isempty(sequences)
+    varargout = repmat({[]}, 1, max(1, nargout));
+elseif nargout < 2
     varargout = {sequences};
 else
     % Split columns into separate output arguments
@@ -114,26 +97,27 @@ end
 
 end
 
-function sequences = findSequencesByDiff(inputData, nanPadding)
-% FINDSEQUENCESBYDIFF Find sequences of identical values using double differencing.
+function sequences = findSequencesByDiff(inputData)
+% FINDSEQUENCESBYDIFF Find sequences of identical values using adjacent equality.
 %
-%   SEQUENCES = FINDSEQUENCESBYDIFF(INPUTDATA, NANPADDING) finds sequences of
-%   identical values using a double differencing algorithm. SEQUENCES is a matrix
+%   SEQUENCES = FINDSEQUENCESBYDIFF(INPUTDATA) finds sequences of
+%   identical values using an adjacent-equality mask. SEQUENCES is a matrix
 %   with sequence information [value, startIndices, endIndices, seqLengths].
 %
 %   Algorithm:
-%     1. Pads input data with NaNs at boundaries
-%     2. Uses double differencing to detect transitions between identical values
+%     1. Compares adjacent input values exactly
+%     2. Pads and differences the equality mask to detect transitions
 %     3. Identifies start/end points of sequences by analyzing difference patterns
 
 % Calculate size of input data
 szInput = size(inputData);
 
-% Create padded structure (nanPadding-data-nanPadding)
-paddedData = cat(1, nanPadding, inputData, nanPadding);
-
-% Find sequences using double differencing along first dimension
-diffIdx = diff(diff(paddedData, [], 1) == 0, [], 1);
+% Compare before differencing to avoid integer subtraction saturation.
+left = inputData(1:end-1, :);
+right = inputData(2:end, :);
+equalPairs = (left == right) | (isnan(left) & isnan(right));
+boundary = false(1, szInput(2));
+diffIdx = diff([boundary; equalPairs; boundary], [], 1);
 
 % Find start and end positions of sequences
 [startRows, startCols] = find(diffIdx == 1);
@@ -141,7 +125,7 @@ diffIdx = diff(diff(paddedData, [], 1) == 0, [], 1);
 
 % If no sequences found, return empty result
 if isempty(startRows)
-    sequences = [];
+    sequences = zeros(0, 4);
     return;
 end
 
@@ -158,6 +142,6 @@ startIndices = sub2ind(szInput, startPoints(:, 1), startPoints(:, 2));
 endIndices = sub2ind(szInput, endPoints(:, 1), endPoints(:, 2));
 
 % Create output matrix [value, startIndices, endIndices, seqLengths]
-sequences = [inputData(startIndices), startIndices, endIndices, seqLengths];
+sequences = [double(inputData(startIndices)), startIndices, endIndices, seqLengths];
 
 end

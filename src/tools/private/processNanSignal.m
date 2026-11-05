@@ -66,43 +66,17 @@ for col = 1:size(x,2)
         continue; % entire column is NaN, already handled
     end
 
-    % Find NaN sequences in this column
-    seqs = findsequences(double(idxNanCol));
-    if ~isempty(seqs)
-        % Keep only NaN sequences (value = 1)
-        seqs = seqs(seqs(:,1) == 1, :);
-    end
+    % Find all NaN gaps, including single samples, in signal order.
+    changes = diff([false; idxNanCol; false]);
+    gapStarts = find(changes == 1);
+    gapEnds = find(changes == -1) - 1;
+    gapLengths = gapEnds - gapStarts + 1;
 
-    % findsequences detects repeated runs, so add isolated NaN samples as
-    % one-sample sequences before classifying gaps.
-    if any(idxNanCol)
-        coveredNan = false(size(idxNanCol));
-        for s = 1:size(seqs, 1)
-            coveredNan(seqs(s, 2):seqs(s, 3)) = true;
-        end
-
-        isolatedNanIndices = find(idxNanCol & ~coveredNan);
-        if ~isempty(isolatedNanIndices)
-            isolatedNanSeqs = [ ...
-                ones(numel(isolatedNanIndices), 1), ...
-                isolatedNanIndices, ...
-                isolatedNanIndices, ...
-                ones(numel(isolatedNanIndices), 1)];
-            seqs = [seqs; isolatedNanSeqs]; %#ok<AGROW>
-        end
-
-        seqs = sortrows(seqs, 2);
-    end
-
-    % Boundary NaN gaps and long internal NaN gaps are preserved as NaN.
-    % Short internal gaps are interpolated within their candidate segment.
-    if isempty(seqs)
-        preservedNanSeqs = [];
-    else
-        isBoundaryGap = seqs(:,2) == 1 | seqs(:,3) == length(colData);
-        isLongInternalGap = ~isBoundaryGap & seqs(:,4) > maxgap;
-        preservedNanSeqs = seqs(isBoundaryGap | isLongInternalGap, :);
-    end
+    % Preserve boundary gaps and gaps that exceed the interpolation limit.
+    isBoundaryGap = gapStarts == 1 | gapEnds == length(colData);
+    preserve = isBoundaryGap | gapLengths > maxgap;
+    preservedNanSeqs = [ones(nnz(preserve), 1), gapStarts(preserve), ...
+        gapEnds(preserve), gapLengths(preserve)];
 
     % Process valid segments between preserved NaN gaps separately
     validSegments = getValidSegments(colData, preservedNanSeqs);

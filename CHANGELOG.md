@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Fixed slicesignal padding for nonempty signals no longer than the overlap, and added shared conformance cases.
+
 - Corrected findsequences empty multiple outputs and integer run detection; added shared conformance coverage while preserving category order and one-based indices.
 
 - Corrected interpgap neighboring interpolation support, preserved vector orientation, and aligned input validation with its shared specification and cases.

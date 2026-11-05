@@ -12,12 +12,14 @@ function [sliced, tcenter] = slicesignal(x, window, overlap, varargin)
 %   output (TCENTER).
 %
 %   SLICED = SLICESIGNAL(..., 'Uselast', true) if true, the last segment
-%   will be included in the slicing, with nan padding to ensure it has the
-%   same length as the other segments. This option is set to false by default.
+%   is included if samples remain uncovered, with NaN padding on the right.
+%   A nonempty signal shorter than WINDOW produces one padded segment.
+%   This option is false by default.
 %
 %   [SLICED, TCENTER] = SLICESIGNAL(...) returns TCENTER, the time values
-%   in seconds corresponding to the center of each slice. When requesting
-%   TCENTER output, FS parameter is required.
+%   in seconds corresponding to the center of each nominal window, including
+%   any padding. The first input sample is at time zero. FS is required when
+%   requesting TCENTER.
 %
 %   This function is particularly useful for time-frequency analysis where
 %   you need to apply spectral analysis methods like pwelch or periodogram
@@ -58,9 +60,9 @@ nargoutchk(0, 2);
 parser = inputParser;
 parser.FunctionName = 'slicesignal';
 addRequired(parser, 'x', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addRequired(parser, 'sliceLength', @(x) isnumeric(x) && isscalar(x) && x > 0 && x == round(x));
-addRequired(parser, 'overlap', @(x) isnumeric(x) && isscalar(x) && x >= 0 && x == round(x));
-addOptional(parser, 'fs', [], @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'sliceLength', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0 && x == round(x));
+addRequired(parser, 'overlap', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x >= 0 && x == round(x));
+addOptional(parser, 'fs', [], @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0);
 addOptional(parser, 'uselast', false, @(x) islogical(x) && isscalar(x));
 parse(parser, x, window, overlap, varargin{:});
 
@@ -88,7 +90,7 @@ end
 stepSize = window - overlap;
 if uselast
     % Include last segment even if it is shorter than window
-    numSlices = ceil((length(x) - overlap) / stepSize);
+    numSlices = max(1, ceil((length(x) - overlap) / stepSize));
 else
     % Exclude last segment if it does not fill the window
     numSlices = floor((length(x) - overlap) / stepSize);
@@ -96,7 +98,7 @@ end
 
 if numSlices < 1
     error('sliceSignal:signalTooShort', ...
-        'Signal length (%d) is too short for slice length (%d). You may use the ''uselast'' option to force zero-padding.', length(x), window);
+        'Signal length (%d) is too short for slice length (%d). You may use the ''uselast'' option to enable NaN padding.', length(x), window);
 end
 
 % Initialize time axis (center of each slice) only if fs is provided

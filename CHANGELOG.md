@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Breaking: localmax now selects the highest local peak without MinProminence or MinSeparation options. Preserved dimension selection and corrected missing peak values for integer input.
+
 - Fixed slicesignal padding for nonempty signals no longer than the overlap, and added shared conformance cases.
 
 - Corrected findsequences empty multiple outputs and integer run detection; added shared conformance coverage while preserving category order and one-based indices.

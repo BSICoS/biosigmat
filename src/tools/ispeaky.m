@@ -4,7 +4,8 @@ function isPeaky = ispeaky(pkl, akl, pklThreshold, aklThreshold)
 %   ISPEAKY = ISPEAKY(PKL, AKL, PKLTHRESHOLD, AKLTHRESHOLD) determines if spectra
 %   are considered peaky based on peakedness thresholds. ISPEAKY is a logical array
 %   indicating which spectra meet both criteria (PKL >= PKLTHRESHOLD and
-%   AKL >= AKLTHRESHOLD).
+%   AKL >= AKLTHRESHOLD). Inputs must be real and have identical sizes;
+%   NaN measures produce false. Thresholds are finite scalars from 0 to 100.
 %
 %   Example:
 %     % Using with peakedness function output
@@ -27,10 +28,10 @@ nargoutchk(0, 1);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'ispeaky';
-addRequired(parser, 'pkl', @(x) isnumeric(x) && ~isempty(x));
-addRequired(parser, 'akl', @(x) isnumeric(x) && ~isempty(x));
-addRequired(parser, 'ksi_p', @(x) isnumeric(x) && isscalar(x) && x >= 0 && x <= 100);
-addRequired(parser, 'ksi_a', @(x) isnumeric(x) && isscalar(x) && x >= 0 && x <= 100);
+addRequired(parser, 'pkl', @(x) isnumeric(x) && isreal(x) && ~isempty(x));
+addRequired(parser, 'akl', @(x) isnumeric(x) && isreal(x) && ~isempty(x));
+addRequired(parser, 'ksi_p', @(x) isnumeric(x) && isreal(x) && isscalar(x) && x >= 0 && x <= 100);
+addRequired(parser, 'ksi_a', @(x) isnumeric(x) && isreal(x) && isscalar(x) && x >= 0 && x <= 100);
 parse(parser, pkl, akl, pklThreshold, aklThreshold);
 
 pkl = parser.Results.pkl;

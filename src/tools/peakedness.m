@@ -7,13 +7,18 @@ function [pkl, akl] = peakedness(pxx, f, varargin)
 %   maximum. PXX can be a column vector for a single spectrum or a matrix
 %   with spectra as columns. F is the frequency vector in Hz corresponding
 %   to PXX. Returns PKL (power concentration peakedness) and AKL (absolute
-%   maximum peakedness), both as percentages.
+%   maximum peakedness), both as percentages. PXX must be real, finite and nonnegative;
+%   F must be real, finite and strictly increasing.
 %
 %   The peakedness measures how concentrated the power is in a narrow
 %   frequency band compared to a wider band. Power concentration peakedness
 %   (PKL) is the percentage of power in a narrow window compared to power in
 %   a wider window. Absolute maximum peakedness (AKL) is the percentage of
-%   the maximum power in the window compared to the global maximum power.
+%   the maximum power in the wide window compared to the global maximum.
+%   Windows include their endpoints and are not restricted to a fixed
+%   frequency range. Equal maxima select the first frequency. In adaptive
+%   mode AKL is 100 for every nonzero spectrum. Zero spectra or windows
+%   without frequency samples return zero for the corresponding measure.
 %
 %   [PKL, AKL] = PEAKEDNESS(PXX, F, REFERENCEFREQ) uses a fixed reference
 %   frequency REFERENCEFREQ in Hz for peakedness calculation instead of the
@@ -25,10 +30,6 @@ function [pkl, akl] = peakedness(pxx, f, varargin)
 %   [] for REFERENCEFREQ to use adaptive method with custom window.
 %
 %   Example:
-%     % Generate a test spectrum with a peak at 0.3 Hz
-%     f = 0:0.01:1;
-%     pxx = exp(-((f-0.3)/0.05).^2) + 0.1*randn(size(f));
-%
 %     % Calculate peakedness using fixed reference frequency
 %     [pkl, akl] = peakedness(pxx, f, 0.3);
 %
@@ -42,14 +43,14 @@ nargoutchk(0, 2);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'peakedness';
-addRequired(parser, 'pxx', @(x) isnumeric(x) && ~isempty(x));
-addRequired(parser, 'f', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addOptional(parser, 'referenceFreq', [], @(x) isnumeric(x) && isscalar(x) && isfinite(x));
-addOptional(parser, 'window', 0.125, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'pxx', @(x) isnumeric(x) && isreal(x) && ismatrix(x) && ~isempty(x) && all(isfinite(x(:))) && all(x(:) >= 0));
+addRequired(parser, 'f', @(x) isnumeric(x) && isreal(x) && isvector(x) && ~isempty(x) && all(isfinite(x(:))) && all(diff(double(x(:))) > 0));
+addOptional(parser, 'referenceFreq', [], @(x) isnumeric(x) && isreal(x) && (isempty(x) || (isscalar(x) && isfinite(x))));
+addOptional(parser, 'window', 0.125, @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0);
 parse(parser, pxx, f, varargin{:});
 
-pxx = parser.Results.pxx;
-f = parser.Results.f;
+pxx = double(parser.Results.pxx);
+f = double(parser.Results.f);
 referenceFreq = parser.Results.referenceFreq;
 window = parser.Results.window;
 
@@ -62,13 +63,6 @@ f = f(:);
 % Ensure pxx is a matrix with spectra as columns
 if isvector(pxx)
     pxx = pxx(:);
-end
-
-% Handle NaN values in pxx
-if any(isnan(pxx(:)))
-    pkl = NaN;
-    akl = NaN;
-    return;
 end
 
 % Validate dimensions
@@ -89,8 +83,8 @@ for i = 1:numSpectra
     % Select current spectrum
     currentPxx = pxx(:, i);
 
-    % Skip if spectrum contains only zeros or NaN
-    if all(currentPxx == 0) || all(isnan(currentPxx))
+    % Skip if spectrum contains only zeros
+    if all(currentPxx == 0)
         pkl(i) = 0;
         akl(i) = 0;
         continue;
@@ -112,13 +106,8 @@ for i = 1:numSpectra
     searchWindowWide = f >= centerFreq - window/2 & f <= centerFreq + window/2;
     searchWindowNarrow = f >= centerFreq - windowNarrow/2 & f <= centerFreq + windowNarrow/2;
 
-    % For adaptive method with initialization constraints (as in original code)
-    if useAdaptiveMethod
-        searchWindowNarrow = f >= max(centerFreq - windowNarrow/2, 0.15) & f <= min(centerFreq + windowNarrow/2, 0.8);
-    end
-
     % Check if windows contain valid frequency points
-    if ~any(searchWindowWide) || ~any(searchWindowNarrow)
+    if ~any(searchWindowWide)
         pkl(i) = 0;
         akl(i) = 0;
         continue;

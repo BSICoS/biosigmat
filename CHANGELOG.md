@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Breaking: peakedness no longer restricts automatic bands to 0.15–0.8 Hz and rejects NaN spectra; corrected empty-reference handling and independent AKL calculation. Added shared peakedness/ispeaky cases.
+
 - Corrected nanpwelch row-vector validation and missing-channel PSD alignment; added shared analytical cases and explicit parameter validation.
 
 - Breaking: hjorthArtifacts now measures minSegmentSeparation in seconds, defaults to zero, merges overlapping/contiguous detections and always excludes NaN windows.

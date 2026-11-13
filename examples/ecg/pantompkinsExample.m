@@ -90,4 +90,3 @@ grid on;
 
 sgtitle('Pan-Tompkins Algorithm: Signal Processing Steps');
 linkaxes(ax, 'x');
-slider;

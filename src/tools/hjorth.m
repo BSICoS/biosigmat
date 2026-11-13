@@ -20,9 +20,9 @@ function [h0, h1, h2] = hjorth(x, fs)
 %     % Display results
 %     fprintf('Activity (H0): %.4f\n', h0);
 %     fprintf('Mobility (H1): %.4f Hz\n', h1);
-%     fprintf('Complexity (H2): %.4f\n', h2);
+%     fprintf('Complexity (H2): %.4f Hz\n', h2);
 %
-%   See also VAR, DIFF
+%   See also MEAN, DIFF
 
 % Check number of input and output arguments
 narginchk(2, 2);
@@ -31,29 +31,36 @@ nargoutchk(0, 3);
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'hjorth';
-addRequired(parser, 'x', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
+addRequired(parser, 'x', @(x) isnumeric(x) && isreal(x) && isvector(x) && ...
+    ~isempty(x) && ~any(isinf(x(:))));
+addRequired(parser, 'fs', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0);
 
 parse(parser, x, fs);
 
 x = parser.Results.x;
-fs = parser.Results.fs;
+fs = double(parser.Results.fs);
 
-% Ensure x is a column vector
-x = x(:);
+% Ensure x is a floating-point column vector
+x = double(x(:));
 
-% Compute first and second derivatives
-dx = [NaN; diff(x)];
-ddx = [NaN; diff(dx)];
+% Compute first and second differences
+dx = diff(x);
+ddx = diff(dx);
 
-% Compute spectral moments
-w0 = (2*pi/length(x)) * sum(x.^2);
-w2 = (2*pi/length(x)) * sum(dx(~isnan(dx)).^2);
-w4 = (2*pi/length(x)) * sum(ddx(~isnan(ddx)).^2);
+% Compute signal and difference energies
+e0 = sum(x.^2);
+e1 = sum(dx.^2);
+e2 = sum(ddx.^2);
 
 % Compute Hjorth parameters
-h0 = var(x); % Activity
-h1 = abs(sqrt(w2/w0)) * fs / (2*pi); % Mobility
-h2 = abs(sqrt((w4/w2) - (w2/w0))) * fs / (2*pi); % Complexity
+h0 = e0 / length(x); % Activity (mean-square power)
+h1 = NaN;
+h2 = NaN;
+if length(x) >= 2 && e0 > 0
+    h1 = sqrt(e1/e0) * fs / (2*pi); % Mobility
+end
+if length(x) >= 3 && e0 > 0 && e1 > 0
+    h2 = sqrt(abs(e2/e1 - e1/e0)) * fs / (2*pi); % Complexity
+end
 
 end

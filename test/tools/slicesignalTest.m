@@ -6,6 +6,10 @@
 
 classdef slicesignalTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('tools.slicesignal')
+    end
+
     properties
         fs
         t
@@ -14,7 +18,9 @@ classdef slicesignalTest < matlab.unittest.TestCase
 
     methods (TestClassSetup)
         function addCodeToPath(~)
-            addpath('../../src/tools');
+            root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+            addpath(fullfile(root, 'src', 'tools'));
+            addpath(fullfile(root, 'test', 'common'));
         end
     end
 
@@ -27,6 +33,34 @@ classdef slicesignalTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            x = loadBiosiglibConformanceInput(c, 'signal');
+            window = loadBiosiglibConformanceInput(c, 'window_length');
+            overlap = loadBiosiglibConformanceInput(c, 'overlap');
+            args = {x, window, overlap};
+            hasFs = isfield(c.parameters, 'sampling_frequency');
+            if hasFs
+                args{end+1} = c.parameters.sampling_frequency;
+            end
+            if isfield(c.parameters, 'use_last')
+                args = [args, {'Uselast', c.parameters.use_last}];
+            end
+            if isfield(c, 'expected_error')
+                verifyBiosiglibExpectedError(tc, @() slicesignal(args{:}), c);
+                return;
+            end
+            actual = struct();
+            if hasFs
+                [windows, actual.time_centers] = slicesignal(args{:});
+            else
+                windows = slicesignal(args{:});
+            end
+            tc.verifyEqual(size(windows, 1), window);
+            actual.window_samples = windows(:);
+            verifyBiosiglibExpectedOutputs(tc, actual, c);
+        end
+
         function testSlicing(tc)
             [sliced, tcenter] = slicesignal(tc.x, 256, 128, tc.fs);
 

@@ -83,6 +83,5 @@ axis tight;
 title('Respiratory signal from device');
 xlabel('time (s)');
 
-% Link axes for synchronized zooming and enable interactive slider
+% Link axes for synchronized zooming
 linkaxes(ax, 'x');
-slider;

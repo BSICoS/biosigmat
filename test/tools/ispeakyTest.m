@@ -5,6 +5,10 @@
 
 classdef ispeakyTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('tools.ispeaky')
+    end
+
     methods (TestClassSetup)
         function addCodeToPath(~)
             addpath('../../src/tools');
@@ -12,6 +16,14 @@ classdef ispeakyTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            pkl = decodeLiteral(loadBiosiglibConformanceInput(c, 'pkl'));
+            akl = decodeLiteral(loadBiosiglibConformanceInput(c, 'akl'));
+            actual = ispeaky(pkl, akl, c.parameters.pkl_threshold, c.parameters.akl_threshold);
+            verifyBiosiglibExpectedOutputs(tc, struct('is_peaky', actual), c);
+        end
+
         function testVectorWithDifferentThresholds(tc)
             % Test with a larger vector of synthetic values
             pkl = [20; 35; 45; 55; 65; 75; 85; 95];
@@ -91,4 +103,19 @@ classdef ispeakyTest < matlab.unittest.TestCase
                 'Should throw error for akl threshold > 100');
         end
     end
+end
+
+function values = decodeLiteral(values)
+% Decode numerical JSON literals that contain NaN markers.
+if iscell(values)
+    decoded = cellfun(@decodeLiteral, values, 'UniformOutput', false);
+    if all(cellfun(@isscalar, decoded))
+        values = cell2mat(decoded);
+    else
+        values = cell2mat(cellfun(@(row) row(:).', decoded, ...
+            'UniformOutput', false));
+    end
+elseif ischar(values) || isstring(values)
+    values = str2double(values);
+end
 end

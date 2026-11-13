@@ -7,8 +7,9 @@ function varargout = nanpwelch(x, window, noverlap, nfft, fs, varargin)
 %   or window vector), NOVERLAP is the number of overlapped samples, NFFT is the
 %   number of DFT points, and FS is the sample rate in Hz. It trims NaN values
 %   at the beginning and end of the signal and splits the signal at large gaps.
-%   The power spectral density is computed for each valid segment and averaged
-%   across all segments. PXX is the power spectral density estimate.
+%   Each complete analysis window contributes equally to the mean PSD.
+%   A scalar WINDOW selects rectangular weights; no detrending is applied.
+%   PXX is the power spectral density estimate.
 %
 %   PXX = NANPWELCH(..., MAXGAP) interpolates small gaps (≤ MAXGAP) before
 %   computing the PSD. If MAXGAP is empty or not provided, no interpolation is performed.
@@ -16,7 +17,7 @@ function varargout = nanpwelch(x, window, noverlap, nfft, fs, varargin)
 %   [PXX, F] = NANPWELCH(...) also returns the frequency vector F in Hz.
 %
 %   [PXX, F, PXXSEGMENTS] = NANPWELCH(...) returns additional output:
-%     PXXSEGMENTS - Power spectral density for each segment
+%     PXXSEGMENTS - Power spectral density for each complete analysis window
 %                   For vector input: matrix where each column contains the PSD of one segment
 %                   For matrix input: cell array where PXXSEGMENTS{i} contains the PSD segments for signal i
 %
@@ -40,20 +41,28 @@ nargoutchk(0, 3);
 % Parse input arguments
 parser = inputParser;
 parser.FunctionName = 'nanpwelch';
-addRequired(parser, 'x', @(x) isnumeric(x) && ~isempty(x) && (isvector(x) || ismatrix(x)));
-addRequired(parser, 'window', @(x) isnumeric(x) && (isscalar(x) || isvector(x)) && ~isempty(x));
-addRequired(parser, 'noverlap', @(x) isnumeric(x) && isscalar(x) && x >= 0);
-addRequired(parser, 'nfft', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addOptional(parser, 'maxgap', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && x >= 0));
+addRequired(parser, 'x', @(x) isnumeric(x) && isreal(x) && ~isempty(x) && ismatrix(x) && ~any(isinf(x(:))));
+addRequired(parser, 'window', @(x) isnumeric(x) && isreal(x) && isvector(x) && ~isempty(x) && all(isfinite(x(:))) && ...
+    ((isscalar(x) && x >= 1 && x == fix(x)) || (~isscalar(x) && sum(x(:).^2) > 0)));
+addRequired(parser, 'noverlap', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x >= 0 && x == fix(x));
+addRequired(parser, 'nfft', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0 && x == fix(x));
+addRequired(parser, 'fs', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0);
+addOptional(parser, 'maxgap', [], @(x) isempty(x) || (isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x >= 0 && x == fix(x)));
 
 parse(parser, x, window, noverlap, nfft, fs, varargin{:});
 
 % Additional validation: window size vs signal length
 windowLength = getWindowLength(parser.Results.window);
-if windowLength > size(x, 1)
+signalLength = size(x, 1);
+if isvector(x)
+    signalLength = numel(x);
+end
+if parser.Results.noverlap >= windowLength
+    error('nanpwelch:invalidOverlap', 'Overlap must be smaller than the window length.');
+end
+if windowLength > signalLength
     error('nanpwelch:windowTooLarge', ...
-        'Window length (%d) cannot be larger than signal length (%d)', windowLength, size(x, 1));
+        'Window length (%d) cannot be larger than signal length (%d)', windowLength, signalLength);
 end
 
 x = parser.Results.x;
@@ -193,6 +202,16 @@ for signalIdx = 1:numSignals
 
     % Store segment results in cell array
     pxxSegmentsAllCells{signalIdx} = pxxSegments;
+end
+
+% Keep empty channel estimates aligned with the original matrix columns.
+if numSignals > 1 && ~isempty(fAll) && any(cellfun(@isempty, pxxSegmentsAllCells))
+    pxxAll = NaN(length(fAll), numSignals);
+    for signalIdx = 1:numSignals
+        if ~isempty(pxxSegmentsAllCells{signalIdx})
+            pxxAll(:,signalIdx) = mean(pxxSegmentsAllCells{signalIdx}, 2);
+        end
+    end
 end
 
 if nargout > 2

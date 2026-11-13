@@ -7,7 +7,7 @@ function validSegments = getValidSegments(data, longNanSeqs)
 %
 % Inputs:
 %   data        - Input signal vector
-%   longNanSeqs - Matrix of long NaN sequences from findsequences
+%   longNanSeqs - Matrix of preserved NaN sequences
 %                 [value, startIdx, endIdx, length]
 %
 % Outputs:

@@ -4,13 +4,38 @@
 
 classdef hjorthTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('tools.hjorth')
+    end
+
     methods (TestClassSetup)
         function addCodeToPath(~)
-            addpath('../../src/tools');
+            root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+            addpath(fullfile(root, 'src', 'tools'));
+            addpath(fullfile(root, 'test', 'common'));
         end
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            x = loadBiosiglibConformanceInput(c, 'signal');
+            fs = loadBiosiglibConformanceInput(c, 'sampling_frequency');
+            if isfield(c, 'expected_error')
+                verifyBiosiglibExpectedError(tc, @() hjorth(x, fs), c);
+                return;
+            end
+            [h0, h1, h2] = hjorth(x, fs);
+            actual = struct('activity', h0, 'mobility', h1, 'complexity', h2);
+            verifyBiosiglibExpectedOutputs(tc, actual, c);
+        end
+
+        function testIntegerInputs(tc)
+            [h0, h1, h2] = hjorth(uint8([2, 1, 0]), uint16(1000));
+            [a, b, c] = hjorth([2, 1, 0], 1000);
+            tc.verifyEqual([h0, h1, h2], [a, b, c]);
+        end
+
         function testBasicFunctionality(tc)
             fs = 1000;
             t = 0:1/fs:1;

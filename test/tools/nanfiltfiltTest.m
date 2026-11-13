@@ -10,7 +10,7 @@
 classdef nanfiltfiltTest < NanFilterTestBase
 
     properties (TestParameter)
-        caseId = getBiosiglibConformanceCaseIds('tools.nan_filtfilt')
+        caseId = getBiosiglibConformanceCaseIds('tools.nanfiltfilt')
     end
 
     methods (Test)

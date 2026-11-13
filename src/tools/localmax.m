@@ -1,21 +1,18 @@
 function [maxValue, maxLoc] = localmax(X, varargin)
 % LOCALMAX Finds local maxima in matrix rows or columns.
 %
-%   MAXVALUE = LOCALMAX(X) finds the location and value of the most
-%   prominent local maximum along the first non-singleton dimension of matrix X.
+%   MAXVALUE = LOCALMAX(X) finds the value of the highest
+%   local maximum along the first non-singleton dimension of matrix X.
 %   Returns MAXVALUE containing the max values. For rows/columns without
 %   maxima, returns NaN.
 %
-%   MAXVALUE = LOCALMAX(X, DIM) finds the location and value of the
-%   most prominent local maximum along dimension DIM of matrix X. DIM specifies
+%   MAXVALUE = LOCALMAX(X, DIM) finds the highest local maximum along dimension DIM of matrix X. DIM specifies
 %   the dimension along which to search for maxima (1 for columns, 2 for rows).
 %
-%   MAXVALUE = LOCALMAX(..., 'Name', Value) specifies additional
-%   parameters using name-value pairs:
-%     'MinProminence' - Minimum prominence required for max detection
-%                       (default: 0)
-%     'MinSeparation' - Minimum separation between max in samples
-%                       (default: 1)
+%   NaNs are ignored when comparing neighbors, but locations refer to the
+%   original signal. Endpoints are excluded. Flat peaks use their middle
+%   sample, choosing the earlier middle sample when there are two. Ties
+%   between highest peaks select the first one.
 %
 %   [MAXVALUE, MAXLOC] = LOCALMAX(...) also returns MAXLOC containing
 %   the max locations.
@@ -46,23 +43,19 @@ function [maxValue, maxLoc] = localmax(X, varargin)
 
 
 % Check number of input and output arguments
-narginchk(1, 5);
+narginchk(1, 2);
 nargoutchk(0, 2);
 
 % Parse and validate inputs
 parser = inputParser;
 parser.FunctionName = 'localmax';
-addRequired(parser, 'X', @(x) isnumeric(x) && ~isempty(x));
+addRequired(parser, 'X', @(x) isnumeric(x) && isreal(x) && ismatrix(x) && ~isempty(x));
 addOptional(parser, 'dim', [], @(x) isempty(x) || (isnumeric(x) && isscalar(x) && (x == 1 || x == 2)));
-addParameter(parser, 'MinProminence', 0, @(x) isnumeric(x) && isscalar(x) && x >= 0);
-addParameter(parser, 'MinSeparation', 1, @(x) isnumeric(x) && isscalar(x) && x >= 1);
 
 parse(parser, X, varargin{:});
 
 X = parser.Results.X;
 dim = parser.Results.dim;
-minProm = parser.Results.MinProminence;
-minSep = parser.Results.MinSeparation;
 
 % If dim is not specified, find first non-singleton dimension
 if isempty(dim)
@@ -74,9 +67,7 @@ if isempty(dim)
 end
 
 % Peak candidates per specified dimension
-L = islocalmax(X, dim, 'MinProminence', minProm, ...
-    'MinSeparation', minSep, ...
-    'FlatSelection', 'center');
+L = islocalmax(X, dim, 'FlatSelection', 'center');
 
 % Force to -Inf where NOT a peak and take maximum per specified dimension
 Xmask = X;
@@ -87,6 +78,9 @@ Xmask(~L) = -inf;
 % Rows/columns without peaks -> NaN
 hasPeak = any(L, dim);
 maxLoc(~hasPeak) = NaN;
+if isinteger(maxValue) && any(~hasPeak(:))
+    maxValue = double(maxValue);
+end
 maxValue(~hasPeak) = NaN;
 
 end

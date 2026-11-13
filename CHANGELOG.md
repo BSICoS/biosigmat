@@ -2,6 +2,35 @@
 
 This file is the authoritative release history. GitHub Releases reuse the corresponding version section.
 
+## Unreleased
+
+## 1.0.0-beta - 2026-11-13
+
+- Prepared the first 1.x beta with exact Biosiglib conformance and prerelease publication.
+
+- Breaking: peakedness no longer restricts automatic bands to 0.15–0.8 Hz and rejects NaN spectra; corrected empty-reference handling and independent AKL calculation. Added shared peakedness/ispeaky cases.
+
+- Corrected nanpwelch row-vector validation and missing-channel PSD alignment; added shared analytical cases and explicit parameter validation.
+
+- Breaking: hjorthArtifacts now measures minSegmentSeparation in seconds, defaults to zero, merges overlapping/contiguous detections and always excludes NaN windows.
+
+- Changed hjorth activity from sample variance to mean-square power, preserving the mobility and complexity formulas and defining short and degenerate cases.
+
+- Breaking: localmax now selects the highest local peak without MinProminence or MinSeparation options. Preserved dimension selection and corrected missing peak values for integer input.
+
+- Fixed slicesignal padding for nonempty signals no longer than the overlap, and added shared conformance cases.
+
+- Corrected findsequences empty multiple outputs and integer run detection; added shared conformance coverage while preserving category order and one-based indices.
+
+- Corrected interpgap neighboring interpolation support, preserved vector orientation, and aligned input validation with its shared specification and cases.
+
+- Updated shared specification and case IDs to nanfilter, nanfiltfilt, lpdfilter, and snaptopeak; MATLAB public function names are unchanged.
+
+- Aligned expandnans with the agreed gap-expansion behavior, validated real finite-or-NaN inputs and empty signals, and preserved row orientation on identity paths.
+
+- Aligned trimnans with tools.trimnans: accept empty vectors and reject complex or infinite input; consume shared analytical cases.
+- Removed the graphical slider utility, its tests, and calls from ECG examples.
+
 ## 0.3.1 - 2026-08-26
 
 - Added CFF 1.2.0 metadata for citing the exact Biosigmat release and its confirmed software authors.

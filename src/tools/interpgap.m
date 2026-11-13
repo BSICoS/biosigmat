@@ -36,15 +36,19 @@ nargoutchk(0, 1);
 parser = inputParser;
 parser.FunctionName = 'interpgap';
 validMethods = {'linear', 'nearest', 'spline', 'pchip'};
-addRequired(parser, 'x', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addRequired(parser, 'maxgap', @(x) isnumeric(x) && isscalar(x) && x >= 0);
-addOptional(parser, 'method', 'linear', @(x) any(validatestring(x, validMethods)));
+addRequired(parser, 'x', @(x) isnumeric(x) && isreal(x) && ...
+    (isvector(x) || isequal(size(x), [0, 0])) && ~any(isinf(x(:))));
+addRequired(parser, 'maxgap', @(x) isnumeric(x) && isreal(x) && ...
+    isscalar(x) && isfinite(x) && x >= 0 && x == fix(x));
+addOptional(parser, 'method', 'linear', @(x) ...
+    (ischar(x) || (isstring(x) && isscalar(x))) && any(strcmp(x, validMethods)));
 parse(parser, x, maxgap, varargin{:});
 x = parser.Results.x;
 maxgap = parser.Results.maxgap;
 method = char(parser.Results.method);
 
 % Ensure signal is a column vector
+inputSize = size(x);
 x = x(:);
 
 % Initialize output
@@ -55,32 +59,44 @@ nanIndices = isnan(interpolated);
 
 % Early return if no NaN values
 if ~any(nanIndices)
+    interpolated = reshape(interpolated, inputSize);
     return;
 end
 
 % Find NaN sequences
 nanSeqStarts = find(diff([0; nanIndices]) > 0);
 nanSeqEnds = find(diff([nanIndices; 0]) < 0);
+longGaps = nanSeqEnds - nanSeqStarts + 1 > maxgap;
 
 % Interpolate gaps that are ≤ maxgap
 for i = 1:length(nanSeqStarts)
     gapLength = nanSeqEnds(i) - nanSeqStarts(i) + 1;
-    if gapLength <= maxgap
+    if gapLength <= maxgap && nanSeqStarts(i) > 1 && nanSeqEnds(i) < length(x)
         % Get indices for interpolation (including boundary points)
-        startIdx = max(1, nanSeqStarts(i) - 1);
-        endIdx = min(length(interpolated), nanSeqEnds(i) + 1);
+        startIdx = 1;
+        endIdx = length(x);
+        previousGap = find(longGaps & nanSeqEnds < nanSeqStarts(i), 1, 'last');
+        nextGap = find(longGaps & nanSeqStarts > nanSeqEnds(i), 1, 'first');
+        if ~isempty(previousGap)
+            startIdx = nanSeqEnds(previousGap) + 1;
+        end
+        if ~isempty(nextGap)
+            endIdx = nanSeqStarts(nextGap) - 1;
+        end
 
         % Find valid data points around the gap
-        validIndices = ~isnan(interpolated(startIdx:endIdx));
+        validIndices = ~isnan(x(startIdx:endIdx));
         if sum(validIndices) >= 2
             % Interpolate
-            validData = interpolated(startIdx:endIdx);
+            validData = x(startIdx:endIdx);
             sampleIndices = 1:length(validData);
             interpolatedData = interp1(sampleIndices(validIndices), ...
                 validData(validIndices), sampleIndices, method);
-            interpolated(startIdx:endIdx) = interpolatedData;
+            gapIndices = nanSeqStarts(i):nanSeqEnds(i);
+            interpolated(gapIndices) = interpolatedData(gapIndices - startIdx + 1);
         end
     end
 end
 
+interpolated = reshape(interpolated, inputSize);
 end

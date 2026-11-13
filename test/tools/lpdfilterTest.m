@@ -14,7 +14,7 @@ classdef lpdfilterTest < matlab.unittest.TestCase
     end
 
     properties (TestParameter)
-        caseId = getBiosiglibConformanceCaseIds('tools.lpd_filter')
+        caseId = getBiosiglibConformanceCaseIds('tools.lpdfilter')
     end
 
     methods (TestClassSetup)

@@ -9,13 +9,51 @@
 
 classdef findsequencesTest < matlab.unittest.TestCase
 
+  properties (TestParameter)
+    caseId = getBiosiglibConformanceCaseIds('tools.findsequences')
+  end
+
   methods (TestClassSetup)
     function addCodeToPath(~)
-      addpath('../../src/tools');
+      root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+      addpath(fullfile(root, 'src', 'tools'));
+      addpath(fullfile(root, 'test', 'common'));
     end
   end
 
   methods (Test)
+    function testConformance(tc, caseId)
+      c = loadBiosiglibConformanceCase(caseId);
+      x = loadBiosiglibConformanceInput(c, 'signal');
+      [values, starts, ends, lengths] = findsequences(x);
+      actual = struct('values', values, 'start_positions', starts, ...
+        'end_positions', ends, 'lengths', lengths);
+      verifyBiosiglibExpectedOutputs(tc, actual, c);
+    end
+
+    function testEmptyMultipleOutputs(tc)
+      inputs = {[], 1, [1, 2, 3]};
+      for k = 1:numel(inputs)
+        [a, b] = findsequences(inputs{k});
+        tc.verifyEqual(a, []); tc.verifyEqual(b, []);
+        [a, b, c] = findsequences(inputs{k});
+        tc.verifyEmpty(a); tc.verifyEmpty(b); tc.verifyEmpty(c);
+        [a, b, c, d] = findsequences(inputs{k});
+        tc.verifyEmpty(a); tc.verifyEmpty(b); tc.verifyEmpty(c); tc.verifyEmpty(d);
+        tc.verifyEqual(findsequences(inputs{k}), []);
+      end
+    end
+
+    function testIntegerInput(tc)
+      tc.verifyEqual(findsequences(uint8([2, 1, 1, 0, 0])), [1,2,3,2; 0,4,5,2]);
+      tc.verifyEqual(findsequences(int8([-1, -1, 2, 2])), [-1,1,2,2; 2,3,4,2]);
+    end
+
+    function testMatrixBoundariesAndOrder(tc)
+      tc.verifyEmpty(findsequences([1, 2; 2, 3]));
+      tc.verifyEqual(findsequences([9, 3; 1, 3; 1, 4]), [3,4,5,2; 1,2,3,2]);
+    end
+
     function testBasicVectorSequence(tc)
       testVector = [1,1,1,2,3,3,4,5,5,5,5,6,7,7,8];
       expected = [

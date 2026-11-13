@@ -5,15 +5,39 @@
 
 classdef hjorthArtifactsTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('ppg.hjorth_artifacts')
+    end
+
     methods (TestClassSetup)
         function addSourcePath(~)
             % Add required paths for testing
-            addpath('../../src/ppg');
-            addpath('../../src/tools');
+            root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+            addpath(fullfile(root, 'src', 'ppg'));
+            addpath(fullfile(root, 'src', 'tools'));
+            addpath(fullfile(root, 'test', 'common'));
         end
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            ids = {'signal','sampling_frequency','window_duration','step_duration','margins'};
+            args = cellfun(@(id) loadBiosiglibConformanceInput(c,id), ids, 'UniformOutput',false);
+            names = {'min_segment_separation','median_filter_order','negative'};
+            matlabNames = {'minSegmentSeparation','medfiltOrder','negative'};
+            for k=1:numel(names)
+                if isfield(c.parameters,names{k})
+                    args = [args, {matlabNames{k},c.parameters.(names{k})}]; %#ok<AGROW>
+                end
+            end
+            [mask,intervals] = hjorthArtifacts(args{:});
+            starts = []; ends = [];
+            if ~isempty(intervals), starts=intervals(:,1); ends=intervals(:,2); end
+            actual = struct('artifact_mask',mask,'artifact_starts',starts,'artifact_ends',ends);
+            verifyBiosiglibExpectedOutputs(tc,actual,c);
+        end
+
 
         function testBasicFunctionality(tc)
             % Load PPG signal from fixtures

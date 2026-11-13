@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Breaking: hjorthArtifacts now measures minSegmentSeparation in seconds, defaults to zero, merges overlapping/contiguous detections and always excludes NaN windows.
+
 - Changed hjorth activity from sample variance to mean-square power, preserving the mobility and complexity formulas and defining short and degenerate cases.
 
 - Breaking: localmax now selects the highest local peak without MinProminence or MinSeparation options. Preserved dimension selection and corrected missing peak values for integer input.

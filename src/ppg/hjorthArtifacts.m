@@ -7,7 +7,7 @@ function [artifactVector, artifactMatrix] = hjorthArtifacts(signal, fs, seg, ste
 %   window search in seconds, STEP is the step in seconds to shift the window,
 %   MARGINS is a 3x2 matrix where each row contains [low, up] margins for H0, H1,
 %   and H2 parameters respectively, relative to their median filtered baselines.
-%   ARTIFACTVECTOR is a logical vector indicating artifact samples.
+%   ARTIFACTVECTOR is a binary vector indicating artifact samples.
 %
 %   [ARTIFACTVECTOR, ARTIFACTMATRIX] = HJORTHARTIFACTS(...) returns both the
 %   artifact vector and a matrix. ARTIFACTMATRIX contains the onset and offset
@@ -18,8 +18,9 @@ function [artifactVector, artifactMatrix] = hjorthArtifacts(signal, fs, seg, ste
 %   sets the minimum time separation between consecutive artifact segments in
 %   seconds. This parameter prevents fragmentation of artifacts by merging
 %   nearby detections that are separated by less than the specified duration.
-%   Useful for consolidating artifacts that may appear as multiple short
-%   segments due to brief returns to normal parameter values (default: 1).
+%   Overlapping and contiguous detections are always merged. The separation
+%   is the number of uncovered samples divided by FS; positive values merge
+%   gaps strictly shorter than this duration (default: 0).
 %
 %   [...] = HJORTHARTIFACTS(..., 'medfiltOrder', MEDFILTORDER) sets the median
 %   filter order used for computing adaptive thresholds from the Hjorth
@@ -33,7 +34,8 @@ function [artifactVector, artifactMatrix] = hjorthArtifacts(signal, fs, seg, ste
 %   Hjorth parameters fall within the normal range instead of outside it. This
 %   is useful for detecting periods of unusually regular or low-activity
 %   signal behavior rather than traditional high-amplitude or noisy artifacts
-%   (default: false).
+%   (default: false). Windows containing NaN are always marked, including
+%   when NEGATIVE is true.
 %
 %   [...] = HJORTHARTIFACTS(..., 'plotflag', PLOTFLAG) enables plotting of
 %   intermediate results when PLOTFLAG is true (default: false).
@@ -62,21 +64,21 @@ nargoutchk(0, 2);
 parser = inputParser;
 parser.FunctionName = 'hjorthArtifacts';
 
-addRequired(parser, 'signal', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
-addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addRequired(parser, 'seg', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addRequired(parser, 'step', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addRequired(parser, 'margins', @(x) isnumeric(x) && size(x,1) == 3 && size(x,2) == 2);
+addRequired(parser, 'signal', @(x) isnumeric(x) && isreal(x) && isvector(x) && ~isempty(x) && ~any(isinf(x(:))));
+addRequired(parser, 'fs', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0);
+addRequired(parser, 'seg', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0);
+addRequired(parser, 'step', @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0);
+addRequired(parser, 'margins', @(x) isnumeric(x) && isreal(x) && isequal(size(x), [3, 2]) && all(isfinite(x(:))) && all(x(:) >= 0));
 
-addParameter(parser, 'minSegmentSeparation', 1, @(x) isnumeric(x) && isscalar(x) && x >= 0);
-addParameter(parser, 'medfiltOrder', 300, @(x) isnumeric(x) && isscalar(x) && x > 0);
+addParameter(parser, 'minSegmentSeparation', 0, @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x >= 0);
+addParameter(parser, 'medfiltOrder', 300, @(x) isnumeric(x) && isreal(x) && isscalar(x) && isfinite(x) && x > 0 && x == fix(x));
 addParameter(parser, 'negative', false, @(x) islogical(x) && isscalar(x));
 addParameter(parser, 'plotflag', false, @(x) islogical(x) && isscalar(x));
 
 parse(parser, signal, fs, seg, step, margins, varargin{:});
 
 % Extract parsed values
-signal = parser.Results.signal;
+signal = double(parser.Results.signal);
 fs = parser.Results.fs;
 seg = parser.Results.seg;
 step = parser.Results.step;
@@ -97,11 +99,19 @@ marginH2Up = margins(3,2);
 % Initialize Hjorth parameters
 nWindow = floor(seg*fs); % Segmentation window [samples]
 nStep = floor(step*fs);  % Sliding step [samples]
+if nWindow < 3 || nStep < 1
+    error('hjorthArtifacts:invalidWindow', ...
+        'The window must contain at least three samples and the step at least one.');
+end
+if length(signal) < nWindow
+    error('hjorthArtifacts:signalTooShort', 'The signal must contain a complete window.');
+end
 nSegments = floor((length(signal)-nWindow)/nStep);
 h0 = zeros(1,nSegments+1);
 h1 = zeros(1,nSegments+1);
 h2 = zeros(1,nSegments+1);
 segments = zeros(nSegments+1,2);
+invalidWindows = false(1,nSegments+1);
 %signal(nSegments*nStep+nWindow+1:end) = [];
 
 % Compute derivatives
@@ -111,6 +121,7 @@ sfilt = sfilt(:)';
 % Compute Hjorth parameters
 for kk=0:nSegments
     indexes = (kk*nStep)+1:(kk*nStep+nWindow);
+    invalidWindows(kk+1) = any(isnan(signal(indexes)));
     [h0(kk+1),h1(kk+1),h2(kk+1)] = hjorth(sfilt(indexes),fs);
     segments(kk+1,:) = ([indexes(1) indexes(end)]-1)/fs;
 end
@@ -131,32 +142,24 @@ if negative
     isArtifact = ~isArtifact;
 end
 
-isArtifact = find(isArtifact);
+isArtifact = find(isArtifact | invalidWindows);
 
 if isempty(isArtifact)
     artifactMatrix = [];
     artifactVector = zeros(size(signal));
 else
-    isArtifact = [isArtifact isArtifact(end)+minSegmentSeparation]; % To use last one too
-    newSegmentPosition = find(diff(isArtifact)>=minSegmentSeparation);
-
-    if ~isempty(newSegmentPosition)
-        artifactSegments = nan(length(newSegmentPosition),2);
-        artifactMatrix = nan(length(newSegmentPosition),2);
-        k = 1;
-        for i = 1:length(newSegmentPosition)
-            artifactSegments(i,1) = isArtifact(k);
-            artifactSegments(i,2) = isArtifact(newSegmentPosition(i));
-            k = newSegmentPosition(i)+1;
+    % Convert detected windows to sample intervals and merge in signal order.
+    artifactSegments = [(isArtifact(:)-1)*nStep + 1, ...
+        (isArtifact(:)-1)*nStep + nWindow];
+    artifactMatrix = artifactSegments(1,:);
+    for i = 2:size(artifactSegments,1)
+        gapSamples = artifactSegments(i,1) - artifactMatrix(end,2) - 1;
+        if gapSamples <= 0 || gapSamples/fs < minSegmentSeparation
+            artifactMatrix(end,2) = max(artifactMatrix(end,2), artifactSegments(i,2));
+        else
+            artifactMatrix(end+1,:) = artifactSegments(i,:); %#ok<AGROW>
         end
-    else
-        artifactSegments(1,1) = isArtifact(1);
-        artifactSegments(1,2) = isArtifact(end);
     end
-
-    % Samples -> Seconds
-    artifactMatrix(:,1) = (artifactSegments(:,1)-1)*nStep + 1;
-    artifactMatrix(:,2) = (artifactSegments(:,2)-1)*nStep + nWindow;
 
     artifactVector = zeros(size(signal));
     for i=1:size(artifactMatrix,1)
@@ -186,7 +189,7 @@ function plotResults(signal, fs, h0, h1, h2, thresholdH0UpCalc, thresholdH0LowCa
 %
 %   This function creates a comprehensive visualization of the Hjorth artifact
 %   detection results, showing the original signal with detected artifacts,
-%   and the three Hjorth parameters (variance, mobility, complexity) with
+%   and the three Hjorth parameters (activity, mobility, complexity) with
 %   their corresponding thresholds.
 
 t = linspace(0,(length(signal)-1)/(fs),length(h1));
@@ -216,7 +219,7 @@ ax(2) = subplot(4,1,2);
 plot(t,h0); hold on;
 plot(t,thresholdH0UpCalc,'k','LineWidth',2);
 plot(t,thresholdH0LowCalc,'k','LineWidth',2);
-grid on; ylabel('Variance');
+grid on; ylabel('Activity');
 ylim([min(thresholdH0LowCalc), max(thresholdH0UpCalc)])
 xlim([t(1) t(end)])
 

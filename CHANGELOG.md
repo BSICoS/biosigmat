@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Corrected nanpwelch row-vector validation and missing-channel PSD alignment; added shared analytical cases and explicit parameter validation.
+
 - Breaking: hjorthArtifacts now measures minSegmentSeparation in seconds, defaults to zero, merges overlapping/contiguous detections and always excludes NaN windows.
 
 - Changed hjorth activity from sample variance to mean-square power, preserving the mobility and complexity formulas and defining short and degenerate cases.

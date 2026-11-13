@@ -6,6 +6,10 @@
 
 classdef nanpwelchTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('tools.nanpwelch')
+    end
+
     properties
         fs = 256;
     end
@@ -14,6 +18,9 @@ classdef nanpwelchTest < matlab.unittest.TestCase
         function addCodeToPath(tc)
             addpath(fullfile('..', '..', 'src', 'tools'));
             addpath(fullfile(pwd, '..', '..', 'fixtures', 'ecg'));
+
+            root = fileparts(fileparts(fileparts(mfilename('fullpath'))));
+            addpath(fullfile(root, 'test', 'common'));
 
             % Verify functions are available
             tc.verifyTrue(~isempty(which('nanpwelch')), 'nanpwelch function not found in path');
@@ -34,6 +41,33 @@ classdef nanpwelchTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            ids = {'signal','window','overlap','nfft','sampling_frequency'};
+            args = cellfun(@(id) loadBiosiglibConformanceInput(c,id),ids,'UniformOutput',false);
+            if iscell(args{1})
+                % Decode literal matrix rows containing JSON NaN markers.
+                args{1} = cell2mat(cellfun(@(row) str2double(string(row(:).')), ...
+                    args{1}, 'UniformOutput', false));
+            end
+            if isfield(c.parameters,'max_gap'), args{6}=c.parameters.max_gap; end
+            [pxx,f,windows] = nanpwelch(args{:});
+            flatWindows = [];
+            if iscell(windows)
+                for k=1:numel(windows)
+                    flatWindows = [flatWindows; windows{k}(:)]; %#ok<AGROW>
+                end
+            else
+                flatWindows = windows(:);
+            end
+            actual = struct('psd',pxx,'frequencies',f,'window_psd',flatWindows);
+            verifyBiosiglibExpectedOutputs(tc,actual,c);
+            if isfield(c,'expected_warnings')
+                tc.verifyWarning(@() nanpwelch(args{:}), ...
+                    matlabWarningId(c.expected_warnings.id));
+            end
+        end
+
         function testBasicFunctionality(tc)
             ecg = tc.loadFixtureData();
 
@@ -217,4 +251,13 @@ classdef nanpwelchTest < matlab.unittest.TestCase
         end
     end
 
+end
+
+
+function id = matlabWarningId(canonicalId)
+if strcmp(canonicalId,'signal_too_short')
+    id = 'nanpwelch:signalTooShort';
+else
+    id = 'nanpwelch:noValidSegments';
+end
 end

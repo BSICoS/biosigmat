@@ -31,6 +31,12 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 - Aligned trimnans with tools.trimnans: accept empty vectors and reject complex or infinite input; consume shared analytical cases.
 - Removed the graphical slider utility, its tests, and calls from ECG examples.
 
+## 0.3.1 - 2026-08-26
+
+- Added CFF 1.2.0 metadata for citing the exact Biosigmat release and its confirmed software authors.
+- Documented version-specific software citation alongside the original publications cataloged by Biosiglib.
+- Added release validation for CFF structure, version, date, tag, and inclusion in the reviewed source archive.
+
 ## 0.3.0 - 2026-08-12
 
 - Simplified the public documentation to Home, Installation, and API; moved contributor guidance to `CONTRIBUTING.md` and linked examples and source code directly from function pages.

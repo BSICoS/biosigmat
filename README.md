@@ -21,6 +21,12 @@ Biosigmat is tested with MATLAB R2025a, Signal Processing Toolbox, and Curve Fit
 
 The [Biosigmat documentation](https://bsicos.github.io/biosigmat/) contains the MATLAB API, with direct links to executable example code. For practical method descriptions, expected inputs and outputs, scientific references, and links to the Python implementation, use the [Biosiglib method catalog](https://bsicos.github.io/biosiglib/methods/). See the [changelog](CHANGELOG.md) for the release history.
 
+## Citation
+
+Cite the exact Biosigmat version used and the original publications for its
+scientific methods. See the [citation guide](https://bsicos.github.io/biosigmat/citation/)
+and the [Zenodo collection of Biosigmat versions](https://doi.org/10.5281/zenodo.21774532).
+
 ## Support and license
 
 Report problems through [GitHub Issues](https://github.com/BSICoS/biosigmat/issues). Biosigmat is distributed under the [GNU General Public License version 3](LICENSE).

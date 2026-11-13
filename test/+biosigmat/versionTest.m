@@ -12,11 +12,11 @@ classdef versionTest < matlab.unittest.TestCase
     end
 
     methods (Test)
-        function versionIsPreOneSemanticVersion(testCase)
+        function versionIsStableOrBetaSemanticVersion(testCase)
             actual = biosigmat.version();
 
             testCase.verifyClass(actual, 'char');
-            testCase.verifyNotEmpty(regexp(actual, '^0\.\d+\.\d+$', 'once'));
+            testCase.verifyNotEmpty(regexp(actual, '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-beta)?$', 'once'));
         end
 
         function packageFunctionDoesNotShadowMatlabVersion(testCase)

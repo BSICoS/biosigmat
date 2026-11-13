@@ -37,5 +37,3 @@ Generated Markdown under `docs/api/` is a build artifact and must not be committ
 - Public functions require tests and Biosiglib specifications; examples are expected outside `tools/`.
 - Do not copy specifications, fixtures, or shared cases from Biosiglib.
 - Open a pull request only after the complete test suite passes.
-
-Before tagging a release, move its entries from `Unreleased` to a dated version section in `CHANGELOG.md`. The [release workflow](.github/workflows/release.yml) uses that section as the GitHub release notes.

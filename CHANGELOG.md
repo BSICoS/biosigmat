@@ -4,6 +4,10 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+## 1.0.0-beta - 2026-11-13
+
+- Prepared the first 1.x beta with exact Biosiglib conformance and prerelease publication.
+
 - Breaking: peakedness no longer restricts automatic bands to 0.15–0.8 Hz and rejects NaN spectra; corrected empty-reference handling and independent AKL calculation. Added shared peakedness/ispeaky cases.
 
 - Corrected nanpwelch row-vector validation and missing-channel PSD alignment; added shared analytical cases and explicit parameter validation.

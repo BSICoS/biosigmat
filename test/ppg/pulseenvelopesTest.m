@@ -41,31 +41,31 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
 
     methods (Test)
         function testTwoOutputs(tc)
-            nD = pulsedetection(tc.dppg, tc.fs);
-            [lowerEnv, upperEnv] = pulseenvelopes(tc.ppg, tc.fs, nD);
+            tD = pulsedetection(tc.dppg, tc.fs);
+            [lowerEnv, upperEnv] = pulseenvelopes(tc.ppg, tc.fs, tD);
 
             tc.verifyClass(lowerEnv, 'double');
             tc.verifyClass(upperEnv, 'double');
             tc.verifySize(lowerEnv, size(tc.ppg(:)));
             tc.verifySize(upperEnv, size(tc.ppg(:)));
 
-            validND = nD(~isnan(nD));
-            tc.verifyGreaterThan(numel(validND), 1, 'Expected at least two detections in fixture segment');
+            validTD = tD(~isnan(tD));
+            tc.verifyGreaterThan(numel(validTD), 1, 'Expected at least two detections in fixture segment');
 
             t = (0:length(tc.ppg)-1)'/tc.fs;
-            firstND = validND(1);
-            lastND = validND(end);
+            firstTD = validTD(1);
+            lastTD = validTD(end);
 
-            tc.verifyTrue(all(isnan(lowerEnv(t < firstND))), 'Lower envelope should be NaN before first detection');
-            tc.verifyTrue(all(isnan(lowerEnv(t > lastND))), 'Lower envelope should be NaN after last detection');
-            tc.verifyTrue(all(isnan(upperEnv(t < firstND))), 'Upper envelope should be NaN before first detection');
-            tc.verifyTrue(all(isnan(upperEnv(t > lastND))), 'Upper envelope should be NaN after last detection');
+            tc.verifyTrue(all(isnan(lowerEnv(t < firstTD))), 'Lower envelope should be NaN before first detection');
+            tc.verifyTrue(all(isnan(lowerEnv(t > lastTD))), 'Lower envelope should be NaN after last detection');
+            tc.verifyTrue(all(isnan(upperEnv(t < firstTD))), 'Upper envelope should be NaN before first detection');
+            tc.verifyTrue(all(isnan(upperEnv(t > lastTD))), 'Upper envelope should be NaN after last detection');
         end
 
         function testSingleOutputMatchesLowerEnvelope(tc)
-            nD = pulsedetection(tc.dppg, tc.fs);
-            lowerOnly = pulseenvelopes(tc.ppg, tc.fs, nD);
-            [lowerEnv, ~] = pulseenvelopes(tc.ppg, tc.fs, nD);
+            tD = pulsedetection(tc.dppg, tc.fs);
+            lowerOnly = pulseenvelopes(tc.ppg, tc.fs, tD);
+            [lowerEnv, ~] = pulseenvelopes(tc.ppg, tc.fs, tD);
 
             tc.verifyEqual(lowerOnly, lowerEnv, 'Single-output call should return the lower envelope');
         end
@@ -83,10 +83,10 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
         end
 
         function testWindowParameterEffect(tc)
-            nD = pulsedetection(tc.dppg, tc.fs);
+            tD = pulsedetection(tc.dppg, tc.fs);
 
-            lower1 = pulseenvelopes(tc.ppg, tc.fs, nD, 'WindowB', 300e-3);
-            lower2 = pulseenvelopes(tc.ppg, tc.fs, nD, 'WindowB', 50e-3);
+            lower1 = pulseenvelopes(tc.ppg, tc.fs, tD, 'WindowB', 300e-3);
+            lower2 = pulseenvelopes(tc.ppg, tc.fs, tD, 'WindowB', 50e-3);
 
             delta = lower1 - lower2;
             delta = delta(~isnan(delta));
@@ -97,20 +97,20 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
             % Create two detections that collapse to the same sample index after rounding
             signal = zeros(1000, 1);
             samplingRate = 1000;
-            nD = [0.5001; 0.5002];
+            tD = [0.5001; 0.5002];
 
             % Lower envelope only: should warn about insufficient lower anchors
-            tc.verifyWarning(@() pulseenvelopes(signal, samplingRate, nD), 'pulseenvelopes:insufficientLowerAnchors');
+            tc.verifyWarning(@() pulseenvelopes(signal, samplingRate, tD), 'pulseenvelopes:insufficientLowerAnchors');
 
             % Two outputs: suppress lower warning and verify upper warning
             lowerWarnState = warning('off', 'pulseenvelopes:insufficientLowerAnchors');
             cleanupLower = onCleanup(@() warning(lowerWarnState));
-            tc.verifyWarning(@() callTwoOutputs(signal, samplingRate, nD), 'pulseenvelopes:insufficientUpperAnchors');
+            tc.verifyWarning(@() callTwoOutputs(signal, samplingRate, tD), 'pulseenvelopes:insufficientUpperAnchors');
             clear cleanupLower
         end
     end
 end
 
-function [lowerEnvelope, upperEnvelope] = callTwoOutputs(ppg, fs, nD)
-[lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, nD);
+function [lowerEnvelope, upperEnvelope] = callTwoOutputs(ppg, fs, tD)
+[lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, tD);
 end

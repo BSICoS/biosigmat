@@ -1,14 +1,14 @@
-function [nA, nB, nM] = pulsedelineation(ppg, fs, nD, varargin)
+function [tA, tB, tM] = pulsedelineation(ppg, fs, tD, varargin)
 % PULSEDELINEATION Performs pulse delineation in PPG signals using adaptive thresholding.
 %
-%   [NA, NB, NM] = PULSEDELINEATION(PPG, FS, ND) performs pulse
+%   [TA, TB, TM] = PULSEDELINEATION(PPG, FS, TD) performs pulse
 %   delineation in photoplethysmographic (PPG) signals, detecting
-%   pulse features (nA, nB, nM) based on pulse detection points (nD).
-%   FS is the sampling rate in Hz (positive scalar). NA returns pulse
-%   onset locations in seconds, NB returns pulse offset locations in
-%   seconds, and NM returns pulse midpoint locations in seconds.
+%   pulse features (tA, tB, tM) based on pulse detection points (tD).
+%   FS is the sampling rate in Hz (positive scalar). TA returns pulse
+%   onset locations in seconds, TB returns pulse offset locations in
+%   seconds, and TM returns pulse midpoint locations in seconds.
 %
-%   [NA, NB, NM] = PULSEDELINEATION(..., 'Name', Value) specifies additional
+%   [TA, TB, TM] = PULSEDELINEATION(..., 'Name', Value) specifies additional
 %   parameters using name-value pairs:
 %     'WindowA'  - Window width for searching pulse onset in seconds
 %                  (default: 250e-3)
@@ -27,20 +27,20 @@ function [nA, nB, nM] = pulsedelineation(ppg, fs, nD, varargin)
 %     dppg = [dppg(delay+1:end); zeros(delay, 1)];
 %
 %     % Compute pulse detection points
-%     nD = pulsedetection(dppg, fs);
+%     tD = pulsedetection(dppg, fs);
 %
 %     % Perform pulse delineation
-%     [nA, nB, nM] = pulsedelineation(ppg, fs, nD);
+%     [tA, tB, tM] = pulsedelineation(ppg, fs, tD);
 %
 %     % Plot results
 %     t = (0:length(ppg)-1)/fs;
 %     figure;
 %     plot(t, ppg, 'k');
 %     hold on;
-%     plot(nA, ppg(1+round(nA*fs)), 'ro', 'MarkerFaceColor', 'r');
-%     plot(nB, ppg(1+round(nB*fs)), 'go', 'MarkerFaceColor', 'g');
-%     plot(nM, ppg(1+round(nM*fs)), 'bo', 'MarkerFaceColor', 'b');
-%     legend('PPG Signal', 'Onset (nA)', 'Offset (nB)', 'Midpoint (nM)');
+%     plot(tA, ppg(1+round(tA*fs)), 'ro', 'MarkerFaceColor', 'r');
+%     plot(tB, ppg(1+round(tB*fs)), 'go', 'MarkerFaceColor', 'g');
+%     plot(tM, ppg(1+round(tM*fs)), 'bo', 'MarkerFaceColor', 'b');
+%     legend('PPG Signal', 'Onset (tA)', 'Offset (tB)', 'Midpoint (tM)');
 %     xlabel('Time (s)');
 %     ylabel('Amplitude');
 %     title('PPG Pulse Delineation');
@@ -57,15 +57,15 @@ parser = inputParser;
 parser.FunctionName = 'pulsedelineation';
 addRequired(parser, 'ppg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
-addRequired(parser, 'nD', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
+addRequired(parser, 'tD', @(x) isnumeric(x) && (isvector(x) || isempty(x)));
 addParameter(parser, 'WindowA', 250e-3, @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'WindowB', 150e-3, @(x) isnumeric(x) && isscalar(x) && x > 0);
 
-parse(parser, ppg, fs, nD, varargin{:});
+parse(parser, ppg, fs, tD, varargin{:});
 
 ppg = parser.Results.ppg;
 fs = parser.Results.fs;
-nD = parser.Results.nD;
+tD = parser.Results.tD;
 windowA = parser.Results.WindowA;
 windowB = parser.Results.WindowB;
 
@@ -73,11 +73,11 @@ windowB = parser.Results.WindowB;
 ppg = ppg(:);
 
 % Handle empty input
-nD = nD(~isnan(nD(:)));
-if isempty(nD)
-    nA = NaN;
-    nB = NaN;
-    nM = NaN;
+tD = tD(~isnan(tD(:)));
+if isempty(tD)
+    tA = NaN;
+    tB = NaN;
+    tM = NaN;
     return;
 end
 
@@ -86,27 +86,27 @@ ppgLength = length(ppg);
 % Time vector
 t = (0:ppgLength-1) / fs;
 
-% Convert nD to sample indices
-nDSamples = 1 +  round(nD * fs);
+% Convert tD to sample indices
+nDSamples = 1 +  round(tD * fs);
 
-% nA - Find local max after nD within windowA
-[nASamples, nA] = findExtrema(ppg, nDSamples, windowA, fs, t, 'max');
+% tA - Find local max after tD within windowA
+[nASamples, tA] = findExtrema(ppg, nDSamples, windowA, fs, t, 'max');
 
 if nargout < 2
-    % Only nA requested
+    % Only tA requested
     return;
 end
 
-% nB - Find local min before nD within windowB
-[nBSamples, nB] = findExtrema(ppg, nDSamples, windowB, fs, t, 'min');
+% tB - Find local min before tD within windowB
+[nBSamples, tB] = findExtrema(ppg, nDSamples, windowB, fs, t, 'min');
 
 if nargout < 3
-    % Only nA and nB requested
+    % Only tA and tB requested
     return;
 end
 
-% nM - Find midpoint between nA and nB
-nM = findMidpoints(ppg, nASamples, nBSamples, t);
+% tM - Find midpoint between tA and tB
+tM = findMidpoints(ppg, nASamples, nBSamples, t);
 
 end
 
@@ -127,12 +127,12 @@ extremaTimes = NaN(npulses, 1);
 
 % Create search matrix
 if strcmp(extremaType, 'max')
-    % Search forward from nD (for nA)
+    % Search forward from tD (for tA)
     searchMatrix = repmat(0:round(window*fs), npulses, 1) + nDSamples;
     searchSignal = ppg;
     offset = 0;
 else % 'min'
-    % Search backward from nD (for nB)
+    % Search backward from tD (for tB)
     offset = -round(window*fs);
     searchMatrix = repmat(offset:0, npulses, 1) + nDSamples;
     searchSignal = -ppg;
@@ -171,14 +171,14 @@ function midpointTimes = findMidpoints(ppg, nASamples, nBSamples, t)
 % FINDMIDPOINTS Helper function to find pulse midpoints between onset and offset
 %
 %   MIDPOINTTIMES = FINDMIDPOINTS(PPG, NALOCS, NBLOCS, T) finds the midpoint
-%   of each pulse between onset (nB) and offset (nA) locations by finding
+%   of each pulse between onset (tB) and offset (tA) locations by finding
 %   the point closest to the average amplitude of the pulse endpoints.
 
 npulses = length(nASamples);
 ppgLength = length(ppg);
 midpointTimes = NaN(npulses, 1);
 
-% Process only valid pulses (both nA and nB are not NaN)
+% Process only valid pulses (both tA and tB are not NaN)
 validPulses = ~isnan(nASamples) & ~isnan(nBSamples);
 validIndices = find(validPulses);
 
@@ -192,7 +192,7 @@ for i = 1:length(validIndices)
     nBpulse = nBSamples(kpulse);
     nApulse = nASamples(kpulse);
 
-    % Create search vector (from nB to nA)
+    % Create search vector (from tB to tA)
     searchM = nBpulse:nApulse;
     searchM = max(1, min(searchM, ppgLength)); % Clamp to valid range
 

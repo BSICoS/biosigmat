@@ -4,6 +4,10 @@
 %   - Future: Multiple algorithm support
 
 classdef pulsedetectionTest < matlab.unittest.TestCase
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('ppg.pulsedetection')
+    end
+
     properties
         signal
         signalFiltered
@@ -44,6 +48,29 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            signal = loadBiosiglibConformanceInput(c, 'dppg');
+            fs = loadBiosiglibConformanceInput(c, 'sampling_frequency');
+            names = {'method', 'adaptive_alpha_amp', 'adaptive_refract_period', ...
+                'adaptive_tau_rr', 'reset_after'};
+            matlabNames = {'Method', 'AdaptiveAlphaAmp', 'AdaptiveRefractPeriod', ...
+                'AdaptiveTauRR', 'ResetAfter'};
+            args = {};
+            for k = 1:numel(names)
+                if isfield(c.parameters, names{k})
+                    value = c.parameters.(names{k});
+                    if strcmp(names{k}, 'reset_after') && isempty(value)
+                        value = Inf;
+                    end
+                    args = [args, {matlabNames{k}, value}]; %#ok<AGROW>
+                end
+            end
+            [tD, threshold] = pulsedetection(signal, fs, args{:});
+            actual = struct('t_d', tD, 'threshold', threshold);
+            verifyBiosiglibExpectedOutputs(tc, actual, c);
+        end
+
         function testBasicFunctionality(tc)
             [tD, threshold] = pulsedetection(tc.signalFiltered, tc.fs);
 

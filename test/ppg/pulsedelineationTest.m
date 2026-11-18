@@ -9,7 +9,7 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
         ppg
         dppg
         fs
-        nD
+        tD
     end
 
     methods (TestClassSetup)
@@ -39,79 +39,79 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             tc.dppg = [tc.dppg(delay+1:end); zeros(delay, 1)];
 
             % Compute pulse detection points for use in tests
-            tc.nD = pulsedetection(tc.dppg, tc.fs);
+            tc.tD = pulsedetection(tc.dppg, tc.fs);
         end
     end
 
     methods (Test)
         function testBasicFunctionality(tc)
-            [nA, nB, nM] = pulsedelineation(tc.ppg, tc.fs, tc.nD);
+            [tA, tB, tM] = pulsedelineation(tc.ppg, tc.fs, tc.tD);
 
             % Expected values
-            expectedNA = [0.5805; 1.3400; 2.0684; 2.7887; 3.4662];
-            expectedNB = [0.4321; 1.1918; 1.9361; 2.6565; 3.3312];
-            expectedNM = [0.4850; 1.2430; 1.9880; 2.7070; 3.3790];
+            expectedTA = [0.5805; 1.3400; 2.0684; 2.7887; 3.4662];
+            expectedTB = [0.4321; 1.1918; 1.9361; 2.6565; 3.3312];
+            expectedTM = [0.4850; 1.2430; 1.9880; 2.7070; 3.3790];
 
             % Verify outputs are the correct size and type
-            tc.verifyClass(nA, 'double', 'nA should be double array');
-            tc.verifyClass(nB, 'double', 'nB should be double array');
-            tc.verifyClass(nM, 'double', 'nM should be double array');
+            tc.verifyClass(tA, 'double', 'tA should be double array');
+            tc.verifyClass(tB, 'double', 'tB should be double array');
+            tc.verifyClass(tM, 'double', 'tM should be double array');
 
             % Verify first 5 values of each output (with tolerance for numerical precision)
             tolerance = 1e-3;
 
-            actualNA = nA(~isnan(nA));
-            tc.verifyEqual(actualNA(1:5), expectedNA, 'AbsTol', tolerance, ...
-                'First 5 nA values do not match expected values');
+            actualTA = tA(~isnan(tA));
+            tc.verifyEqual(actualTA(1:5), expectedTA, 'AbsTol', tolerance, ...
+                'First 5 tA values do not match expected values');
 
-            actualNB = nB(~isnan(nB));
-            tc.verifyEqual(actualNB(1:5), expectedNB, 'AbsTol', tolerance, ...
-                'First 5 nB values do not match expected values');
+            actualTB = tB(~isnan(tB));
+            tc.verifyEqual(actualTB(1:5), expectedTB, 'AbsTol', tolerance, ...
+                'First 5 tB values do not match expected values');
 
-            actualNM = nM(~isnan(nM));
-            tc.verifyEqual(actualNM(1:5), expectedNM, 'AbsTol', tolerance, ...
-                'First 5 nM values do not match expected values');
+            actualTM = tM(~isnan(tM));
+            tc.verifyEqual(actualTM(1:5), expectedTM, 'AbsTol', tolerance, ...
+                'First 5 tM values do not match expected values');
         end
 
         function testCustomParameters(tc)
             customWindowA = 300e-3;
             customWindowB = 200e-3;
 
-            [nA, nB, nM] = pulsedelineation(tc.ppg, tc.fs, tc.nD, ...
+            [tA, tB, tM] = pulsedelineation(tc.ppg, tc.fs, tc.tD, ...
                 'WindowA', customWindowA, 'WindowB', customWindowB);
 
             % Verify outputs are valid
-            tc.verifyClass(nA, 'double', 'nA should be double array');
-            tc.verifyClass(nB, 'double', 'nB should be double array');
-            tc.verifyClass(nM, 'double', 'nM should be double array');
+            tc.verifyClass(tA, 'double', 'tA should be double array');
+            tc.verifyClass(tB, 'double', 'tB should be double array');
+            tc.verifyClass(tM, 'double', 'tM should be double array');
 
             % Verify that we get reasonable results (not all NaN)
-            tc.verifyTrue(sum(~isnan(nA)) > 0, 'Should detect at least one pulse onset');
-            tc.verifyTrue(sum(~isnan(nB)) > 0, 'Should detect at least one pulse offset');
-            tc.verifyTrue(sum(~isnan(nM)) > 0, 'Should detect at least one pulse midpoint');
+            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one pulse onset');
+            tc.verifyTrue(sum(~isnan(tB)) > 0, 'Should detect at least one pulse offset');
+            tc.verifyTrue(sum(~isnan(tM)) > 0, 'Should detect at least one pulse midpoint');
         end
 
         function testEmptyDetectionPoints(tc)
-            [nA, nB, nM] = pulsedelineation(tc.dppg, tc.fs, []);
+            [tA, tB, tM] = pulsedelineation(tc.dppg, tc.fs, []);
 
             % Should return NaN arrays when no detection points provided
-            tc.verifyTrue(isnan(nA), 'nA should be NaN when nD is empty');
-            tc.verifyTrue(isnan(nB), 'nB should be NaN when nD is empty');
-            tc.verifyTrue(isnan(nM), 'nM should be NaN when nD is empty');
+            tc.verifyTrue(isnan(tA), 'tA should be NaN when tD is empty');
+            tc.verifyTrue(isnan(tB), 'tB should be NaN when tD is empty');
+            tc.verifyTrue(isnan(tM), 'tM should be NaN when tD is empty');
         end
 
         function testNargoutOptimization(tc)
-            % Test with nargout = 1 (only nA)
-            nA = pulsedelineation(tc.ppg, tc.fs, tc.nD);
-            tc.verifyClass(nA, 'double', 'nA should be double array');
-            tc.verifyTrue(sum(~isnan(nA)) > 0, 'Should detect at least one pulse onset');
+            % Test with nargout = 1 (only tA)
+            tA = pulsedelineation(tc.ppg, tc.fs, tc.tD);
+            tc.verifyClass(tA, 'double', 'tA should be double array');
+            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one pulse onset');
 
-            % Test with nargout = 2 (nA and nB)
-            [nA, nB] = pulsedelineation(tc.ppg, tc.fs, tc.nD);
-            tc.verifyClass(nA, 'double', 'nA should be double array');
-            tc.verifyClass(nB, 'double', 'nB should be double array');
-            tc.verifyTrue(sum(~isnan(nA)) > 0, 'Should detect at least one pulse onset');
-            tc.verifyTrue(sum(~isnan(nB)) > 0, 'Should detect at least one pulse offset');
+            % Test with nargout = 2 (tA and tB)
+            [tA, tB] = pulsedelineation(tc.ppg, tc.fs, tc.tD);
+            tc.verifyClass(tA, 'double', 'tA should be double array');
+            tc.verifyClass(tB, 'double', 'tB should be double array');
+            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one pulse onset');
+            tc.verifyTrue(sum(~isnan(tB)) > 0, 'Should detect at least one pulse offset');
         end
     end
 end

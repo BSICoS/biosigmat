@@ -33,11 +33,11 @@ dppg = [dppg(delay+1:end); zeros(delay, 1)];
 
 % Pulse detection (times in seconds)
 fprintf('Running pulse detection...\n');
-nD = pulsedetection(dppg, fs);
+tD = pulsedetection(dppg, fs);
 
 % Envelope estimation
 fprintf('Estimating envelopes...\n');
-[lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, nD);
+[lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, tD);
 
 %% Plot results
 fprintf('Plotting results...\n');
@@ -48,10 +48,10 @@ plot(t, ppg, 'k', 'LineWidth', 1, 'DisplayName', 'PPG');
 plot(t, lowerEnvelope, 'b', 'LineWidth', 1.5, 'DisplayName', 'Lower envelope');
 plot(t, upperEnvelope, 'r', 'LineWidth', 1.5, 'DisplayName', 'Upper envelope');
 
-validND = ~isnan(nD);
-plot(nD(validND), ppg(1+round(nD(validND)*fs)), 'o', ...
+validTD = ~isnan(tD);
+plot(tD(validTD), ppg(1+round(tD(validTD)*fs)), 'o', ...
     'Color', [0.47,0.67,0.19], 'MarkerFaceColor', [0.47,0.67,0.19], ...
-    'DisplayName', 'n_D');
+    'DisplayName', 't_D');
 
 xlabel('Time (s)');
 ylabel('Amplitude');

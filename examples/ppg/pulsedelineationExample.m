@@ -46,11 +46,11 @@ dppg = filter(b, 1, ppg);
 dppg = [dppg(delay+1:end); zeros(delay, 1)];
 
 % Pulse detection
-nD = pulsedetection(dppg, fs);
+tD = pulsedetection(dppg, fs);
 
 % Run pulse delineation on filtered signal with default parameters
 fprintf('\nRunning pulse delineation...\n');
-[nA, nB, nM] = pulsedelineation(ppg, fs, nD);
+[tA, tB, tM] = pulsedelineation(ppg, fs, tD);
 
 
 %% Plot results
@@ -60,10 +60,10 @@ figure;
 
 ax(1) = subplot(2,1,1); hold on; box on;legend;
 plot(t, ppg, 'k','LineWidth',1,'DisplayName','Original PPG');
-plot(nD(~isnan(nD)), ppg(1+round(nD(~isnan(nD))*fs)), 'o','LineWidth',1,'color',[0.47,0.67,0.19],'MarkerFaceColor',[0.47,0.67,0.19],'DisplayName','n_D');
-plot(nA(~isnan(nA)), ppg(1+round(nA(~isnan(nA))*fs)), 'v','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','n_A');
-plot(nB(~isnan(nB)), ppg(1+round(nB(~isnan(nB))*fs)), '^','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','n_B');
-plot(nM(~isnan(nM)), ppg(1+round(nM(~isnan(nM))*fs)), 's','LineWidth',1,'color',[0.85,0.33,0.10],'MarkerFaceColor',[0.85,0.33,0.10],'DisplayName','n_M');
+plot(tD(~isnan(tD)), ppg(1+round(tD(~isnan(tD))*fs)), 'o','LineWidth',1,'color',[0.47,0.67,0.19],'MarkerFaceColor',[0.47,0.67,0.19],'DisplayName','t_D');
+plot(tA(~isnan(tA)), ppg(1+round(tA(~isnan(tA))*fs)), 'v','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','t_A');
+plot(tB(~isnan(tB)), ppg(1+round(tB(~isnan(tB))*fs)), '^','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','t_B');
+plot(tM(~isnan(tM)), ppg(1+round(tM(~isnan(tM))*fs)), 's','LineWidth',1,'color',[0.85,0.33,0.10],'MarkerFaceColor',[0.85,0.33,0.10],'DisplayName','t_M');
 title('PPG Delineation');
 xlabel('Time (s)');
 ylabel('Amplitude');
@@ -71,10 +71,10 @@ grid on;
 
 ax(2) = subplot(2,1,2); hold on; box on;legend;
 plot(t, dppg, 'k','LineWidth',1,'DisplayName','LPD-Filtered PPG');
-plot(nD(~isnan(nD)), dppg(1+round(nD(~isnan(nD))*fs)), 'o','LineWidth',1,'color',[0.47,0.67,0.19],'MarkerFaceColor',[0.47,0.67,0.19],'DisplayName','n_D' );
-plot(nA(~isnan(nA)), dppg(1+round(nA(~isnan(nA))*fs)), 'v','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','n_A');
-plot(nB(~isnan(nB)), dppg(1+round(nB(~isnan(nB))*fs)), '^','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','n_B');
-plot(nM(~isnan(nM)), dppg(1+round(nM(~isnan(nM))*fs)), 's','LineWidth',1,'color',[0.85,0.33,0.10],'MarkerFaceColor',[0.85,0.33,0.10],'DisplayName','n_M');
+plot(tD(~isnan(tD)), dppg(1+round(tD(~isnan(tD))*fs)), 'o','LineWidth',1,'color',[0.47,0.67,0.19],'MarkerFaceColor',[0.47,0.67,0.19],'DisplayName','t_D' );
+plot(tA(~isnan(tA)), dppg(1+round(tA(~isnan(tA))*fs)), 'v','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','t_A');
+plot(tB(~isnan(tB)), dppg(1+round(tB(~isnan(tB))*fs)), '^','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','t_B');
+plot(tM(~isnan(tM)), dppg(1+round(tM(~isnan(tM))*fs)), 's','LineWidth',1,'color',[0.85,0.33,0.10],'MarkerFaceColor',[0.85,0.33,0.10],'DisplayName','t_M');
 xline(0,'k:','HandleVisibility','off');
 xlabel('Time (s)');
 ylabel('Amplitude');

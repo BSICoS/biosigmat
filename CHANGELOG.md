@@ -4,6 +4,12 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+## 1.1.0-beta - 2026-11-18
+
+- Updated pulsedetection to keep adaptive state across the full signal and search in bounded blocks. Added optional inactivity resets and a gain-change example.
+
+- Kept PPG fiducial times in seconds and aligned their notation across detection, delineation, and envelope examples. Added shared pulse detection tests.
+
 ## 1.0.0-beta - 2026-11-13
 
 - Prepared the first 1.x beta with exact Biosiglib conformance and prerelease publication.

@@ -172,8 +172,21 @@ nD = unique(nD);
 end
 
 
+%% INITIALIZETHRESHOLD
 function [profile, firstSignalIndex] = initializeThreshold(dppg, fs, alphaAmp, initialRRSamples, startIndex, blockLength)
-% Initialize the same amplitude estimate and linear decay used by the detector.
+% INITIALIZETHRESHOLD Initialize the amplitude estimate and linear threshold decay.
+%
+%   [PROFILE, FIRSTSIGNALINDEX] = INITIALIZETHRESHOLD(DPPG, FS, ALPHAAMP,
+%   INITIALRRSAMPLES, STARTINDEX, BLOCKLENGTH) estimates the initial threshold
+%   from nonnegative samples in the first ten seconds of available signal.
+%   FS is the sampling rate in Hz, ALPHAAMP sets the threshold floor, and
+%   INITIALRRSAMPLES is the initial pulse interval in samples.
+%
+%   The decay is anchored at STARTINDEX. PROFILE contains its starting index,
+%   amplitude, slope, floor starting index, and floor value. FIRSTSIGNALINDEX
+%   is the first non-NaN sample at or after STARTINDEX, found in blocks of
+%   BLOCKLENGTH samples. If none exists, it is empty and the profile is NaN.
+
 initialWindowDuration = 10; % seconds
 amplitudeMultiplier = 3;
 signalLength = length(dppg);
@@ -194,16 +207,32 @@ end
 end
 
 
+%% THRESHOLDVALUES
 function values = thresholdValues(profile, indices)
-% Evaluate only the requested part of the current threshold profile.
+% THRESHOLDVALUES Evaluate the threshold profile at selected sample indices.
+%
+%   VALUES = THRESHOLDVALUES(PROFILE, INDICES) evaluates the linear decay
+%   defined by PROFILE at INDICES and replaces values at or beyond the floor
+%   starting index with the floor value. VALUES is returned as a column vector.
+
 indices = indices(:);
 values = profile.amplitude - profile.slope * (indices - profile.decayStart);
 values(indices >= profile.floorStart) = profile.floorValue;
 end
 
 
+%% FINDCROSSING
 function crossing = findCrossing(dppg, profile, startIndex, endIndex, blockLength, upward)
-% Search to the end if needed, using bounded temporary arrays and no resets.
+% FINDCROSSING Find the next strict crossing of the adaptive threshold.
+%
+%   CROSSING = FINDCROSSING(DPPG, PROFILE, STARTINDEX, ENDINDEX, BLOCKLENGTH,
+%   UPWARD) searches STARTINDEX through ENDINDEX, inclusive, for the first
+%   sample strictly above the threshold when UPWARD is true, or strictly below
+%   it otherwise. Equality and NaN samples do not satisfy either comparison.
+%
+%   The search uses blocks of BLOCKLENGTH samples without resetting PROFILE.
+%   CROSSING is the sample index in DPPG, or empty when no crossing is found.
+
 crossing = [];
 for blockStart = startIndex:blockLength:endIndex
     indices = blockStart:min(blockStart + blockLength - 1, endIndex);
@@ -221,8 +250,15 @@ end
 end
 
 
+%% FINDAVAILABLESAMPLE
 function index = findAvailableSample(dppg, startIndex, blockLength)
-% Skip missing samples without allocating a mask for the entire remaining signal.
+% FINDAVAILABLESAMPLE Find the next non-NaN sample in the signal.
+%
+%   INDEX = FINDAVAILABLESAMPLE(DPPG, STARTINDEX, BLOCKLENGTH) searches from
+%   STARTINDEX through the end of DPPG in blocks of BLOCKLENGTH samples,
+%   avoiding a mask for the entire remaining signal. INDEX is the first
+%   non-NaN sample index, or empty when no available sample is found.
+
 index = [];
 for blockStart = startIndex:blockLength:length(dppg)
     blockEnd = min(blockStart + blockLength - 1, length(dppg));

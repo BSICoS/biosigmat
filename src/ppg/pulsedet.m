@@ -1,7 +1,7 @@
-function [tD, threshold] = pulsedetection(dppg, fs, varargin)
-% PULSEDETECTION Pulse detection in LPD-filtered PPG signals using configurable algorithms.
+function [tD, threshold] = pulsedet(dppg, fs, varargin)
+% PULSEDET Pulse detection in LPD-filtered PPG signals using configurable algorithms.
 %
-%   TD = PULSEDETECTION(DPPG, FS) detects pulse maximum upslopes TD in PPG derivative
+%   TD = PULSEDET(DPPG, FS) detects pulse maximum upslopes TD in PPG derivative
 %   (DPPG) using the default adaptive threshold algorithm. DPPG is the LPD-filtered PPG
 %   signal (column vector) and FS is the sampling rate in Hz. TD contains
 %   refined detection times in seconds, with the first sample at time zero.
@@ -9,7 +9,7 @@ function [tD, threshold] = pulsedetection(dppg, fs, varargin)
 %   The adaptive state is preserved throughout the signal. Searches use
 %   bounded blocks to avoid repeatedly processing the entire remaining signal.
 %
-%   TD = PULSEDETECTION(..., 'Name', Value) specifies additional parameters
+%   TD = PULSEDET(..., 'Name', Value) specifies additional parameters
 %   using name-value pairs:
 %     'Method'        - Detection algorithm: 'adaptive' (default)
 %
@@ -26,7 +26,7 @@ function [tD, threshold] = pulsedetection(dppg, fs, varargin)
 %                               NaN spans count toward this elapsed time;
 %                               initialization resumes when signal is available
 %
-%   [TD, THRESHOLD] = PULSEDETECTION(...) also returns the computed
+%   [TD, THRESHOLD] = PULSEDET(...) also returns the computed
 %   time-varying THRESHOLD for the selected algorithm.
 %
 %   Example:
@@ -40,7 +40,7 @@ function [tD, threshold] = pulsedetection(dppg, fs, varargin)
 %     signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 %
 %     % Detect pulses with default adaptive algorithm
-%     [tD, threshold] = pulsedetection(signalFiltered, fs);
+%     [tD, threshold] = pulsedet(signalFiltered, fs);
 %
 %     % Visualize results
 %     t = (0:length(signalFiltered)-1) / fs;
@@ -59,7 +59,7 @@ function [tD, threshold] = pulsedetection(dppg, fs, varargin)
 %     fprintf('Detected %d pulses\n', length(tD));
 %     fprintf('Mean heart rate: %.1f bpm\n', mean(heartRate));
 %
-%   See also LPDFILTER, PULSEDELINEATION, FINDPEAKS
+%   See also LPDFILTER, PULSEDEL, FINDPEAKS
 
 
 % Check number of input and output arguments
@@ -68,7 +68,7 @@ nargoutchk(0, 2);
 
 % Parse and validate inputs
 parser = inputParser;
-parser.FunctionName = 'pulsedetection';
+parser.FunctionName = 'pulsedet';
 addRequired(parser, 'dppg', @(x) isnumeric(x) && isvector(x) && ~isempty(x));
 addRequired(parser, 'fs', @(x) isnumeric(x) && isscalar(x) && x > 0);
 addParameter(parser, 'Method', 'adaptive', @(x) ismember(lower(x), {'adaptive'}));
@@ -128,7 +128,7 @@ switch method
         % TODO: Add cases for future algorithms
 
     otherwise
-        error('pulsedetection:unknownMethod', 'Unknown detection method: %s', method);
+        error('pulsedet:unknownMethod', 'Unknown detection method: %s', method);
 end
 end
 
@@ -147,6 +147,6 @@ switch method
         % TODO: Add cases for future algorithms
 
     otherwise
-        error('pulsedetection:unknownMethod', 'Unknown detection method: %s', method);
+        error('pulsedet:unknownMethod', 'Unknown detection method: %s', method);
 end
 end

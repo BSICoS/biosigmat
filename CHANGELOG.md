@@ -4,6 +4,10 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Renamed `pulsedetection` and `pulsedelineation` to `pulsedet` and `pulsedel`.
+
+- `pulsedel` preserves detection order and missing entries, stops at PPG gaps and accepts an aligned derivative for its fourth output (onset).
+
 ## 1.1.0-beta - 2026-11-18
 
 - Updated pulsedetection to keep adaptive state across the full signal and search in bounded blocks. Added optional inactivity resets and a gain-change example.

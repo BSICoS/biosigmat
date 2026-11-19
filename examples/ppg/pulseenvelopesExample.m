@@ -3,7 +3,7 @@
 % This example demonstrates how to estimate lower and upper envelopes of a
 % photoplethysmographic (PPG) signal using the pulseenvelopes function.
 % The workflow loads a sample PPG signal from fixtures, detects pulse
-% maximum upslopes using pulsedetection on an LPD-filtered signal, and
+% maximum upslopes using pulsedet on an LPD-filtered signal, and
 % then estimates both envelopes by interpolating pulse-anchored extrema.
 
 
@@ -33,7 +33,7 @@ dppg = [dppg(delay+1:end); zeros(delay, 1)];
 
 % Pulse detection (times in seconds)
 fprintf('Running pulse detection...\n');
-tD = pulsedetection(dppg, fs);
+tD = pulsedet(dppg, fs);
 
 % Envelope estimation
 fprintf('Estimating envelopes...\n');

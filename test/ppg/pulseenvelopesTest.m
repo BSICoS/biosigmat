@@ -41,7 +41,7 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
 
     methods (Test)
         function testTwoOutputs(tc)
-            tD = pulsedetection(tc.dppg, tc.fs);
+            tD = pulsedet(tc.dppg, tc.fs);
             [lowerEnv, upperEnv] = pulseenvelopes(tc.ppg, tc.fs, tD);
 
             tc.verifyClass(lowerEnv, 'double');
@@ -63,7 +63,7 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
         end
 
         function testSingleOutputMatchesLowerEnvelope(tc)
-            tD = pulsedetection(tc.dppg, tc.fs);
+            tD = pulsedet(tc.dppg, tc.fs);
             lowerOnly = pulseenvelopes(tc.ppg, tc.fs, tD);
             [lowerEnv, ~] = pulseenvelopes(tc.ppg, tc.fs, tD);
 
@@ -83,7 +83,7 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
         end
 
         function testWindowParameterEffect(tc)
-            tD = pulsedetection(tc.dppg, tc.fs);
+            tD = pulsedet(tc.dppg, tc.fs);
 
             lower1 = pulseenvelopes(tc.ppg, tc.fs, tD, 'WindowB', 300e-3);
             lower2 = pulseenvelopes(tc.ppg, tc.fs, tD, 'WindowB', 50e-3);

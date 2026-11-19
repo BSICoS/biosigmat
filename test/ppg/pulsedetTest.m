@@ -3,9 +3,9 @@
 %   - Algorithm parameter validation
 %   - Future: Multiple algorithm support
 
-classdef pulsedetectionTest < matlab.unittest.TestCase
+classdef pulsedetTest < matlab.unittest.TestCase
     properties (TestParameter)
-        caseId = getBiosiglibConformanceCaseIds('ppg.pulsedetection')
+        caseId = getBiosiglibConformanceCaseIds('ppg.pulsedet')
     end
 
     properties
@@ -66,13 +66,13 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
                     args = [args, {matlabNames{k}, value}]; %#ok<AGROW>
                 end
             end
-            [tD, threshold] = pulsedetection(signal, fs, args{:});
+            [tD, threshold] = pulsedet(signal, fs, args{:});
             actual = struct('t_d', tD, 'threshold', threshold);
             verifyBiosiglibExpectedOutputs(tc, actual, c);
         end
 
         function testBasicFunctionality(tc)
-            [tD, threshold] = pulsedetection(tc.signalFiltered, tc.fs);
+            [tD, threshold] = pulsedet(tc.signalFiltered, tc.fs);
 
             % Expected values (hardcoded from test run with first 30 seconds)
             expectedTD = [0.4770; 1.2350; 1.9810; 2.7010; 3.3720];
@@ -100,8 +100,8 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
 
         function testAdaptiveMethodExplicit(tc)
             % Test explicit specification of adaptive method
-            [tD1, threshold1] = pulsedetection(tc.signalFiltered, tc.fs);
-            [tD2, threshold2] = pulsedetection(tc.signalFiltered, tc.fs, 'Method', 'adaptive');
+            [tD1, threshold1] = pulsedet(tc.signalFiltered, tc.fs);
+            [tD2, threshold2] = pulsedet(tc.signalFiltered, tc.fs, 'Method', 'adaptive');
 
             % Results should be identical
             tc.verifyEqual(tD1, tD2, 'Results with implicit and explicit adaptive method should match');
@@ -110,7 +110,7 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
 
         function testAdaptiveParameters(tc)
             % Test with custom adaptive parameters
-            [tD, threshold] = pulsedetection(tc.signalFiltered, tc.fs, ...
+            [tD, threshold] = pulsedet(tc.signalFiltered, tc.fs, ...
                 'AdaptiveAlphaAmp', 0.3, 'AdaptiveRefractPeriod', 0.2, 'AdaptiveTauRR', 1.5);
 
             % Verify outputs are valid
@@ -125,27 +125,27 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
 
         function testInvalidMethod(tc)
             % Test error handling for invalid method
-            tc.verifyError(@() pulsedetection(tc.signalFiltered, tc.fs, 'Method', 'invalid'), ...
+            tc.verifyError(@() pulsedet(tc.signalFiltered, tc.fs, 'Method', 'invalid'), ...
                 'MATLAB:InputParser:ArgumentFailedValidation', ...
                 'Should error with invalid method');
         end
 
         function testNarrowPeakAtThresholdCrossing(tc)
-            [tD, threshold] = pulsedetection([0; 0; 1; 0; 0], 10);
+            [tD, threshold] = pulsedet([0; 0; 1; 0; 0], 10);
             tc.verifyEqual(tD, 0.2, 'AbsTol', 1e-14);
             tc.verifySize(threshold, [5, 1]);
         end
 
         function testDefaultResetIsDisabled(tc)
-            [defaultTimes, defaultThreshold] = pulsedetection(tc.signalFiltered, tc.fs);
-            [explicitTimes, explicitThreshold] = pulsedetection(tc.signalFiltered, tc.fs, 'ResetAfter', Inf);
+            [defaultTimes, defaultThreshold] = pulsedet(tc.signalFiltered, tc.fs);
+            [explicitTimes, explicitThreshold] = pulsedet(tc.signalFiltered, tc.fs, 'ResetAfter', Inf);
             tc.verifyEqual(defaultTimes, explicitTimes);
             tc.verifyEqual(defaultThreshold, explicitThreshold);
         end
 
         function testLongerSignalPreservesEarlierAdaptiveState(tc)
-            [shortTimes, shortThreshold] = pulsedetection(tc.signalFiltered, tc.fs);
-            [longTimes, longThreshold] = pulsedetection(repmat(tc.signalFiltered, 3, 1), tc.fs);
+            [shortTimes, shortThreshold] = pulsedet(tc.signalFiltered, tc.fs);
+            [longTimes, longThreshold] = pulsedet(repmat(tc.signalFiltered, 3, 1), tc.fs);
             tc.verifyEqual(longTimes(longTimes < 25), shortTimes(shortTimes < 25));
             tc.verifyEqual(longThreshold(1:25*tc.fs), shortThreshold(1:25*tc.fs));
         end
@@ -155,8 +155,8 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
             signal = repmat(cycle, 20, 1);
             signal(601:1100) = NaN;
             signal(1101:end) = 0.05*signal(1101:end);
-            tDWithoutReset = pulsedetection(signal, 100);
-            tDWithReset = pulsedetection(signal, 100, 'ResetAfter', 2);
+            tDWithoutReset = pulsedet(signal, 100);
+            tDWithReset = pulsedet(signal, 100, 'ResetAfter', 2);
             tc.verifyFalse(any(tDWithoutReset > 11));
             tc.verifyEqual(tDWithReset(tDWithReset > 11), (11.43:1:19.43).', 'AbsTol', 1e-12);
             tc.verifyFalse(any(tDWithReset >= 6 & tDWithReset < 11));
@@ -166,20 +166,20 @@ classdef pulsedetectionTest < matlab.unittest.TestCase
             cycle = [zeros(40,1); 0; 1; 3; 5; 3; 1; 0; zeros(53,1)];
             signal = repmat(cycle, 20, 1);
             signal(601:end) = 0.05*signal(601:end);
-            tDWithoutReset = pulsedetection(signal, 100);
-            tDWithReset = pulsedetection(signal, 100, 'ResetAfter', 2);
+            tDWithoutReset = pulsedet(signal, 100);
+            tDWithReset = pulsedet(signal, 100, 'ResetAfter', 2);
             tc.verifyFalse(any(tDWithoutReset >= 6));
             tc.verifyTrue(any(tDWithReset > 8));
         end
 
         function testLongSignalAtHighSamplingFrequency(tc)
-            [tD, threshold] = pulsedetection(zeros(10001,1), 2500);
+            [tD, threshold] = pulsedet(zeros(10001,1), 2500);
             tc.verifyEmpty(tD);
             tc.verifyEqual(threshold, zeros(10001,1));
         end
 
         function testAllMissingSignal(tc)
-            [tD, threshold] = pulsedetection(nan(50,1), 100);
+            [tD, threshold] = pulsedet(nan(50,1), 100);
             tc.verifyEmpty(tD);
             tc.verifyTrue(all(isnan(threshold)));
         end

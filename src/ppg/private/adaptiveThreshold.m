@@ -3,7 +3,7 @@ function [nD, threshold] = adaptiveThreshold(dppg, fs, params)
 %
 %   [ND, THRESHOLD] = ADAPTIVETHRESHOLD(DPPG, FS, PARAMS) implements the
 %   adaptive thresholding algorithm for pulse detection in PPG derivative signals.
-%   This is a private function called by PULSEDETECTION.
+%   This is a private function called by PULSEDET.
 %
 %   DPPG is the derivative PPG signal (column vector), FS is the sampling rate
 %   in Hz, and PARAMS is a struct containing algorithm parameters:
@@ -16,7 +16,7 @@ function [nD, threshold] = adaptiveThreshold(dppg, fs, params)
 %
 %   This function assumes inputs are already validated by the calling function.
 %
-%   See also PULSEDETECTION
+%   See also PULSEDET
 
 
 % Algorithm constants

@@ -6,7 +6,7 @@ function [lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, tD, varargin)
 %   pulse within a window before each pulse detection time TD and
 %   interpolating these anchor points. PPG is a numeric vector, FS is the
 %   sampling rate in Hz (positive scalar), and TD contains pulse detection
-%   times in seconds (typically returned by pulsedetection). LOWERENVELOPE is
+%   times in seconds (typically returned by pulsedet). LOWERENVELOPE is
 %   a column vector with the same length as PPG.
 %
 %   [LOWERENVELOPE, UPPERENVELOPE] = PULSEENVELOPES(PPG, FS, TD) also returns
@@ -25,7 +25,7 @@ function [lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, tD, varargin)
 %     [b, delay] = lpdfilter(fs, 8, 'PassFreq', 7.8, 'Order', 100);
 %     dppg = filter(b, 1, ppg);
 %     dppg = [dppg(delay+1:end); zeros(delay, 1)];
-%     tD = pulsedetection(dppg, fs);
+%     tD = pulsedet(dppg, fs);
 %
 %     % Estimate envelopes
 %     [lowerEnv, upperEnv] = pulseenvelopes(ppg, fs, tD);
@@ -38,7 +38,7 @@ function [lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, tD, varargin)
 %     legend('PPG', 'Lower envelope', 'Upper envelope');
 %     xlabel('Time (s)'); ylabel('Amplitude');
 %
-%   See also PULSEDETECTION, PULSEDELINEATION, INTERP1
+%   See also PULSEDET, PULSEDELINEATION, INTERP1
 
 
 % Check number of input and output arguments

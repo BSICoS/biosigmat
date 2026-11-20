@@ -5,6 +5,10 @@
 
 classdef tidalvolumeTest < matlab.unittest.TestCase
 
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('resp.tidalvolume')
+    end
+
     properties
         signal
     end
@@ -22,8 +26,24 @@ classdef tidalvolumeTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            resp = loadBiosiglibConformanceInput(c, 'resp');
+            fs = loadBiosiglibConformanceInput(c, 'sampling_frequency');
+            args = {};
+            if isfield(c.parameters, 'mindist')
+                args = {c.parameters.mindist};
+            end
+            if isfield(c.parameters, 'max_gap')
+                args = [args, {'MaxGap', c.parameters.max_gap}];
+            end
+            [v, u, l] = tidalvolume(resp, fs, args{:});
+            verifyBiosiglibExpectedOutputs(tc, struct('tdvol', v, ...
+                'upper_envelope', u, 'lower_envelope', l), c);
+        end
+
         function testBasicFunctionality(tc)
-            [tdvol, upper, lower] = tidalvolume(tc.signal);
+            [tdvol, upper, lower] = tidalvolume(tc.signal, 1000);
 
             % Verify outputs are same length as input
             tc.verifyEqual(length(tdvol), length(tc.signal));
@@ -33,14 +53,14 @@ classdef tidalvolumeTest < matlab.unittest.TestCase
 
         function testNanHandling(tc)
             signalWithNans = tc.signal;
-            signalWithNans([50, 100, 150]) = NaN;
+            signalWithNans(950:970) = NaN;
 
-            tdvolume = tidalvolume(signalWithNans);
+            tdvolume = tidalvolume(signalWithNans, 1000);
             nanSignalIndices = isnan(signalWithNans);
 
-            % Verify NaNs in signal correspond to NaNs in tidal volume
-            tc.verifyTrue(all(isnan(tdvolume(nanSignalIndices))), ...
-                'Tidal volume should have NaNs where signal has NaNs');
+            % The surrounding complete cycles support interpolation across this gap.
+            tc.verifyTrue(all(isfinite(tdvolume(nanSignalIndices))), ...
+                'Short gaps should be interpolated between supported cycles');
         end
 
         function testMindistParameter(tc)
@@ -49,11 +69,11 @@ classdef tidalvolumeTest < matlab.unittest.TestCase
             noisySignal = tc.signal + 0.1 * randn(size(tc.signal));
 
             % Extract envelopes with default mindist (0)
-            [~, upper1, lower1] = tidalvolume(noisySignal);
+            [~, upper1, lower1] = tidalvolume(noisySignal, 1000);
 
             % Extract envelopes with larger mindist to filter close crossings
-            mindist = 20;
-            [~, upper2, lower2] = tidalvolume(noisySignal, mindist);
+            mindist = 0.020;
+            [~, upper2, lower2] = tidalvolume(noisySignal, 1000, mindist);
 
             % Verify outputs are same length
             tc.verifyEqual(length(upper1), length(noisySignal));
@@ -63,7 +83,7 @@ classdef tidalvolumeTest < matlab.unittest.TestCase
 
             % With mindist filtering, we expect smoother envelopes
             % (fewer extreme variations due to noise-induced close crossings)
-            tc.verifyTrue(~isequal(upper1, upper2) || ~isequal(lower1, lower2), ...
+            tc.verifyTrue(~isequaln(upper1, upper2) || ~isequaln(lower1, lower2), ...
                 'Mindist parameter should affect the envelope extraction');
         end
     end

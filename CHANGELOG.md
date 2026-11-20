@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- `tidalvolume` now requires the sampling frequency. Crossing separation and optional `MaxGap` are in seconds; complete cycles and their envelopes interpolate independently.
+
 - Renamed `pulseenvelopes` to `pulsenv`. Envelopes use delineated or supplied basal and apex times and split interpolation at `MaxGap`.
 
 - Renamed `pulsedetection` and `pulsedelineation` to `pulsedet` and `pulsedel`.

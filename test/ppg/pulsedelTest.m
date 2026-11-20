@@ -4,7 +4,11 @@
 %   - Empty detections
 %   - Nargout-optimized behavior
 
-classdef pulsedelineationTest < matlab.unittest.TestCase
+classdef pulsedelTest < matlab.unittest.TestCase
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('ppg.pulsedel')
+    end
+
     properties
         ppg
         dppg
@@ -39,13 +43,42 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             tc.dppg = [tc.dppg(delay+1:end); zeros(delay, 1)];
 
             % Compute pulse detection points for use in tests
-            tc.tD = pulsedetection(tc.dppg, tc.fs);
+            tc.tD = pulsedet(tc.dppg, tc.fs);
         end
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            ppg = loadBiosiglibConformanceInput(c, 'ppg');
+            fs = loadBiosiglibConformanceInput(c, 'sampling_frequency');
+            tD = loadBiosiglibConformanceInput(c, 't_d');
+            dppg = loadBiosiglibConformanceInput(c, 'dppg');
+            [a, b, m, o] = pulsedel(ppg, fs, tD, dppg);
+            verifyBiosiglibExpectedOutputs(tc, struct('t_a', a, 't_b', b, ...
+                't_m', m, 't_o', o), c);
+        end
+
+        function testMissingDerivative(tc)
+            tc.verifyError(@() requestOnset(tc.ppg, tc.fs, tc.tD), ...
+                'pulsedel:MissingDerivative');
+        end
+
+        function testDetectionAlignment(tc)
+            detections = [tc.tD(2), NaN, tc.tD(1), tc.tD(2)];
+            [a, b, m, o] = pulsedel(tc.ppg, tc.fs, detections, tc.dppg);
+            for output = {a, b, m, o}
+                tc.verifySize(output{1}, [4, 1]);
+                tc.verifyTrue(isnan(output{1}(2)));
+                tc.verifyEqual(output{1}(1), output{1}(4));
+                tc.verifyGreaterThan(output{1}(1), output{1}(3));
+            end
+            tc.verifyError(@() pulsedel(tc.ppg, tc.fs, -0.1/tc.fs), ...
+                'pulsedel:DetectionOutOfBounds');
+        end
+
         function testBasicFunctionality(tc)
-            [tA, tB, tM] = pulsedelineation(tc.ppg, tc.fs, tc.tD);
+            [tA, tB, tM] = pulsedel(tc.ppg, tc.fs, tc.tD);
 
             % Expected values
             expectedTA = [0.5805; 1.3400; 2.0684; 2.7887; 3.4662];
@@ -77,7 +110,7 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             customWindowA = 300e-3;
             customWindowB = 200e-3;
 
-            [tA, tB, tM] = pulsedelineation(tc.ppg, tc.fs, tc.tD, ...
+            [tA, tB, tM] = pulsedel(tc.ppg, tc.fs, tc.tD, ...
                 'WindowA', customWindowA, 'WindowB', customWindowB);
 
             % Verify outputs are valid
@@ -86,32 +119,39 @@ classdef pulsedelineationTest < matlab.unittest.TestCase
             tc.verifyClass(tM, 'double', 'tM should be double array');
 
             % Verify that we get reasonable results (not all NaN)
-            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one pulse onset');
-            tc.verifyTrue(sum(~isnan(tB)) > 0, 'Should detect at least one pulse offset');
+            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one apex');
+            tc.verifyTrue(sum(~isnan(tB)) > 0, 'Should detect at least one basal point');
             tc.verifyTrue(sum(~isnan(tM)) > 0, 'Should detect at least one pulse midpoint');
         end
 
         function testEmptyDetectionPoints(tc)
-            [tA, tB, tM] = pulsedelineation(tc.dppg, tc.fs, []);
+            [tA, tB, tM] = pulsedel(tc.dppg, tc.fs, []);
 
-            % Should return NaN arrays when no detection points provided
-            tc.verifyTrue(isnan(tA), 'tA should be NaN when tD is empty');
-            tc.verifyTrue(isnan(tB), 'tB should be NaN when tD is empty');
-            tc.verifyTrue(isnan(tM), 'tM should be NaN when tD is empty');
+            tc.verifySize(tA, [0, 1]);
+            tc.verifySize(tB, [0, 1]);
+            tc.verifySize(tM, [0, 1]);
         end
 
         function testNargoutOptimization(tc)
             % Test with nargout = 1 (only tA)
-            tA = pulsedelineation(tc.ppg, tc.fs, tc.tD);
+            tA = pulsedel(tc.ppg, tc.fs, tc.tD);
             tc.verifyClass(tA, 'double', 'tA should be double array');
-            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one pulse onset');
+            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one apex');
 
             % Test with nargout = 2 (tA and tB)
-            [tA, tB] = pulsedelineation(tc.ppg, tc.fs, tc.tD);
+            [tA, tB] = pulsedel(tc.ppg, tc.fs, tc.tD);
             tc.verifyClass(tA, 'double', 'tA should be double array');
             tc.verifyClass(tB, 'double', 'tB should be double array');
-            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one pulse onset');
-            tc.verifyTrue(sum(~isnan(tB)) > 0, 'Should detect at least one pulse offset');
+            tc.verifyTrue(sum(~isnan(tA)) > 0, 'Should detect at least one apex');
+            tc.verifyTrue(sum(~isnan(tB)) > 0, 'Should detect at least one basal point');
         end
     end
+end
+
+
+function requestOnset(ppg, fs, tD)
+% REQUESTONSET Request all four outputs without providing the derivative.
+%
+%   REQUESTONSET(PPG, FS, TD) exercises the missing-derivative error.
+[~, ~, ~, ~] = pulsedel(ppg, fs, tD);
 end

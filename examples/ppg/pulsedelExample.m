@@ -1,15 +1,8 @@
-% PULSEDELINEATIONEXAMPLE Example demonstrating pulse delineation in PPG signals.
+% PULSEDELEXAMPLE Example demonstrating pulse delineation in PPG signals.
 %
-% This example demonstrates how to perform detailed pulse delineation in
-% photoplethysmographic (PPG) signals using the pulsedelineation function. The
-% process requires the PPG signal to be preprocessed with low-pass derivative (LPD)
-% filtering before delineation can be applied. The example loads PPG signal data
-% from fixture files, applies the necessary preprocessing steps, and uses the
-% pulsedelineation algorithm to identify key fiducial points within each pulse
-% including onset, peak, and offset locations. Results are visualized showing
-% the original PPG signal with detailed pulse delineation markers, demonstrating
-% the algorithm's capability to extract morphological features from individual
-% cardiac cycles.
+% Detect pulses and delineate the apex, basal point, mid-amplitude point
+% and onset of each pulse. Both methods use the same delay-aligned
+% derivative. The onset is marked separately from the basal minimum.
 
 
 % Add source paths
@@ -46,11 +39,11 @@ dppg = filter(b, 1, ppg);
 dppg = [dppg(delay+1:end); zeros(delay, 1)];
 
 % Pulse detection
-tD = pulsedetection(dppg, fs);
+tD = pulsedet(dppg, fs);
 
-% Run pulse delineation on filtered signal with default parameters
+% Run pulse delineation using the same derivative as the detector
 fprintf('\nRunning pulse delineation...\n');
-[tA, tB, tM] = pulsedelineation(ppg, fs, tD);
+[tA, tB, tM, tO] = pulsedel(ppg, fs, tD, dppg);
 
 
 %% Plot results
@@ -64,6 +57,7 @@ plot(tD(~isnan(tD)), ppg(1+round(tD(~isnan(tD))*fs)), 'o','LineWidth',1,'color',
 plot(tA(~isnan(tA)), ppg(1+round(tA(~isnan(tA))*fs)), 'v','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','t_A');
 plot(tB(~isnan(tB)), ppg(1+round(tB(~isnan(tB))*fs)), '^','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','t_B');
 plot(tM(~isnan(tM)), ppg(1+round(tM(~isnan(tM))*fs)), 's','LineWidth',1,'color',[0.85,0.33,0.10],'MarkerFaceColor',[0.85,0.33,0.10],'DisplayName','t_M');
+plot(tO(~isnan(tO)), ppg(1+round(tO(~isnan(tO))*fs)), 'd','LineWidth',1,'color',[0.49,0.18,0.56],'MarkerFaceColor',[0.49,0.18,0.56],'DisplayName','t_O');
 title('PPG Delineation');
 xlabel('Time (s)');
 ylabel('Amplitude');
@@ -75,6 +69,7 @@ plot(tD(~isnan(tD)), dppg(1+round(tD(~isnan(tD))*fs)), 'o','LineWidth',1,'color'
 plot(tA(~isnan(tA)), dppg(1+round(tA(~isnan(tA))*fs)), 'v','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','t_A');
 plot(tB(~isnan(tB)), dppg(1+round(tB(~isnan(tB))*fs)), '^','LineWidth',1,'color',[0.00,0.45,0.74],'MarkerFaceColor',[0.00,0.45,0.74],'DisplayName','t_B');
 plot(tM(~isnan(tM)), dppg(1+round(tM(~isnan(tM))*fs)), 's','LineWidth',1,'color',[0.85,0.33,0.10],'MarkerFaceColor',[0.85,0.33,0.10],'DisplayName','t_M');
+plot(tO(~isnan(tO)), dppg(1+round(tO(~isnan(tO))*fs)), 'd','LineWidth',1,'color',[0.49,0.18,0.56],'MarkerFaceColor',[0.49,0.18,0.56],'DisplayName','t_O');
 xline(0,'k:','HandleVisibility','off');
 xlabel('Time (s)');
 ylabel('Amplitude');

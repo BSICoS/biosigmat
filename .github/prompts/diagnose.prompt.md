@@ -58,4 +58,4 @@ Use the project conventions defined in `docs/contribute/contribution-guide.md` a
 ## Behavior
 - Be direct and specific.
 - If you suspect a bug, explain why it’s a bug (units mismatch, off-by-one indexing, etc.).
-- Prefer pointing to an existing function in the same module as a style reference (e.g., `src/ppg/pulsedelineation.m`).
+- Prefer pointing to an existing function in the same module as a style reference (e.g., `src/ppg/pulsedel.m`).

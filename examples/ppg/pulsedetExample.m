@@ -1,10 +1,10 @@
-% PULSEDETECTIONEXAMPLE Example demonstrating pulse detection in PPG signals.
+% PULSEDETEXAMPLE Example demonstrating pulse detection in PPG signals.
 %
 % This example demonstrates how to detect individual pulses in photoplethysmographic
-% (PPG) signals using the pulsedetection function. The process requires the PPG signal
+% (PPG) signals using the pulsedet function. The process requires the PPG signal
 % to be preprocessed with low-pass derivative (LPD) filtering before pulse detection
 % can be applied. The example loads PPG signal data from fixture files, applies the
-% necessary preprocessing steps, and uses the pulsedetection algorithm to identify
+% necessary preprocessing steps, and uses the pulsedet algorithm to identify
 % pulse locations. Results are visualized showing the original PPG signal with
 % detected pulse markers, demonstrating the algorithm's effectiveness in identifying
 % individual cardiac cycles within the PPG waveform.
@@ -45,7 +45,7 @@ signalFiltered = [signalFiltered(delay+1:end); zeros(delay, 1)];
 
 % Run pulse detection on filtered signal
 fprintf('\nRunning pulse detection...\n');
-[tD, threshold] = pulsedetection(signalFiltered, fs);
+[tD, threshold] = pulsedet(signalFiltered, fs);
 
 %% Plot results
 fprintf('\nPlotting results...\n');
@@ -97,8 +97,8 @@ resetAfter = 5;
 
 % Control: run the same recorded signal with the optional feature disabled
 % and enabled, before introducing the simulated interruption and gain change.
-tDOriginalWithoutReset = pulsedetection(recoverySignal, recoveryFs);
-tDOriginalWithReset = pulsedetection(recoverySignal, recoveryFs, 'ResetAfter', resetAfter);
+tDOriginalWithoutReset = pulsedet(recoverySignal, recoveryFs);
+tDOriginalWithReset = pulsedet(recoverySignal, recoveryFs, 'ResetAfter', resetAfter);
 
 % Simulate 10 seconds of unavailable data, followed by a device gain of 0.05
 % times its previous value. Scaling the filtered waveform preserves the real
@@ -113,8 +113,8 @@ recoverySignal(recoveryTime >= gapEnd) = amplitudeFactor*recoverySignal(recovery
 % the old threshold may remain too high. With ResetAfter = 5 s, the missing
 % span has already exceeded the timeout when data returns, so the detector
 % reinitializes using the available signal at its new amplitude.
-[tDWithoutReset, thresholdWithoutReset] = pulsedetection(recoverySignal, recoveryFs);
-[tDWithReset, thresholdWithReset] = pulsedetection(recoverySignal, recoveryFs, 'ResetAfter', resetAfter);
+[tDWithoutReset, thresholdWithoutReset] = pulsedet(recoverySignal, recoveryFs);
+[tDWithReset, thresholdWithReset] = pulsedet(recoverySignal, recoveryFs, 'ResetAfter', resetAfter);
 
 % Left panels show the interruption and gain change; right panels zoom into
 % recovery. Each column uses matching axes for a direct comparison.

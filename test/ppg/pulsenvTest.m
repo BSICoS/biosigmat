@@ -4,7 +4,11 @@
 %   - Empty detections handling
 %   - Window parameter effect
 
-classdef pulseenvelopesTest < matlab.unittest.TestCase
+classdef pulsenvTest < matlab.unittest.TestCase
+    properties (TestParameter)
+        caseId = getBiosiglibConformanceCaseIds('ppg.pulsenv')
+    end
+
     properties
         ppg
         dppg
@@ -40,44 +44,66 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
     end
 
     methods (Test)
+        function testConformance(tc, caseId)
+            c = loadBiosiglibConformanceCase(caseId);
+            ppg = loadBiosiglibConformanceInput(c, 'ppg');
+            fs = loadBiosiglibConformanceInput(c, 'sampling_frequency');
+            inputs = c.inputs;
+            if iscell(inputs)
+                ids = cellfun(@(x) x.id, inputs, 'UniformOutput', false);
+            else
+                ids = {inputs.id};
+            end
+            if ismember('t_d', ids)
+                args = {loadBiosiglibConformanceInput(c, 't_d')};
+            else
+                args = {'tA', loadBiosiglibConformanceInput(c, 't_a'), ...
+                    'tB', loadBiosiglibConformanceInput(c, 't_b')};
+            end
+            if isfield(c.parameters, 'max_gap')
+                args = [args, {'MaxGap', c.parameters.max_gap}];
+            end
+            [lo, hi] = pulsenv(ppg, fs, args{:});
+            verifyBiosiglibExpectedOutputs(tc, struct('lower_envelope', lo, ...
+                'upper_envelope', hi), c);
+        end
+
+        function testRejectTimeVector(tc)
+            tc.verifyError(@() pulsenv([1; 2; 3], [0; 1; 2], []), ...
+                'MATLAB:InputParser:ArgumentFailedValidation');
+        end
+
         function testTwoOutputs(tc)
             tD = pulsedet(tc.dppg, tc.fs);
-            [lowerEnv, upperEnv] = pulseenvelopes(tc.ppg, tc.fs, tD);
+            [lowerEnv, upperEnv] = pulsenv(tc.ppg, tc.fs, tD);
 
             tc.verifyClass(lowerEnv, 'double');
             tc.verifyClass(upperEnv, 'double');
             tc.verifySize(lowerEnv, size(tc.ppg(:)));
             tc.verifySize(upperEnv, size(tc.ppg(:)));
 
-            validTD = tD(~isnan(tD));
-            tc.verifyGreaterThan(numel(validTD), 1, 'Expected at least two detections in fixture segment');
-
-            t = (0:length(tc.ppg)-1)'/tc.fs;
-            firstTD = validTD(1);
-            lastTD = validTD(end);
-
-            tc.verifyTrue(all(isnan(lowerEnv(t < firstTD))), 'Lower envelope should be NaN before first detection');
-            tc.verifyTrue(all(isnan(lowerEnv(t > lastTD))), 'Lower envelope should be NaN after last detection');
-            tc.verifyTrue(all(isnan(upperEnv(t < firstTD))), 'Upper envelope should be NaN before first detection');
-            tc.verifyTrue(all(isnan(upperEnv(t > lastTD))), 'Upper envelope should be NaN after last detection');
+            [tA, tB] = pulsedel(tc.ppg, tc.fs, tD);
+            [fromB, fromA] = pulsenv(tc.ppg, tc.fs, 'tA', tA, 'tB', tB);
+            tc.verifyEqual(lowerEnv, fromB);
+            tc.verifyEqual(upperEnv, fromA);
         end
 
         function testSingleOutputMatchesLowerEnvelope(tc)
             tD = pulsedet(tc.dppg, tc.fs);
-            lowerOnly = pulseenvelopes(tc.ppg, tc.fs, tD);
-            [lowerEnv, ~] = pulseenvelopes(tc.ppg, tc.fs, tD);
+            lowerOnly = pulsenv(tc.ppg, tc.fs, tD);
+            [lowerEnv, ~] = pulsenv(tc.ppg, tc.fs, tD);
 
             tc.verifyEqual(lowerOnly, lowerEnv, 'Single-output call should return the lower envelope');
         end
 
         function testEmptyDetections(tc)
-            warningId = 'pulseenvelopes:emptyDetections';
-            tc.verifyWarning(@() pulseenvelopes(tc.ppg, tc.fs, []), warningId);
+            warningId = 'pulsenv:emptyDetections';
+            tc.verifyWarning(@() pulsenv(tc.ppg, tc.fs, []), warningId);
 
             warningState = warning('off', warningId);
             cleanup = onCleanup(@() warning(warningState));
 
-            [lowerEnv, upperEnv] = pulseenvelopes(tc.ppg, tc.fs, []);
+            [lowerEnv, upperEnv] = pulsenv(tc.ppg, tc.fs, []);
             tc.verifyTrue(all(isnan(lowerEnv)), 'Lower envelope should be all NaN for empty detections');
             tc.verifyTrue(all(isnan(upperEnv)), 'Upper envelope should be all NaN for empty detections');
         end
@@ -85,8 +111,8 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
         function testWindowParameterEffect(tc)
             tD = pulsedet(tc.dppg, tc.fs);
 
-            lower1 = pulseenvelopes(tc.ppg, tc.fs, tD, 'WindowB', 300e-3);
-            lower2 = pulseenvelopes(tc.ppg, tc.fs, tD, 'WindowB', 50e-3);
+            lower1 = pulsenv(tc.ppg, tc.fs, tD, 'WindowB', 300e-3);
+            lower2 = pulsenv(tc.ppg, tc.fs, tD, 'WindowB', 50e-3);
 
             delta = lower1 - lower2;
             delta = delta(~isnan(delta));
@@ -100,17 +126,17 @@ classdef pulseenvelopesTest < matlab.unittest.TestCase
             tD = [0.5001; 0.5002];
 
             % Lower envelope only: should warn about insufficient lower anchors
-            tc.verifyWarning(@() pulseenvelopes(signal, samplingRate, tD), 'pulseenvelopes:insufficientLowerAnchors');
+            tc.verifyWarning(@() pulsenv(signal, samplingRate, tD), 'pulsenv:insufficientLowerAnchors');
 
             % Two outputs: suppress lower warning and verify upper warning
-            lowerWarnState = warning('off', 'pulseenvelopes:insufficientLowerAnchors');
+            lowerWarnState = warning('off', 'pulsenv:insufficientLowerAnchors');
             cleanupLower = onCleanup(@() warning(lowerWarnState));
-            tc.verifyWarning(@() callTwoOutputs(signal, samplingRate, tD), 'pulseenvelopes:insufficientUpperAnchors');
+            tc.verifyWarning(@() callTwoOutputs(signal, samplingRate, tD), 'pulsenv:insufficientUpperAnchors');
             clear cleanupLower
         end
     end
 end
 
 function [lowerEnvelope, upperEnvelope] = callTwoOutputs(ppg, fs, tD)
-[lowerEnvelope, upperEnvelope] = pulseenvelopes(ppg, fs, tD);
+[lowerEnvelope, upperEnvelope] = pulsenv(ppg, fs, tD);
 end

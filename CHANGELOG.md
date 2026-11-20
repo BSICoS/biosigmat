@@ -4,6 +4,8 @@ This file is the authoritative release history. GitHub Releases reuse the corres
 
 ## Unreleased
 
+- Renamed `pulseenvelopes` to `pulsenv`. Envelopes use delineated or supplied basal and apex times and split interpolation at `MaxGap`.
+
 - Renamed `pulsedetection` and `pulsedelineation` to `pulsedet` and `pulsedel`.
 
 - `pulsedel` preserves detection order and missing entries, stops at PPG gaps and accepts an aligned derivative for its fourth output (onset).
